@@ -14,23 +14,23 @@ services:
       # ¡Excelente! Esto inicializa la DB en el primer arranque y persiste los datos.
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       # ¡Importante! Agrega un volumen para persistir los datos de la DB
-      - pgdata-prod-alt:/var/lib/postgresql/data-prod-alt # Mapea el directorio de datos de Postgres a un volumen
+      - pgdata:/var/lib/postgresql/data # Mapea el directorio de datos de Postgres a un volumen
     ports:
       # Mapea el puerto interno 5432 al 55432 en el host.
       # Útil para acceder desde tu máquina con un cliente SQL (DBeaver, pgAdmin, etc.)
       # Los microservicios usarán el puerto interno 5432.
-      - "55433:5435"
+      - "55432:5432"
     restart: unless-stopped
     networks:
-      - ms-network-prod-alt # <-- ¡Añadir! Conecta la DB a la red ms-network
+      - ms-network # <-- ¡Añadir! Conecta la DB a la red ms-network
 
   auth:
     build:
       context: ./auth
-    container_name: auth-prod-alt
+    container_name: auth
     environment:
       # Correcto uso del nombre del servicio 'database' y el puerto interno 5432
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5435/auth # Asume que init.sql crea la DB 'auth'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/auth # Asume que init.sql crea la DB 'auth'
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ipqq7890
       # Otras variables de entorno para auth si las necesita (puertos de otros servicios, secrets, etc.)
@@ -42,18 +42,18 @@ services:
     volumes:
       - ./auth/config/application.yml:/app/config/application.yml # Mapea el archivo de configuración
     ports:
-      - "8030:8009" # Mapea el puerto 8009 del contenedor al 8009 del host
+      - "8009:8009" # Mapea el puerto 8009 del contenedor al 8009 del host
     restart: unless-stopped
     networks:
-      - ms-network-prod-alt # <-- ¡Añadir! Conecta auth a la red ms-network
+      - ms-network # <-- ¡Añadir! Conecta auth a la red ms-network
 
   turnos:
     build:
       context: ./turnos
-    container_name: turnos-prod-alt
+    container_name: turnos
     environment:
       # Correcto uso del nombre del servicio 'database' y el puerto interno 5432
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5435/turnos # Asume que init.sql crea la DB 'turnos'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/turnos # Asume que init.sql crea la DB 'turnos'
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ipqq7890
       # Otras variables de entorno para turnos
@@ -65,18 +65,18 @@ services:
       - commonservices # Si turnos depende de common-services lógicamente
       - auth # Si turnos depende de auth lógicamente
     ports:
-      - "8031:8010" # Mapea el puerto 8010 del contenedor al 8010 del host
+      - "8010:8010" # Mapea el puerto 8010 del contenedor al 8010 del host
     restart: unless-stopped
     networks:
-      - ms-network-prod-alt # <-- ¡Añadir! Conecta turnos a la red ms-network
+      - ms-network # <-- ¡Añadir! Conecta turnos a la red ms-network
 
   commonservices:
     build:
       context: ./commonservices
-    container_name: commonservices-prod-alt
+    container_name: commonservices
     environment:
       # Correcto uso del nombre del servicio 'database' y el puerto interno 5432
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5435/commonservices # Asume que init.sql crea la DB 'commonservices'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/commonservices # Asume que init.sql crea la DB 'commonservices'
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ipqq7890
       # Otras variables de entorno para common-services
@@ -86,30 +86,30 @@ services:
       - database # common-services probablemente necesita la DB
       - auth # Si common-services depende de auth lógicamente
     ports:
-      - "8032:8011" # Mapea el puerto 8011 del contenedor al 8011 del host
+      - "8011:8011" # Mapea el puerto 8011 del contenedor al 8011 del host
     restart: unless-stopped
     networks:
-      - ms-network-prod-alt # <-- ¡Añadir! Conecta common-services a la red ms-network
+      - ms-network # <-- ¡Añadir! Conecta common-services a la red ms-network
 
-  nginx-docker:
-    image: nginx:latest
-    container_name: nginx-docker
-    ports:
-      - "8088:80"    # Así lo pruebas en http://TU-IP:8088/
-    volumes:
-      - ./nginx-docker.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - frontend
-      - auth
-      - turnos
-      - commonservices
-    networks:
-      - ms-network-prod-alt
+  #nginx-docker:
+  #  image: nginx:latest
+  #  container_name: nginx-docker
+  #  ports:
+  #    - "8088:80"    # Así lo pruebas en http://TU-IP:8088/
+  #  volumes:
+  #    - ./nginx-docker.conf:/etc/nginx/nginx.conf:ro
+  #  depends_on:
+  #    - frontend
+  #    - auth
+  #    - turnos
+  #    - commonservices
+  #  networks:
+  #    - ms-network-prod-alt
 
   frontend:
     build:
       context: ./frontend
-    container_name: frontend-prod-alt
+    container_name: frontend
     # Asumiendo que tu frontend necesita llamar a las APIs de los backends
     #environment:
       # Aquí usas los nombres de servicio y los puertos internos de los backends
@@ -124,17 +124,17 @@ services:
       - turnos
       - commonservices
     ports:
-      - "8033:80" # Mapea el puerto 3000 del contenedor al 3000 del host
+      - "3000:80" # Mapea el puerto 3000 del contenedor al 3000 del host
     restart: unless-stopped
     networks:
-      - ms-network-prod-alt # <-- ¡Añadir! Conecta el frontend a la red ms-network
+      - ms-network # <-- ¡Añadir! Conecta el frontend a la red ms-network
 
 
 # Define los volúmenes para la persistencia
 volumes:
-  pgdata-prod-alt: # Volumen para los datos de PostgreSQL
+  pgdata: # Volumen para los datos de PostgreSQL
 
 # Define la red personalizada
 networks:
-  ms-network-prod-alt:
+  ms-network:
     driver: bridge # Tipo de red bridge es el más común para este caso
