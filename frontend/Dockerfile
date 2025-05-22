@@ -42,7 +42,7 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copia los archivos estáticos construidos SOLAMENTE desde la etapa 'builder'
 # La ruta /app/build debe coincidir con el directorio de salida de tu comando 'npm run build' en la etapa builder
 # /usr/share/nginx/html es el directorio donde Nginx sirve contenido por defecto
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html/turnos
 
 # Expone el puerto por defecto de Nginx
 EXPOSE 80
