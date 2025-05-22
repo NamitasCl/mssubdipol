@@ -19,7 +19,7 @@ services:
       # Mapea el puerto interno 5432 al 55432 en el host.
       # Útil para acceder desde tu máquina con un cliente SQL (DBeaver, pgAdmin, etc.)
       # Los microservicios usarán el puerto interno 5432.
-      - "55433:5432"
+      - "55433:5435"
     restart: unless-stopped
     networks:
       - ms-network-prod-alt # <-- ¡Añadir! Conecta la DB a la red ms-network
@@ -30,7 +30,7 @@ services:
     container_name: auth-prod-alt
     environment:
       # Correcto uso del nombre del servicio 'database' y el puerto interno 5432
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/auth # Asume que init.sql crea la DB 'auth'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5435/auth # Asume que init.sql crea la DB 'auth'
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ipqq7890
       # Otras variables de entorno para auth si las necesita (puertos de otros servicios, secrets, etc.)
@@ -53,7 +53,7 @@ services:
     container_name: turnos-prod-alt
     environment:
       # Correcto uso del nombre del servicio 'database' y el puerto interno 5432
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/turnos # Asume que init.sql crea la DB 'turnos'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5435/turnos # Asume que init.sql crea la DB 'turnos'
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ipqq7890
       # Otras variables de entorno para turnos
@@ -76,7 +76,7 @@ services:
     container_name: commonservices-prod-alt
     environment:
       # Correcto uso del nombre del servicio 'database' y el puerto interno 5432
-      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/commonservices # Asume que init.sql crea la DB 'commonservices'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5435/commonservices # Asume que init.sql crea la DB 'commonservices'
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ipqq7890
       # Otras variables de entorno para common-services

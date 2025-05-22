@@ -14,7 +14,7 @@ services:
   database:
     container_name: pgdatabase-prod-alt
     ports:
-      - "55433:5432"
+      - "55433:5435"
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata-prod-alt:/var/lib/postgresql/data-prod-alt
