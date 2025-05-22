@@ -42,7 +42,7 @@ services:
     volumes:
       - ./auth/config/application.yml:/app/config/application.yml # Mapea el archivo de configuración
     ports:
-      - "8009:8009" # Mapea el puerto 8009 del contenedor al 8009 del host
+      - "8030:8009" # Mapea el puerto 8009 del contenedor al 8009 del host
     restart: unless-stopped
     networks:
       - ms-network-prod-alt # <-- ¡Añadir! Conecta auth a la red ms-network
@@ -65,7 +65,7 @@ services:
       - commonservices # Si turnos depende de common-services lógicamente
       - auth # Si turnos depende de auth lógicamente
     ports:
-      - "8010:8010" # Mapea el puerto 8010 del contenedor al 8010 del host
+      - "8031:8010" # Mapea el puerto 8010 del contenedor al 8010 del host
     restart: unless-stopped
     networks:
       - ms-network-prod-alt # <-- ¡Añadir! Conecta turnos a la red ms-network
@@ -86,7 +86,7 @@ services:
       - database # common-services probablemente necesita la DB
       - auth # Si common-services depende de auth lógicamente
     ports:
-      - "8011:8011" # Mapea el puerto 8011 del contenedor al 8011 del host
+      - "8032:8011" # Mapea el puerto 8011 del contenedor al 8011 del host
     restart: unless-stopped
     networks:
       - ms-network-prod-alt # <-- ¡Añadir! Conecta common-services a la red ms-network
@@ -124,7 +124,7 @@ services:
       - turnos
       - commonservices
     ports:
-      - "3000:80" # Mapea el puerto 3000 del contenedor al 3000 del host
+      - "8033:80" # Mapea el puerto 3000 del contenedor al 3000 del host
     restart: unless-stopped
     networks:
       - ms-network-prod-alt # <-- ¡Añadir! Conecta el frontend a la red ms-network
