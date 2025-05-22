@@ -1,0 +1,3 @@
+CREATE DATABASE auth;
+CREATE DATABASE turnos;
+CREATE DATABASE commonservices;

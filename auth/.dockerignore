@@ -1,0 +1,19 @@
+# Ignora el Dockerfile y el archivo .dockerignore
+Dockerfile
+.dockerignore
+
+# Ignora el directorio 'target' que contiene los artefactos de build locales
+# Docker construirá el JAR dentro del contenedor
+target/
+
+# Ignora directorios y archivos de IDE
+.idea/
+.vscode/
+
+# Ignora archivos de Git
+.git/
+.gitignore
+
+# Ignora archivos temporales o de sistema operativo
+*.iml
+.DS_Store

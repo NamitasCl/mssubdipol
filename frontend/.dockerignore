@@ -1,0 +1,21 @@
+# Ignora el Dockerfile y el archivo .dockerignore
+Dockerfile
+.dockerignore
+
+# Ignora el directorio node_modules local, Docker los instalará
+node_modules/
+
+# Ignora el directorio de build local, Docker lo generará en la etapa builder
+build/
+dist/ # Si tu build genera en 'dist'
+
+# Ignora directorios y archivos de IDE
+.idea/
+.vscode/
+
+# Ignora archivos de Git
+.git/
+.gitignore
+
+# Ignora archivos temporales o de sistema operativo
+.DS_Store

@@ -1,0 +1,86 @@
+# ===============================
+# 1. Java / Spring Boot (para auth, turnos, commonservices)
+# ===============================
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+**/.idea/
+**/*.iml
+*.log
+
+# ===============================
+# 2. Node / React (frontend)
+# ===============================
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.*
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.eslintcache
+
+# ===============================
+# 3. Docker
+# ===============================
+*.pid
+docker-compose.override.yml
+docker-compose.prod.yml
+
+# ===============================
+# 4. IDE / Editor config (VSCode, JetBrains, etc)
+# ===============================
+.idea/
+.vscode/
+*.sw?
+.DS_Store
+Thumbs.db
+
+# ===============================
+# 5. Sistema Operativo y temporales
+# ===============================
+*.tmp
+*.bak
+*.old
+*.orig
+*~
+*.sublime-workspace
+*.sublime-project
+
+# ===============================
+# 6. Otros
+# ===============================
+# Zone.Identifier es un alternate data stream de Windows/WSL
+*:Zone.Identifier
+
+# ===============================
+# 7. Base de datos (ajusta si necesitas)
+# ===============================
+db/*.log
+db/*.tmp
+db/*.bak
+
+# ===============================
+# 8. Node/React runtime (Vite, etc)
+# ===============================
+frontend/.vite
+
+# ===============================
+# 9. General coverage y test
+# ===============================
+coverage/
+**/.coverage
+**/.nyc_output
+**/.jest
+**/.cache
+
+# ===============================
+# 10. Output de builds o pruebas
+# ===============================
+*.out
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
