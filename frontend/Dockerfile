@@ -22,6 +22,7 @@ RUN npm install
 # Copia el resto del código fuente de tu aplicación frontend
 # Asegúrate de que tu código fuente está en el directorio ./frontend/
 COPY . .
+COPY .env.production .env
 
 # Ejecuta el comando de construcción de tu aplicación frontend
 # Este comando varía según el framework (React, Angular, Vue, etc.)
