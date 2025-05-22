@@ -1,0 +1,25 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - ./frontend/.env.development:/app/.env # 👈 Monta el archivo directamente
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: npm run dev
+
+  database:
+    container_name: pgdatabase-dev
+    ports:
+      - "5432:5432"  # ← En dev, expón en 5433 si ya usas 5432 localmente
+    volumes:
+      - ./db/dev-init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata-dev:/var/lib/postgresql/data  # ← Volumen distinto al de producción
+
+volumes:
+  pgdata-dev:

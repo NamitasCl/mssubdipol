@@ -26,8 +26,6 @@ frontend/.eslintcache
 # 3. Docker
 # ===============================
 *.pid
-docker-compose.override.yml
-docker-compose.prod.yml
 
 # ===============================
 # 4. IDE / Editor config (VSCode, JetBrains, etc)

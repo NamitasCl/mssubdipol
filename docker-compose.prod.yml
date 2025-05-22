@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile # Usar el Dockerfile de producción
+    container_name: frontend-prod
+    ports:
+      - "80:80" # Producción: expone directamente en el puerto 80
+    environment:
+      - NODE_ENV=production
+    networks:
+      - ms-network
+
+  database:
+    container_name: pgdatabase
+    ports:
+      - "55432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
