@@ -9,7 +9,7 @@ services:
     environment:
       - NODE_ENV=production
     networks:
-      - ms-network
+      - ms-network-prod-alt
 
   database:
     container_name: pgdatabase-prod-alt
@@ -17,7 +17,7 @@ services:
       - "55432:5432"
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - pgdata:/var/lib/postgresql/data
+      - pgdata-prod-alt:/var/lib/postgresql/data-prod-alt
 
 volumes:
-  pgdata:
+  pgdata-prod-alt:
