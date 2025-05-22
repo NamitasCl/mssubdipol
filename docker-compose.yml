@@ -19,7 +19,7 @@ services:
       # Mapea el puerto interno 5432 al 55432 en el host.
       # Útil para acceder desde tu máquina con un cliente SQL (DBeaver, pgAdmin, etc.)
       # Los microservicios usarán el puerto interno 5432.
-      - "55432:5432"
+      - "55433:5432"
     restart: unless-stopped
     networks:
       - ms-network-prod-alt # <-- ¡Añadir! Conecta la DB a la red ms-network
