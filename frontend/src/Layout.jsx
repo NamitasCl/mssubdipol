@@ -27,15 +27,15 @@ export default function Layout() {
     }
 
     const navConfig = [
-        { to: "/", label: "Dashboard", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO] },
-        { to: "/asignacionunidad", label: "Gestión por unidad", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
-        { to: "/modificaturnosunidad", label: "Modifica servicios", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
-        { to: "/calendario", label: "Calendario de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE] },
-        { to: "/unidades", label: "Gestión de unidades", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE] },
-        { to: "/turnos", label: "Gestión de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
-        { to: "/disponibles", label: "Ver personal disponible", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
-        { to: "/jefe", label: "Restringido Jefes", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE] },
-        { to: "/admin", label: "Administración", allowedRoles: [ROLES.ADMINISTRADOR] },
+        { to: "/layout", label: "Dashboard", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO] },
+        { to: "/layout/asignacionunidad", label: "Gestión por unidad", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
+        { to: "/layout/modificaturnosunidad", label: "Modifica servicios", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
+        { to: "/layout/calendario", label: "Calendario de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE] },
+        { to: "/layout/unidades", label: "Gestión de unidades", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE] },
+        { to: "/layout/turnos", label: "Gestión de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
+        { to: "/layout/disponibles", label: "Ver personal disponible", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
+        { to: "/layout/jefe", label: "Restringido Jefes", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE] },
+        { to: "/layout/admin", label: "Administración", allowedRoles: [ROLES.ADMINISTRADOR] },
         // El enlace de Login que estaba en tu `navItems` original se omite aquí
         // porque el botón superior "Iniciar sesión" / "Cerrar sesión" ya cumple esa función
         // de manera más explícita y contextual.
