@@ -91,6 +91,28 @@ services:
     networks:
       - ms-network # <-- ¡Añadir! Conecta common-services a la red ms-network
 
+  formularios:
+    build:
+      context: ./formularios
+    container_name: formularios
+    environment:
+      # Correcto uso del nombre del servicio 'database' y el puerto interno 5432
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/formularios # Asume que init.sql crea la DB 'commonservices'
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ipqq7890
+      # Otras variables de entorno para common-services
+      # Por ejemplo, si common-services necesita auth:
+      # AUTH_URL: http://auth:8009
+    depends_on:
+      - database # common-services probablemente necesita la DB
+      - auth # Si common-services depende de auth lógicamente
+    ports:
+      - "8012:8012" # Mapea el puerto 8011 del contenedor al 8011 del host
+    restart: unless-stopped
+    networks:
+      - ms-network # <-- ¡Añadir! Conecta common-services a la red ms-network
+
+
   #nginx-docker:
   #  image: nginx:latest
   #  container_name: nginx-docker
