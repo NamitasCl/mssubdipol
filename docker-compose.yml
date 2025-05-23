@@ -133,6 +133,9 @@ services:
 # Define los volúmenes para la persistencia
 volumes:
   pgdata: # Volumen para los datos de PostgreSQL
+    external: true
+    name: microserviciosv1_pgdata
+
 
 # Define la red personalizada
 networks:
