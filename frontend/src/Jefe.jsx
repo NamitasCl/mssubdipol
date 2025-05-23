@@ -23,7 +23,12 @@ export function Jefe() {
     const fetchSubjefeActual = async () => {
         if (!user?.siglasUnidad) return;
         try {
-            const res = await axios.get(`${import.meta.env.VITE_AUTH_API_URL}/subjefe/${user.siglasUnidad}`);
+            const res = await axios.get(`${import.meta.env.VITE_AUTH_API_URL}/subjefe/${user.siglasUnidad}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`
+                    }
+                });
             setSubjefeActual({
                 label: `${res.data.nombre} ${res.data.apellidoPaterno} ${res.data.apellidoMaterno}`,
                 value: res.data.idFun,
@@ -45,6 +50,9 @@ export function Jefe() {
                 params: {
                     unidad: user.siglasUnidad,
                     term: inputValue
+                },
+                headers: {
+                    Authorization: `Bearer ${user.token}`
                 }
             });
 
@@ -71,10 +79,18 @@ export function Jefe() {
 
         try {
             setCargando(true);
-            await axios.post(`${import.meta.env.VITE_AUTH_API_URL}/modificar`, {
-                idFun: selectedFuncionario.value,
-                roles: ["ROLE_SUBJEFE"]
-            });
+            await axios.post(
+                `${import.meta.env.VITE_AUTH_API_URL}/modificar`,
+                {
+                    idFun: selectedFuncionario.value,
+                    roles: ["ROLE_SUBJEFE"]
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
 
             setMensaje("Subjefe asignado correctamente.");
             fetchSubjefeActual();
@@ -94,10 +110,17 @@ export function Jefe() {
 
         try {
             setCargando(true);
-            await axios.post(`${import.meta.env.VITE_AUTH_API_URL}/modificar`, {
-                idFun: subjefeActual.value,
-                roles: ["ROLE_FUNCIONARIO"]
-            });
+            await axios.post(`${import.meta.env.VITE_AUTH_API_URL}/modificar`,
+                {
+                    idFun: subjefeActual.value,
+                    roles: ["ROLE_FUNCIONARIO"]
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`
+                    }
+                }
+            );
 
             setMensaje("Subjefe eliminado correctamente.");
             fetchSubjefeActual();
