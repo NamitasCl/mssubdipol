@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/turno/asignaciones")
+@RequestMapping("/api/turnos/asignaciones")
 @CrossOrigin("*")
 public class AsignacionFuncionarioController {
 
