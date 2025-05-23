@@ -23,7 +23,7 @@ export function Jefe() {
     const fetchSubjefeActual = async () => {
         if (!user?.siglasUnidad) return;
         try {
-            const res = await axios.get(`${import.meta.env.VITE_AUTH_API_URL}/subjefe/${user.siglasUnidad}`,
+            const res = await axios.get(`${import.meta.env.VITE_ROLES_API_URL}/subjefe/${user.siglasUnidad}`,
                 {
                     headers: {
                         Authorization: `Bearer ${user.token}`

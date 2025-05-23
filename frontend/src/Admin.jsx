@@ -36,7 +36,7 @@ export default function Admin() {
 
     const fetchFuncionariosConRoles = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_AUTH_API_URL}/asignados`);
+            const res = await axios.get(`${import.meta.env.VITE_ROLES_API_URL}/asignados`);
             setFuncionariosConRoles(res.data);
         } catch (err) {
             console.error("Error al obtener funcionarios con roles:", err);
@@ -54,7 +54,7 @@ export default function Admin() {
         }
         try {
             setLoading(true);
-            await axios.post(`${import.meta.env.VITE_AUTH_API_URL}/modificar`, {
+            await axios.post(`${import.meta.env.VITE_ROLES_API_URL}/modificar`, {
                 idFun: selectedFuncionario.value,
                 roles: selectedRoles.map((r) => r.value),
             });
