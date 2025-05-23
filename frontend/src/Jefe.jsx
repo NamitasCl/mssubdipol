@@ -87,7 +87,7 @@ export function Jefe() {
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`
+                        Authorization: `Bearer ${user.token}`
                     }
                 }
             );
