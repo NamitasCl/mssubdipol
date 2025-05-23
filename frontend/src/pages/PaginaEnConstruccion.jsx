@@ -28,7 +28,7 @@ const PaginaEnConstruccion = () => {
                         <Button
                             variant="light"
                             className="mt-3"
-                            onClick={() => window.location.href = "/turnos"}
+                            onClick={() => window.location.href = "/turnos/"}
                         >
                             Volver al Inicio
                         </Button>

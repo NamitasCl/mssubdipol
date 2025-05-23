@@ -17,6 +17,7 @@ import AuthGuard from "./components/AuthGuard.jsx";
 import ModificarAsignacionesUnidad from "./pages/ModificarAsignacionesUnidad.jsx";
 import PaginaEnConstruccion from "./pages/PaginaEnConstruccion.jsx";
 import VistaCalendarioTurnosFiltros from "./pages/VistaCalendarioTurnosFiltros.jsx";
+import DashboardPrincipal from "./pages/DashboardPrincipal.jsx";
 
 
 export default function App() {
@@ -25,16 +26,17 @@ export default function App() {
             <Routes>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />
-                <Route path="/" element={<AuthGuard><Layout /></AuthGuard>}>
+                <Route path="/" element={<DashboardPrincipal />} />
+                <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
-                    <Route path="/unidades" element={<GestionUnidades />} />
-                    <Route path="/turnos" element={<RestrictedAreaSecuin component={GestionTurnos} />} />
-                    <Route path="/asignacionunidad" element={<RestrictedAreaSubJefe component={UnitAssignmentView} />} />
-                    <Route path="/modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
-                    <Route path="/calendario" element={<VistaCalendarioTurnosFiltros />} />
-                    <Route path="/disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual} />} />
-                    <Route path="/jefe" element={<RestrictedAreaJefe component={Jefe} />} />
-                    <Route path="/admin" element={<RestrictedAreaAdmin component={Admin} />} />
+                    <Route path="unidades" element={<GestionUnidades />} />
+                    <Route path="turnos" element={<RestrictedAreaSecuin component={GestionTurnos} />} />
+                    <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={UnitAssignmentView} />} />
+                    <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
+                    <Route path="calendario" element={<VistaCalendarioTurnosFiltros />} />
+                    <Route path="disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual} />} />
+                    <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
+                    <Route path="admin" element={<RestrictedAreaAdmin component={Admin} />} />
                 </Route>
             </Routes>
         </Router>

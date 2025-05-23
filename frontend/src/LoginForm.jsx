@@ -35,21 +35,27 @@ const LoginForm = () => {
 
             <div className="min-vh-100 d-flex flex-column">
                 {/* Barra superior */}
-                <Navbar bg="dark" variant="dark">
-                    <Container fluid className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex flex-column align-items-center">
-                            <BImage src={PdiLogo} alt="Logo" height={"100%"} />
-                            <h6 className="text-white text-uppercase">Plana Mayor Subdipol</h6>
+                <Navbar bg="dark" variant="dark" fixed="top" className="shadow-sm rounded-0 p-0">
+                    <Container fluid className="d-flex justify-content-between align-items-center py-0" style={{ minHeight: "115px" }}>
+                        <div className="d-flex flex-column align-items-center py-2" style={{ minWidth: 160 }}>
+                            <Image src={PdiLogo} alt="Logo" height={56} />
+                            <h6 className="text-white text-uppercase m-0" style={{ fontSize: "0.93rem" }}>Plana Mayor Subdipol</h6>
                         </div>
                         <div className="d-flex flex-column align-items-center">
-                            <h1 className="mb-4 fw-bold text-white">Sistema de Gestión de Turnos</h1>
-                            <h5 className="mt-0 fw-bold text-white">Complejo Policial Cuartel Independencia</h5>
+                            <h1 className="mb-4 fw-bold text-white" style={{ fontSize: "2.1rem" }}>Sistema de Gestión de Turnos</h1>
+                            <h5 className="mt-0 fw-bold text-white" style={{ fontSize: "1.2rem" }}>Complejo Policial Cuartel Independencia</h5>
                         </div>
                         <div className="d-flex gap-2">
-                            <Button variant="light" onClick={() => window.location.href = 'https://rac.investigaciones.cl'}>Volver a RAC</Button>
-                            <Button variant="outline-light" className="d-flex align-items-center gap-2" onClick={() => handleClick()}>
+                            <Button variant="light" onClick={() => window.location.href = 'https://rac.investigaciones.cl'}>
+                                Volver a RAC
+                            </Button>
+                            <Button
+                                variant="outline-light"
+                                className="d-flex align-items-center gap-2"
+                                onClick={handleClick}
+                            >
                                 <span>{user ? "Cerrar sesión" : "Iniciar sesión"}</span>
-                                <i className="bi bi-box-arrow-right"></i>
+                                <FaSignOutAlt />
                             </Button>
                         </div>
                     </Container>
