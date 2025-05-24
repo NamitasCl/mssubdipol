@@ -16,16 +16,6 @@ public class JwtUtils {
     @Value("${jwt.secret}")
     private String secret;
 
-    // Genera el token a partir del username
-    public String generateToken(String username) {
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
-                .signWith(SignatureAlgorithm.HS256, secret.getBytes(StandardCharsets.UTF_8))
-                .compact();
-    }
-
     // Extrae el username (subject) del token
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

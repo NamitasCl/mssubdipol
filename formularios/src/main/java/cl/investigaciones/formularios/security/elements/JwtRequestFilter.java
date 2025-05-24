@@ -1,18 +1,23 @@
 package cl.investigaciones.formularios.security.elements;
 
 
+import cl.investigaciones.formularios.dto.JwtUserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
@@ -38,8 +43,27 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if(jwtUtils.isAuthenticated(token)) {
             String username = jwtUtils.extractUsername(token);
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            String nombreUsuario = jwtUtils.extractClaim(token, claims -> claims.get("nombreUsuario", String.class));
+            String siglasUnidad = jwtUtils.extractClaim(token, claims -> claims.get("siglasUnidad", String.class));
+            List roles = jwtUtils.extractClaim(token, claims -> claims.get("roles", List.class));
+
+            //Creo el Principal para el identificar el usuario
+            JwtUserPrincipal principal = new JwtUserPrincipal(username, nombreUsuario, siglasUnidad, roles);
+
+            //Mapear roles a objetos GrantedAuthority
+            Object rolesObj = jwtUtils.extractClaim(token, claims -> claims.get("roles"));
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            if (rolesObj instanceof List<?>) {
+                authorities = ((List<?>) rolesObj).stream()
+                        .map(role -> new SimpleGrantedAuthority(role.toString()))
+                        .collect(Collectors.toList());
+            }
+
+            //Construir la Authentication con el Principal
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(principal, null, authorities);
+
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
         }
 
         filterChain.doFilter(request, response);

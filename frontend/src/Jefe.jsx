@@ -24,11 +24,7 @@ export function Jefe() {
         if (!user?.siglasUnidad) return;
         try {
             const res = await axios.get(`${import.meta.env.VITE_ROLES_API_URL}/subjefe/${user.siglasUnidad}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${user.token}`
-                    }
-                });
+                );
             setSubjefeActual({
                 label: `${res.data.nombre} ${res.data.apellidoPaterno} ${res.data.apellidoMaterno}`,
                 value: res.data.idFun,
@@ -50,9 +46,6 @@ export function Jefe() {
                 params: {
                     unidad: user.siglasUnidad,
                     term: inputValue
-                },
-                headers: {
-                    Authorization: `Bearer ${user.token}`
                 }
             });
 
