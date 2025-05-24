@@ -46,11 +46,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             String nombreUsuario = jwtUtils.extractClaim(token, claims -> claims.get("nombreUsuario", String.class));
             String siglasUnidad = jwtUtils.extractClaim(token, claims -> claims.get("siglasUnidad", String.class));
             List roles = jwtUtils.extractClaim(token, claims -> claims.get("roles", List.class));
+            Integer idFuncionario = jwtUtils.extractClaim(token, claims -> claims.get("idFuncionario", Integer.class));
 
-            //Creo el Principal para el identificar el usuario
-            JwtUserPrincipal principal = new JwtUserPrincipal(username, nombreUsuario, siglasUnidad, roles);
+            if (idFuncionario == null) {
+                logger.warn("Token JWT recibido sin idFuncionario, acceso denegado.");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token inválido: falta idFuncionario");
+                return;
+            }
 
-            //Mapear roles a objetos GrantedAuthority
+            JwtUserPrincipal principal = new JwtUserPrincipal(username, nombreUsuario, siglasUnidad, roles, idFuncionario);
+
+            // Mapear roles a objetos GrantedAuthority
             Object rolesObj = jwtUtils.extractClaim(token, claims -> claims.get("roles"));
             List<GrantedAuthority> authorities = new ArrayList<>();
             if (rolesObj instanceof List<?>) {
@@ -59,11 +66,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                         .collect(Collectors.toList());
             }
 
-            //Construir la Authentication con el Principal
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(authToken);
-
         }
 
         filterChain.doFilter(request, response);

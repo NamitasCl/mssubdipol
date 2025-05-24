@@ -36,6 +36,10 @@ public class UsuarioDetails implements UserDetails {
         return usuario.getUsername();
     }
 
+    public int getId() {
+        return usuario.getIdFun();
+    }
+
     public List<String> getRoles() {
         return usuario.getRoles().stream()
                 .map(rol -> rol.getNombre())

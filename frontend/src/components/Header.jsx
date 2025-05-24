@@ -4,7 +4,7 @@ import { FaSignOutAlt } from "react-icons/fa";
 import PdiLogo from "../assets/imagenes/pdilogo.png"; // Ajusta la ruta si es necesario
 import { useAuth } from "../AuthContext";
 
-export default function Header() {
+export default function PdiHeader() {
     const { user, logout } = useAuth();
 
     const handleClick = () => {

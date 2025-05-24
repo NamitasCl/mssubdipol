@@ -8,7 +8,7 @@ export function RestrictedAreaAdmin({component: Component, ...rest }) {
 
     console.log("User en restricted: ", user);
 
-    const hasAccess = user && user.roles.includes('ROLE_ADMINISTRADOR');
+    const hasAccess = user && (user.roles.includes('ROLE_ADMINISTRADOR') || user.isAdmin);
 
     return (
         <div>

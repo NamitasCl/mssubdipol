@@ -79,6 +79,7 @@ public class UnidadesService {
                     unidadDto.setNombreUnidad(unidad.getNombreUnidad());
                     unidadDto.setSiglasUnidad(unidad.getSiglasUnidad());
                     unidadDto.setNombreComuna(unidad.getNombreComuna());
+                    unidadDto.setRegionPolicial(unidad.getNombreUnidadPertenece());
                     unidadesRepository.save(unidadDto);
 
                 } else {
@@ -88,6 +89,7 @@ public class UnidadesService {
                     unidadDto.setSiglasUnidad(unidad.getSiglasUnidad());
                     unidadDto.setNombreComuna(unidad.getNombreComuna());
                     unidadDto.setIdUnidad(unidad.getIdUnidad());
+                    unidadDto.setRegionPolicial(unidad.getNombreUnidadPertenece());
                     unidadesRepository.save(unidadDto);
 
                 }
@@ -104,7 +106,7 @@ public class UnidadesService {
 
     private String obtenerToken() {
         ResponseEntity<String> tokenResponse =
-                restTemplate.getForEntity("http://172.21.15.23:8009/auth/token", String.class);
+                restTemplate.getForEntity("http://auth:8009/api/auth/token", String.class);
         return tokenResponse.getBody();
     }
 
@@ -123,5 +125,9 @@ public class UnidadesService {
                 })
                 .toList();
 
+    }
+
+    public List<String> getRegionesPolicialesUnicas() {
+        return unidadesRepository.findDistinctRegionPolicial();
     }
 }

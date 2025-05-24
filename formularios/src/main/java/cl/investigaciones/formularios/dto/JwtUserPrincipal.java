@@ -10,10 +10,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JwtUserPrincipal {
+
     private String username;
     private String nombreUsuario;
     private String siglasUnidad;
     private List<String> roles;
+    private int idFuncionario;
 
     @Override
     public String toString() {

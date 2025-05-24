@@ -35,4 +35,9 @@ public class ConsultaUnidadesController {
             return ResponseEntity.status(500).body("Error al buscar unidades: " + e.getMessage());
         }
     }
+
+    @GetMapping("/regiones-policiales")
+    public List<String> getRegionesPolicialesUnicas() {
+        return unidadesService.getRegionesPolicialesUnicas();
+    }
 }

@@ -18,6 +18,10 @@ import ModificarAsignacionesUnidad from "./pages/ModificarAsignacionesUnidad.jsx
 import PaginaEnConstruccion from "./pages/PaginaEnConstruccion.jsx";
 import VistaCalendarioTurnosFiltros from "./pages/VistaCalendarioTurnosFiltros.jsx";
 import DashboardPrincipal from "./pages/DashboardPrincipal.jsx";
+import ServiciosEspeciales from "./pages/ServiciosEspecialesLayout.jsx";
+import ListaFormulariosDisponibles from "./pages/formularioDinamico/ListaFormulariosDisponibles.jsx";
+import ListaAdminFormularios from "./pages/formularioDinamico/ListaAdminFormularios.jsx";
+import ServiciosEspecialesLayout from "./pages/ServiciosEspecialesLayout.jsx";
 
 
 export default function App() {
@@ -27,6 +31,10 @@ export default function App() {
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />
                 <Route path="/" element={<DashboardPrincipal />} />
+                <Route path="/servicios-especiales" element={<AuthGuard><ServiciosEspecialesLayout /></AuthGuard>}>
+                    <Route path="listarformsdisponibles" element={<ListaFormulariosDisponibles />} />
+                </Route>
+                <Route path="/formularios-admin" element={<RestrictedAreaAdmin component={ListaAdminFormularios} />} />
                 <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
                     <Route path="unidades" element={<GestionUnidades />} />

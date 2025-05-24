@@ -77,7 +77,7 @@ public class FuncionariosService {
     private String obtenerToken() {
         System.out.println("Obteniendo token");
         ResponseEntity<String> tokenResponse =
-                restTemplate.getForEntity("http://172.21.15.23:8009/auth/token", String.class);
+                restTemplate.getForEntity("http://auth:8009/api/auth/token", String.class);
         System.out.println("Token obtenido: " + tokenResponse.getBody());
         return tokenResponse.getBody();
     }

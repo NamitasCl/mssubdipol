@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Unidad {
 
     @Id
@@ -21,6 +21,7 @@ public class Unidad {
     private String nombreUnidad;
     private String siglasUnidad;
     private String nombreComuna;
+    private String regionPolicial;
 
     //@ManyToOne(fetch = FetchType.LAZY)
     //@JoinColumn(name = "id_unidad_padre", referencedColumnName = "id")
