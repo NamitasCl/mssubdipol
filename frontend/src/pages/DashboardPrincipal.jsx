@@ -57,8 +57,8 @@ export function Header() {
             fixed="top"
         >
             <Container fluid className="align-items-center py-2" style={{minHeight: "78px"}}>
-                <div className="d-flex flex-column align-items-center" style={{ minWidth: 140 }}>
-                    <Image src={PdiLogo} alt="Logo" height={48} />
+                <div className="d-flex flex-column align-items-center" style={{ minWidth: 140, cursor: "pointer" }}>
+                    <Image src={PdiLogo} alt="Logo" height={48} onClick={() => navigate("/")} />
                     <span className="text-uppercase fw-semibold" style={{ color: doradoPDI, fontSize: "0.98rem", letterSpacing: ".09em" }}>Plana Mayor Subdipol</span>
                 </div>
                 <div className="flex-grow-1 d-flex flex-column align-items-center">

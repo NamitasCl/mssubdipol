@@ -46,4 +46,13 @@ public class Usuario {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     @EqualsAndHashCode.Exclude // Excluir la colección para evitar problemas en equals/hashCode
     private Set<Rol> roles = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "usuario_permisos",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "permiso_id")
+    )
+    private Set<Permiso> permisos = new HashSet<>();
+
 }

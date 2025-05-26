@@ -50,7 +50,8 @@ public class AuthController {
                 usuarioDetails.getNombreCargo(),
                 usuarioDetails.getSiglasUnidad(),
                 usuarioDetails.isAdmin(),
-                usuarioDetails.getId()
+                usuarioDetails.getId(),
+                usuarioDetails.getPermisos()
         );
 
         SecurityContextHolder.getContext().setAuthentication(auth);

@@ -27,7 +27,8 @@ public class JwtUtil {
             String nombreCargo,
             String siglasUnidad,
             boolean isAdmin,
-            int idFuncionario
+            int idFuncionario,
+            List<String> permisos
         ){
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
@@ -35,6 +36,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("roles", roles)
+                .claim("authorities", permisos)
                 .claim("isAuthenticated", true)
                 .claim("nombreUsuario", nombreCompletoUsuario)
                 .claim("nombreCargo", nombreCargo)

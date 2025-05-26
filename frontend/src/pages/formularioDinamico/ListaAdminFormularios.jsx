@@ -4,7 +4,7 @@ import { Table, Button, Spinner, Modal } from "react-bootstrap";
 import { useAuth } from "../../AuthContext.jsx";
 import CrearEditarFormularioDinamico from "./CrearEditarFormularioDinamico.jsx"; // este lo creamos abajo
 
-const doradoPDI = "#FFC700";
+const doradoPDI = "#303030";
 
 export default function ListaAdminFormularios() {
     const { user } = useAuth();
@@ -34,7 +34,7 @@ export default function ListaAdminFormularios() {
     return (
         <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2 style={{ color: doradoPDI, fontWeight: 700 }}>Formularios Definidos</h2>
+                <h4 style={{ color: "#FFC700", borderLeft: "5px solid #FFC700", paddingLeft: 12 }}>Formularios Disponibles</h4>
                 <Button variant="warning" style={{ color: "#17355A", borderRadius: "1.2rem", fontWeight: 700 }}
                         onClick={() => { setFormularioEdit(null); setShowModal(true); }}>
                     Crear nuevo formulario
@@ -46,7 +46,7 @@ export default function ListaAdminFormularios() {
                 <Table striped bordered hover responsive
                        style={{
                            background: "rgba(34,41,56,0.97)",
-                           borderRadius: "1.1rem",
+                           borderRadius: "0.6rem",
                            overflow: "hidden",
                            border: `2px solid ${doradoPDI}`
                        }}>
@@ -64,7 +64,7 @@ export default function ListaAdminFormularios() {
                         <tr key={f.id}>
                             <td>{i + 1}</td>
                             <td style={{ fontWeight: 600, color: doradoPDI }}>{f.nombre}</td>
-                            <td style={{ color: "#b8becd" }}>{f.descripcion}</td>
+                            <td style={{ color: "#191b1d" }}>{f.descripcion}</td>
                             <td>{f.activo ? "Activo" : "Inactivo"}</td>
                             <td>
                                 <Button

@@ -26,15 +26,15 @@ import ServiciosEspecialesLayout from "./pages/ServiciosEspecialesLayout.jsx";
 
 export default function App() {
     return (
-        <Router basename="/turnos">
+        <Router basename="/turnos/">
             <Routes>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />
                 <Route path="/" element={<DashboardPrincipal />} />
                 <Route path="/servicios-especiales" element={<AuthGuard><ServiciosEspecialesLayout /></AuthGuard>}>
                     <Route path="listarformsdisponibles" element={<ListaFormulariosDisponibles />} />
+                    <Route path="formularios-admin" element={<RestrictedAreaAdmin component={ListaAdminFormularios} />} />
                 </Route>
-                <Route path="/formularios-admin" element={<RestrictedAreaAdmin component={ListaAdminFormularios} />} />
                 <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
                     <Route path="unidades" element={<GestionUnidades />} />
