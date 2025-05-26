@@ -5,7 +5,10 @@ const tiposCampo = [
     { value: "text", label: "Texto" },
     { value: "datetime-local", label: "Fecha y Hora" },
     { value: "boolean", label: "Sí/No (checkbox)" },
-    { value: "select", label: "Lista (select)" }
+    { value: "select", label: "Lista (select)" },
+    { value: "funcionario", label: "Lista Funcionarios"},
+    { value: "unidad", label: "Lista Unidades"},
+    { value: "repol", label: "Región Policial"}
 ];
 
 const vacioCampo = () => ({
@@ -64,16 +67,7 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
             visibilidad
         };
         try {
-            if (formulario?.id) {
-                await fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formulario.id}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${user.token}`
-                    },
-                    body: JSON.stringify(payload)
-                });
-            } else {
+
                 await fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
                     method: "POST",
                     headers: {
@@ -82,7 +76,7 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                     },
                     body: JSON.stringify(payload)
                 });
-            }
+
             setMsg("Formulario guardado correctamente.");
             if (onSuccess) onSuccess();
         } catch {

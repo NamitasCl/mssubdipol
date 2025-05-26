@@ -19,19 +19,27 @@ public class FormularioRegistroController {
     @Autowired
     private FormularioRegistroService service;
 
-    // Supón que tienes la info del usuario autenticado (ajusta según tu seguridad)
+    // Guarda registro, igual que antes
     @PostMapping
     public ResponseEntity<FormularioRegistroResponseDTO> guardarRegistro(
             @RequestBody FormularioRegistroRequestDTO dto,
             @AuthenticationPrincipal JwtUserPrincipal principal) {
-        // Si tu JwtUserPrincipal tiene un id:
         Integer usuarioId = principal.getIdFuncionario();
         return ResponseEntity.ok(service.guardarRegistro(usuarioId, dto));
     }
 
+    // Retorna SIEMPRE array, nunca null
     @GetMapping("/{formularioId}")
     public ResponseEntity<List<FormularioRegistroResponseDTO>> listarPorFormulario(@PathVariable Long formularioId) {
-        return ResponseEntity.ok(service.listarPorFormulario(formularioId));
+        List<FormularioRegistroResponseDTO> registros = service.listarPorFormulario(formularioId);
+        return ResponseEntity.ok(registros != null ? registros : List.of());
+    }
+
+    // Puedes dejar este handler dentro del mismo archivo SOLO PARA DESARROLLO,
+    // o muévelo a una clase @RestControllerAdvice en producción.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleAll(Exception ex) {
+        ex.printStackTrace(); // 👈 Siempre imprime en consola/log de Docker
+        return ResponseEntity.status(500).body("Error interno del servidor: " + ex.getMessage());
     }
 }
-

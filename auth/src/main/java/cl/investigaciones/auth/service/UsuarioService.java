@@ -44,6 +44,10 @@ public class UsuarioService {
                         .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + nombre)))
                 .collect(Collectors.toSet());
 
+        for (Rol role : roles) {
+            System.out.println("Rol: " + role);
+        }
+
         System.out.println("Paso 2");
         // 2) Buscar si existe el usuario
         Optional<Usuario> usuarioOpt = usuarioRepository.findByIdFun(idFun);
@@ -74,7 +78,8 @@ public class UsuarioService {
             nuevoUsuario.setApellidoMaterno(usuarioParcial.getApellidoMaternoFun());
             nuevoUsuario.setSiglasCargo(usuarioParcial.getSiglasCargo());
             nuevoUsuario.setSiglasUnidad(usuarioParcial.getSiglasUnidad());
-            
+
+            System.out.println("Aun en paso 5");
 
             // Asignar roles
             nuevoUsuario.setRoles(new HashSet<>()); // inicializar
@@ -99,7 +104,7 @@ public class UsuarioService {
 
         System.out.println("[AUTH - obtenerUsuarioParcialDTO] idFun: " + idFun);
 
-        String url = "http://commonservices:8011/funcionario/" + idFun;
+        String url = "http://commonservices:8011/api/common/funcionarios/" + idFun;
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

@@ -20,8 +20,8 @@ const modules = [
         color: azulPDI
     },
     {
-        title: "Servicios Especiales",
-        text: "Configura y administra servicios especiales del cuartel.",
+        title: "Formularios",
+        text: "Configura y administra formularios para requerimiento de información.",
         icon: <FaCogs size={36} />,
         route: "/servicios-especiales",
         color: "#a67822" // Dorado oscuro institucional
@@ -65,9 +65,6 @@ export function Header() {
                     <h1 className="mb-0 fw-bold text-light text-center" style={{ fontSize: "1.42rem", letterSpacing: ".02em", textTransform: "uppercase" }}>
                         Sistema Integrado de Gestión de Servicios
                     </h1>
-                    <h6 className="mb-0 mt-1 fw-bold text-light text-center" style={{ fontSize: "1.03rem", letterSpacing: ".05em" }}>
-                        Complejo Policial Cuartel Independencia
-                    </h6>
                 </div>
                 <div className="d-flex align-items-center gap-2">
                     <Button

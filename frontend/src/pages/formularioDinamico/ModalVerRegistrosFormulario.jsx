@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Table, Spinner, Alert, Button } from "react-bootstrap";
 import * as XLSX from "xlsx";
+import axios from "axios";
 
 const doradoPDI = "#FFC700";
 const azulPDI = "#17355A";
@@ -16,12 +17,22 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
         setLoading(true);
         setError(null);
 
-        fetch(
+        axios.get(
             `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formulario.id}`,
             { headers: { Authorization: `Bearer ${user.token}` } }
         )
-            .then((r) => r.json())
-            .then((data) => setRegistros(data))
+            .then((resp) => {
+                const data = resp.data;
+                if (Array.isArray(data)) {
+                    setRegistros(data);
+                } else if (Array.isArray(data?.content)) {
+                    setRegistros(data.content);
+                } else if (data == null) {
+                    setRegistros([]);
+                } else {
+                    setRegistros(Object.values(data));
+                }
+            })
             .catch(() => setError("No se pudieron cargar los registros."))
             .finally(() => setLoading(false));
     }, [show, formulario, user.token]);
@@ -171,18 +182,28 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
                             {registros.map((r, idx) => (
                                 <tr key={r.id}>
                                     <td>{idx + 1}</td>
-                                    {formulario.campos.map((campo, cidx) => (
-                                        <td key={cidx}>
-                                            {typeof r.datos[campo.nombre] === "boolean"
+                                    {formulario.campos.map((campo, cidx) => {
+                                        // ¿Hay un label disponible? Si sí, lo muestra; si no, muestra el valor (id o texto).
+                                        const valor =
+                                            r.datos[`${campo.nombre}_label`] ??
+                                            (typeof r.datos[campo.nombre] === "boolean"
                                                 ? (r.datos[campo.nombre] ? "Sí" : "No")
-                                                : r.datos[campo.nombre] ?? "-"}
-                                        </td>
-                                    ))}
+                                                : r.datos[campo.nombre] ?? "-");
+                                        return (
+                                            <td key={cidx}>
+                                                {valor}
+                                            </td>
+                                        );
+                                    })}
                                     <td>{r.fechaRespuesta?.replace("T", " ").substring(0, 16)}</td>
-                                    <td>{r.idFuncionario}</td>
+                                    {/* También puedes mostrar el nombre del funcionario aquí, si lo tienes: */}
+                                    <td>
+                                        {r.idFuncionario}
+                                    </td>
                                 </tr>
                             ))}
                             </tbody>
+
                         </Table>
                     </div>
                 )}

@@ -20,6 +20,7 @@ export default function ListaAdminFormularios() {
                 `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`,
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
+            console.log("Respuesta formularios: ", resp.data)
             setFormularios(resp.data);
         } catch {
             setFormularios([]);
@@ -30,6 +31,37 @@ export default function ListaAdminFormularios() {
     useEffect(() => {
         cargarFormularios();
     }, []);
+
+    // Eliminar formulario
+    const eliminarFormulario = async (formulario) => {
+        if (!window.confirm(`¿Seguro que deseas eliminar el formulario "${formulario.nombre}"? Esta acción no se puede deshacer y eliminará todos los registros asociados a este formulario, no pudiendo ser recuperados.`)) return;
+        try {
+            await axios.delete(
+                `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formulario.id}`,
+                { headers: { Authorization: `Bearer ${user.token}` } }
+            );
+            cargarFormularios();
+        } catch (err) {
+            alert("Error al eliminar el formulario.");
+        }
+    };
+
+// Inhabilitar/habilitar formulario (toggle)
+    const toggleFormularioActivo = async (formulario) => {
+        const nuevoEstado = !formulario.activo;
+        const accion = nuevoEstado ? "habilitar" : "inhabilitar";
+        if (!window.confirm(`¿Seguro que deseas ${accion} el formulario "${formulario.nombre}"?`)) return;
+        try {
+            await axios.put(
+                `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formulario.id}/estado`,
+                { activo: nuevoEstado },
+                { headers: { Authorization: `Bearer ${user.token}` } }
+            );
+            cargarFormularios();
+        } catch (err) {
+            alert("Error al cambiar el estado del formulario.");
+        }
+    };
 
     return (
         <div>
@@ -76,7 +108,23 @@ export default function ListaAdminFormularios() {
                                 >
                                     Editar
                                 </Button>
-                                {/* Aquí puedes agregar botón de eliminar/desactivar si lo deseas */}
+                                <Button
+                                    variant={f.activo ? "outline-secondary" : "outline-success"}
+                                    size="sm"
+                                    className="me-2"
+                                    style={{ borderRadius: "1rem" }}
+                                    onClick={() => toggleFormularioActivo(f)}
+                                >
+                                    {f.activo ? "Inhabilitar" : "Habilitar"}
+                                </Button>
+                                <Button
+                                    variant="outline-danger"
+                                    size="sm"
+                                    style={{ borderRadius: "1rem" }}
+                                    onClick={() => eliminarFormulario(f)}
+                                >
+                                    Eliminar
+                                </Button>
                             </td>
                         </tr>
                     ))}

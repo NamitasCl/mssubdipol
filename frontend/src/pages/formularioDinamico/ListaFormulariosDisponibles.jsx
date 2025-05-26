@@ -24,7 +24,9 @@ const ListaFormulariosDisponibles = () => {
     const recargarFormularios = () => {
         setLoading(true);
         axios.get(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`)
-            .then(({ data }) => setFormularios(data))
+            .then(({ data }) => {
+                setFormularios(data.filter(f => f.activo))
+            })
             .catch(() => setError("Error cargando formularios"))
             .finally(() => setLoading(false));
     };
@@ -116,20 +118,47 @@ const ListaFormulariosDisponibles = () => {
                 <div
                     style={{
                         position: "fixed",
-                        top: 0, left: 0, width: "100vw", height: "100vh",
-                        background: "rgba(0,0,0,0.45)", zIndex: 2000,
-                        display: "flex", alignItems: "center", justifyContent: "center"
+                        top: 0,
+                        left: 0,
+                        width: "100vw",
+                        height: "100vh", // OJO: ahora cubre toda la pantalla
+                        background: "rgba(0,0,0,0.45)",
+                        zIndex: 2000,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                     }}
                 >
-                    <div style={{ minWidth: 400, background: "#202a3e", borderRadius: "1.2rem", padding: 20, boxShadow: "0 7px 32px #0008", maxWidth: "98vw" }}>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <h5 style={{ color: "#FFC700", margin: 0 }}>Agregar registro: {modalAgregar.formulario.nombre}</h5>
+                    <div
+                        style={{
+                            minWidth: 400,
+                            maxWidth: "98vw",
+                            maxHeight: "90vh", // <--- limita el alto
+                            overflowY: "auto", // <--- permite scrollear si es muy alto
+                            background: "#202a3e",
+                            borderRadius: "1.2rem",
+                            padding: 20,
+                            boxShadow: "0 7px 32px #0008",
+                            margin: 20, // agrega un margen para que nunca “pegue” al borde
+                            position: "relative",
+                        }}
+                    >
+                        <div className="d-flex justify-content-between align-items-center mb-2 gap-2">
+                            <h5 style={{ color: "#FFC700", margin: 0 }}>
+                                Agregar registro: {modalAgregar.formulario.nombre}
+                            </h5>
                             <Button
                                 variant="outline-secondary"
                                 size="sm"
-                                style={{ borderRadius: "1.5rem", border: "2px solid #FFC700", color: "#FFC700" }}
+                                style={{
+                                    borderRadius: "1.5rem",
+                                    border: "2px solid #FFC700",
+                                    color: "#FFC700",
+                                }}
                                 onClick={() => setModalAgregar({ show: false, formulario: null })}
-                            >Cerrar</Button>
+                            >
+                                Cerrar
+                            </Button>
                         </div>
                         <FormularioDinamico
                             formularioId={modalAgregar.formulario.id}
@@ -142,6 +171,7 @@ const ListaFormulariosDisponibles = () => {
                     </div>
                 </div>
             )}
+
         </div>
     );
 };

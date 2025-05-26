@@ -9,6 +9,7 @@ import cl.investigaciones.formularios.model.formulariodinamico.FormularioDefinic
 import cl.investigaciones.formularios.model.formulariodinamico.FormularioVisibilidad;
 import cl.investigaciones.formularios.repository.formulariodinamico.FormularioCampoRepository;
 import cl.investigaciones.formularios.repository.formulariodinamico.FormularioDefinicionRepository;
+import cl.investigaciones.formularios.repository.formulariodinamico.FormularioRegistroRepository;
 import cl.investigaciones.formularios.repository.formulariodinamico.FormularioVisibilidadRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -29,6 +30,8 @@ public class FormularioDefinicionService {
     private FormularioCampoRepository campoRepo;
     @Autowired
     private FormularioVisibilidadRepository visibilidadRepo;
+    @Autowired
+    private FormularioRegistroRepository registroRepo;
 
     @Transactional
     public FormularioDefinicionResponseDTO crearFormulario(FormularioDefinicionRequestDTO dto) {
@@ -78,7 +81,7 @@ public class FormularioDefinicionService {
     // Para listar todos los formularios activos
     public List<FormularioDefinicionResponseDTO> listarFormulariosActivos() {
         List<FormularioDefinicion> lista = definicionRepo.findAll()
-                .stream().filter(FormularioDefinicion::isActivo).collect(Collectors.toList());
+                .stream().collect(Collectors.toList());
         return lista.stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
 
@@ -118,6 +121,25 @@ public class FormularioDefinicionService {
         FormularioDefinicion definicion = definicionRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Formulario no encontrado"));
         return toResponseDTO(definicion); // Ajusta según tu mapeo
+    }
+
+    @Transactional
+    public void eliminarFormulario(Long id) {
+        // Borrado lógico (recomendado)
+        FormularioDefinicion formulario = definicionRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe formulario"));
+        registroRepo.deleteByFormularioId(id);
+        definicionRepo.deleteById(id);
+
+        // Si quieres borrado físico, haz repo.deleteById(id);
+    }
+
+    public FormularioDefinicionResponseDTO cambiarEstadoFormulario(Long id, boolean activo) {
+        FormularioDefinicion formulario = definicionRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe formulario"));
+        formulario.setActivo(activo);
+        definicionRepo.save(formulario);
+        return toResponseDTO(formulario);
     }
 
 }

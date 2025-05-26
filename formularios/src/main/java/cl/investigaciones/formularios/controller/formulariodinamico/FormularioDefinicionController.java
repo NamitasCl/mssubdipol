@@ -3,6 +3,8 @@ package cl.investigaciones.formularios.controller.formulariodinamico;
 import cl.investigaciones.formularios.dto.formulariodinamico.FormularioDefinicionRequestDTO;
 import cl.investigaciones.formularios.dto.formulariodinamico.FormularioDefinicionResponseDTO;
 import cl.investigaciones.formularios.service.formulariodinamico.FormularioDefinicionService;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +35,32 @@ public class FormularioDefinicionController {
         return ResponseEntity.ok(service.obtenerDefinicionPorId(id));
     }
 
+    @DeleteMapping("/definicion/{id}")
+    public ResponseEntity<Void> eliminarFormulario(@PathVariable Long id) {
+        service.eliminarFormulario(id); // Puedes implementar borrado lógico o físico
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/definicion/{id}/estado")
+    public ResponseEntity<FormularioDefinicionResponseDTO> cambiarEstadoFormulario(
+            @PathVariable Long id,
+            @RequestBody EstadoRequest estadoRequest
+    ) {
+        FormularioDefinicionResponseDTO dto = service.cambiarEstadoFormulario(id, estadoRequest.isActivo());
+        return ResponseEntity.ok(dto);
+    }
+
 
     // ... puedes agregar más endpoints para editar, deshabilitar, etc.
+
+    // Clases internas que no ameritan DTO
+
+    // DTO interno para request body
+    @Setter
+    @Getter
+    public static class EstadoRequest {
+        private boolean activo;
+    }
+
 }
 

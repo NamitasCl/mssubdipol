@@ -9,4 +9,5 @@ public interface FormularioRegistroRepository extends JpaRepository<FormularioRe
 
     List<FormularioRegistro> findByFormularioId(Long formularioId);
 
+    void deleteByFormularioId(Long formularioId);
 }

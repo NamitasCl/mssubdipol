@@ -54,6 +54,8 @@ export default function Admin() {
         }
         try {
             setLoading(true);
+            console.log("Funcionario seleccionado: ", selectedFuncionario.value);
+            console.log("Roles asignados: ", selectedRoles)
             await axios.post(`${import.meta.env.VITE_ROLES_API_URL}/modificar`, {
                 idFun: selectedFuncionario.value,
                 roles: selectedRoles.map((r) => r.value),
@@ -76,7 +78,7 @@ export default function Admin() {
             setLoading(true);
             console.log("Seleccionado:", selectedFuncionario);
             console.log("Quitar roles de:", selectedFuncionario.value);
-            await axios.post(`${import.meta.env.VITE_AUTH_API_URL}/modificar`, {
+            await axios.post(`${import.meta.env.VITE_ROLES_API_URL}/modificar`, {
                 idFun: selectedFuncionario.value,
                 roles: ["ROLE_FUNCIONARIO"],
             });

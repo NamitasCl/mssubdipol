@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, Container, Button, Form, Alert, Spinner, Toast, ToastContainer } from "react-bootstrap";
+import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect.jsx";
+import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect.jsx";
+import AsyncRegionesPolicialesSelect from "../../components/ComponentesAsyncSelect/AsyncRegionesPolicialesSelect.jsx";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -210,6 +213,51 @@ const FormularioDinamico = ({ formularioId, user, onSuccess }) => {
                                                 </div>
                                             )}
                                             {/* Puedes agregar aquí soporte para select/radio más adelante */}
+                                            {campo.tipo === "funcionario" && (
+                                                <AsyncFuncionarioSelect
+                                                    user={user}
+                                                    value={
+                                                        valores[campo.nombre]
+                                                            ? { value: valores[campo.nombre], label: valores[`${campo.nombre}_label`] }
+                                                            : null
+                                                    }
+                                                    onChange={selected => setValores(vals => ({
+                                                        ...vals,
+                                                        [campo.nombre]: selected ? selected.value : "",
+                                                        [`${campo.nombre}_label`]: selected ? selected.label : ""
+                                                    }))}
+                                                />
+                                            )}
+                                            {campo.tipo === "unidad" && (
+                                                <AsyncUnidadesSelect
+                                                    user={user}
+                                                    value={
+                                                        valores[campo.nombre]
+                                                            ? { value: valores[campo.nombre], label: valores[`${campo.nombre}_label`] }
+                                                            : null
+                                                    }
+                                                    onChange={selected => setValores(vals => ({
+                                                        ...vals,
+                                                        [campo.nombre]: selected ? selected.value : "",
+                                                        [`${campo.nombre}_label`]: selected ? selected.label : ""
+                                                    }))}
+                                                />
+                                            )}
+                                            {campo.tipo === "repol" && (
+                                                <AsyncRegionesPolicialesSelect
+                                                    user={user}
+                                                    value={
+                                                        valores[campo.nombre]
+                                                            ? { value: valores[campo.nombre], label: valores[`${campo.nombre}_label`] }
+                                                            : null
+                                                    }
+                                                    onChange={selected => setValores(vals => ({
+                                                        ...vals,
+                                                        [campo.nombre]: selected ? selected.value : "",
+                                                        [`${campo.nombre}_label`]: selected ? selected.label : ""
+                                                    }))}
+                                                />
+                                            )}
                                         </Form.Group>
                                     ))}
                                 <div className="d-flex justify-content-end mt-3">
