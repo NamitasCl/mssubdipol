@@ -22,6 +22,7 @@ import ServiciosEspeciales from "./pages/ServiciosEspecialesLayout.jsx";
 import ListaFormulariosDisponibles from "./pages/formularioDinamico/ListaFormulariosDisponibles.jsx";
 import ListaAdminFormularios from "./pages/formularioDinamico/ListaAdminFormularios.jsx";
 import ServiciosEspecialesLayout from "./pages/ServiciosEspecialesLayout.jsx";
+import './assets/App.css';
 
 
 export default function App() {

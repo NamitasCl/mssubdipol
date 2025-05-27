@@ -131,7 +131,13 @@ export default function ListaAdminFormularios() {
                     </tbody>
                 </Table>
             )}
-            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
+            <Modal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                size="xl"
+                centered
+                contentClassName="modal-content-rounded"
+            >
                 <Modal.Body className="p-0" style={{ background: "transparent" }}>
                     <CrearEditarFormularioDinamico
                         user={user}

@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Card, Form, Button, Row, Col, Alert } from "react-bootstrap";
+import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect.jsx";
+import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect.jsx";
+
+
 const doradoPDI = "#FFC700";
 const tiposCampo = [
     { value: "text", label: "Texto" },
@@ -15,11 +19,16 @@ const vacioCampo = () => ({
     nombre: "", etiqueta: "", tipo: "text", requerido: false, opciones: "", orden: 1
 });
 
+const vacioVisibilidad = () => ({
+    tipoDestino: "unidad",
+    valorDestino: null
+});
+
 export default function CrearEditarFormularioDinamico({ user, formulario, onSuccess }) {
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [campos, setCampos] = useState([]);
-    const [visibilidad, setVisibilidad] = useState([{ tipoDestino: "unidad", valorDestino: "" }]);
+    const [visibilidad, setVisibilidad] = useState([vacioVisibilidad()]);
     const [msg, setMsg] = useState(null);
     const [error, setError] = useState(null);
 
@@ -28,9 +37,18 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
             setNombre(formulario.nombre || "");
             setDescripcion(formulario.descripcion || "");
             setCampos(formulario.campos?.length ? formulario.campos : [vacioCampo()]);
-            setVisibilidad(formulario.visibilidad?.length ? formulario.visibilidad : [{ tipoDestino: "unidad", valorDestino: "" }]);
+            setVisibilidad(
+                formulario.visibilidad?.length
+                    ? formulario.visibilidad.map(v => ({
+                        tipoDestino: v.tipoDestino,
+                        valorDestino: typeof v.valorDestino === "object"
+                            ? v.valorDestino
+                            : { label: v.valorDestinoNombre || v.valorDestino, value: v.valorDestino }
+                    }))
+                    : [vacioVisibilidad()]
+            );
         } else {
-            setNombre(""); setDescripcion(""); setCampos([vacioCampo()]); setVisibilidad([{ tipoDestino: "unidad", valorDestino: "" }]);
+            setNombre(""); setDescripcion(""); setCampos([vacioCampo()]); setVisibilidad([vacioVisibilidad()]);
         }
         setMsg(null); setError(null);
     }, [formulario]);
@@ -47,10 +65,16 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
     // --- handlers visibilidad ---
     const handleVisibilidadChange = (idx, key, value) => {
         setVisibilidad(list =>
-            list.map((v, i) => (i === idx ? { ...v, [key]: value } : v))
+            list.map((v, i) =>
+                i === idx
+                    ? key === "tipoDestino" && value === "publica"
+                        ? { tipoDestino: value, valorDestino: null }
+                        : { ...v, [key]: value }
+                    : v
+            )
         );
     };
-    const addVisibilidad = () => setVisibilidad([...visibilidad, { tipoDestino: "unidad", valorDestino: "" }]);
+    const addVisibilidad = () => setVisibilidad([...visibilidad, vacioVisibilidad()]);
     const delVisibilidad = idx => setVisibilidad(visibilidad.filter((_, i) => i !== idx));
 
     // --- submit ---
@@ -61,21 +85,31 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
             setError("Debe ingresar nombre y al menos un campo");
             return;
         }
+        // Si alguna visibilidad es pública, solo deja esa regla
+        const esPublica = visibilidad.some(v => v.tipoDestino === "publica");
+        const reglasVisibilidad = esPublica
+            ? [{ tipoDestino: "publica", valorDestino: null }]
+            : visibilidad.map(v => ({
+                tipoDestino: v.tipoDestino,
+                valorDestino: v.valorDestino?.value ?? v.valorDestino ?? "",
+                valorDestinoNombre: v.valorDestino?.label ?? undefined
+            }));
+
         const payload = {
-            nombre, descripcion,
+            nombre,
+            descripcion,
             campos: campos.map((c, idx) => ({ ...c, orden: idx + 1 })),
-            visibilidad
+            visibilidad: reglasVisibilidad
         };
         try {
-
-                await fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${user.token}`
-                    },
-                    body: JSON.stringify(payload)
-                });
+            await fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${user.token}`
+                },
+                body: JSON.stringify(payload)
+            });
 
             setMsg("Formulario guardado correctamente.");
             if (onSuccess) onSuccess();
@@ -84,6 +118,16 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
         }
     };
 
+    // Estilo de inputs
+    const inputStyle = {
+        background: "#222938",
+        color: "#fff",
+        border: `1.5px solid ${doradoPDI}`
+    };
+
+    // Si alguna visibilidad es pública, bloquea la opción de agregar más
+    const esPublica = visibilidad.some(v => v.tipoDestino === "publica");
+
     return (
         <Card
             className="shadow-lg border-0 mx-auto"
@@ -91,7 +135,8 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                 background: "rgba(28,36,48,0.98)",
                 borderRadius: "1.2rem",
                 border: `2.5px solid ${doradoPDI}`,
-                boxShadow: "0 5px 30px 0 #0e2042a1"
+                boxShadow: "0 5px 30px 0 #0e2042a1",
+                overflow: "hidden"
             }}
         >
             <Card.Body>
@@ -106,7 +151,7 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                         <Form.Control
                             type="text" value={nombre}
                             onChange={e => setNombre(e.target.value)} required
-                            style={{ background: "#222938", color: "#fff", border: `1.5px solid ${doradoPDI}` }}
+                            style={inputStyle}
                         />
                     </Form.Group>
                     <Form.Group className="mb-3">
@@ -114,7 +159,7 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                         <Form.Control
                             type="text" value={descripcion}
                             onChange={e => setDescripcion(e.target.value)}
-                            style={{ background: "#222938", color: "#fff", border: `1.5px solid ${doradoPDI}` }}
+                            style={inputStyle}
                         />
                     </Form.Group>
                     <h5 className="mt-4 mb-2" style={{ color: doradoPDI }}>Campos del formulario</h5>
@@ -124,18 +169,18 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                                 <Form.Label style={{ color: "#b8becd" }}>Nombre</Form.Label>
                                 <Form.Control type="text" value={campo.nombre}
                                               onChange={e => handleCampoChange(idx, "nombre", e.target.value)}
-                                              required style={{ background: "#222938", color: "#fff", border: `1.5px solid ${doradoPDI}` }}/>
+                                              required style={inputStyle}/>
                             </Col>
                             <Col md={3}>
                                 <Form.Label style={{ color: "#b8becd" }}>Etiqueta</Form.Label>
                                 <Form.Control type="text" value={campo.etiqueta}
                                               onChange={e => handleCampoChange(idx, "etiqueta", e.target.value)}
-                                              required style={{ background: "#222938", color: "#fff", border: `1.5px solid ${doradoPDI}` }}/>
+                                              required style={inputStyle}/>
                             </Col>
                             <Col md={2}>
                                 <Form.Label style={{ color: "#b8becd" }}>Tipo</Form.Label>
                                 <Form.Select value={campo.tipo} onChange={e => handleCampoChange(idx, "tipo", e.target.value)}
-                                             style={{ background: "#222938", color: "#fff", border: `1.5px solid ${doradoPDI}` }}>
+                                             style={inputStyle}>
                                     {tiposCampo.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                                 </Form.Select>
                             </Col>
@@ -146,7 +191,7 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                                     value={campo.opciones || ""}
                                     onChange={e => handleCampoChange(idx, "opciones", e.target.value)}
                                     placeholder="Solo para select (a,b,c)"
-                                    style={{ background: "#222938", color: "#fff", border: `1.5px solid ${doradoPDI}` }}
+                                    style={inputStyle}
                                     disabled={campo.tipo !== "select"}
                                 />
                             </Col>
@@ -181,34 +226,66 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                     {visibilidad.map((v, idx) => (
                         <Row key={idx} className="align-items-end mb-2">
                             <Col md={4}>
-                                <Form.Select value={v.tipoDestino}
-                                             onChange={e => handleVisibilidadChange(idx, "tipoDestino", e.target.value)}
-                                             style={{ background: "#222938", color: "#fff", border: `1.5px solid ${doradoPDI}` }}>
+                                <Form.Select
+                                    value={v.tipoDestino}
+                                    onChange={e => handleVisibilidadChange(idx, "tipoDestino", e.target.value)}
+                                    style={inputStyle}
+                                    disabled={esPublica && v.tipoDestino !== "publica"}
+                                >
                                     <option value="unidad">Unidad</option>
                                     <option value="usuario">Usuario</option>
                                     <option value="grupo">Grupo</option>
+                                    <option value="publica">Pública</option>
                                 </Form.Select>
                             </Col>
                             <Col md={6}>
-                                <Form.Control type="text"
-                                              placeholder="Ej: sigla unidad, id usuario, nombre grupo..."
-                                              value={v.valorDestino}
-                                              onChange={e => handleVisibilidadChange(idx, "valorDestino", e.target.value)}
-                                              style={{ background: "#222938", color: "#fff", border: `1.5px solid ${doradoPDI}` }}/>
+                                {v.tipoDestino === "unidad" && (
+                                    <AsyncUnidadesSelect
+                                        value={v.valorDestino}
+                                        onChange={opt => handleVisibilidadChange(idx, "valorDestino", opt)}
+                                        user={user}
+                                    />
+                                )}
+                                {v.tipoDestino === "usuario" && (
+                                    <AsyncFuncionarioSelect
+                                        value={v.valorDestino}
+                                        onChange={opt => handleVisibilidadChange(idx, "valorDestino", opt)}
+                                        user={user}
+                                    />
+                                )}
+                                {v.tipoDestino === "grupo" && (
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Nombre de grupo"
+                                        value={v.valorDestino?.label || v.valorDestino || ""}
+                                        onChange={e => handleVisibilidadChange(idx, "valorDestino", { value: e.target.value, label: e.target.value })}
+                                        style={inputStyle}
+                                    />
+                                )}
+                                {v.tipoDestino === "publica" && (
+                                    <div style={{ color: doradoPDI, paddingTop: 6, paddingLeft: 8 }}>
+                                        Cualquiera puede ver este formulario
+                                    </div>
+                                )}
                             </Col>
                             <Col md={2}>
                                 <Button variant="danger" size="sm"
                                         className="mb-1"
                                         onClick={() => delVisibilidad(idx)}
-                                        disabled={visibilidad.length === 1}
+                                        disabled={visibilidad.length === 1 || esPublica}
                                         style={{ marginTop: 5 }}
                                 >X</Button>
                             </Col>
                         </Row>
                     ))}
                     <div className="d-flex mb-3">
-                        <Button type="button" variant="outline-warning"
-                                onClick={addVisibilidad} style={{ borderRadius: "1rem" }}>
+                        <Button
+                            type="button"
+                            variant="outline-warning"
+                            onClick={addVisibilidad}
+                            style={{ borderRadius: "1rem" }}
+                            disabled={esPublica}
+                        >
                             + Agregar visibilidad
                         </Button>
                     </div>

@@ -35,7 +35,7 @@ const modules = [
     },
 ];
 
-export function Header() {
+function Header() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const handleLogout = () => {
