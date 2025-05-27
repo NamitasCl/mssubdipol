@@ -28,6 +28,8 @@ export default function ListaAdminFormularios() {
         setLoading(false);
     };
 
+
+
     useEffect(() => {
         cargarFormularios();
     }, []);
@@ -104,7 +106,7 @@ export default function ListaAdminFormularios() {
                                     size="sm"
                                     className="me-2"
                                     style={{ color: doradoPDI, borderColor: doradoPDI, borderRadius: "1rem" }}
-                                    onClick={() => { setFormularioEdit(f); setShowModal(true); }}
+                                    onClick={() => { setFormularioEdit(f); setShowModal(true); console.log(f) }}
                                 >
                                     Editar
                                 </Button>

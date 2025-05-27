@@ -25,6 +25,8 @@ public class FormularioDefinicion {
 
     private boolean activo = true;
 
+    private Integer idCreador; //Id del creador -> es el idFuncionario de Commons.
+
     private LocalDateTime fechaCreacion = LocalDateTime.now();
 
     @OneToMany(mappedBy = "formulario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

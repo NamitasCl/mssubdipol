@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Card, Form, Button, Row, Col, Alert } from "react-bootstrap";
+import {Card, Form, Button, Row, Col, Alert, OverlayTrigger, Tooltip} from "react-bootstrap";
 import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect.jsx";
 import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect.jsx";
+import axios from "axios";
 
 
 const doradoPDI = "#FFC700";
@@ -10,6 +11,7 @@ const tiposCampo = [
     { value: "datetime-local", label: "Fecha y Hora" },
     { value: "boolean", label: "Sí/No (checkbox)" },
     { value: "select", label: "Lista (select)" },
+    { value: "radio", label: "Radio (selección)"},
     { value: "funcionario", label: "Lista Funcionarios"},
     { value: "unidad", label: "Lista Unidades"},
     { value: "repol", label: "Región Policial"}
@@ -37,26 +39,66 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
             setNombre(formulario.nombre || "");
             setDescripcion(formulario.descripcion || "");
             setCampos(formulario.campos?.length ? formulario.campos : [vacioCampo()]);
-            setVisibilidad(
-                formulario.visibilidad?.length
-                    ? formulario.visibilidad.map(v => ({
-                        tipoDestino: v.tipoDestino,
-                        valorDestino: typeof v.valorDestino === "object"
-                            ? v.valorDestino
-                            : { label: v.valorDestinoNombre || v.valorDestino, value: v.valorDestino }
-                    }))
-                    : [vacioVisibilidad()]
-            );
+            // Para cada visibilidad tipo unidad, consulta el nombre
+            if (formulario.visibilidad?.length) {
+                Promise.all(
+                    formulario.visibilidad.map(async v => {
+                        if (v.tipoDestino === "unidad" && typeof v.valorDestino === "string") {
+                            // Aquí llamas a tu API para buscar el nombre
+                            // Debes implementar getUnidadNombre(id)
+                            const nombreUnidad = await getUnidadNombre(v.valorDestino);
+                            return {
+                                ...v,
+                                valorDestino: { value: v.valorDestino, label: nombreUnidad }
+                            };
+                        }
+                        // Ya está bien formado
+                        return v;
+                    })
+                ).then(visFinal =>
+                    setVisibilidad(visFinal)
+                );
+            } else {
+                setVisibilidad([vacioVisibilidad()]);
+            }
         } else {
             setNombre(""); setDescripcion(""); setCampos([vacioCampo()]); setVisibilidad([vacioVisibilidad()]);
         }
         setMsg(null); setError(null);
     }, [formulario]);
 
+    const getUnidadNombre = async (idUnidad) => {
+        try {
+            console.log("Endpoint: ", import.meta.env.VITE_COMMON_SERVICES_API_URL)
+
+            const resp = await axios.get(`${import.meta.env.VITE_COMMON_SERVICES_API_URL}/unidades/${idUnidad}`, {
+                headers: { Authorization: `Bearer ${user.token}` }
+            });
+            console.log("IdUnidad: ", idUnidad)
+            console.log("GetUnidadNombre: ", resp.data)
+            return resp.data.nombreUnidad;
+        } catch {
+            return idUnidad; // fallback, muestra el id si falla
+        }
+    };
+
+
     // --- handlers campos ---
     const handleCampoChange = (idx, key, value) => {
         setCampos(camps =>
-            camps.map((c, i) => (i === idx ? { ...c, [key]: value } : c))
+            camps.map((c, i) => {
+                if (i !== idx) return c;
+
+                // Si está cambiando el tipo...
+                if (key === "tipo") {
+                    // Si el nuevo tipo NO es select NI radio, borra opciones
+                    if (!(value === "select" || value === "radio")) {
+                        return { ...c, tipo: value, opciones: "" };
+                    }
+                }
+                // Para cualquier otro cambio, deja igual
+                return { ...c, [key]: value };
+            })
         );
     };
     const addCampo = () => setCampos([...campos, vacioCampo()]);
@@ -81,11 +123,12 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
     const handleSubmit = async e => {
         e.preventDefault();
         setMsg(null); setError(null);
+
         if (!nombre || campos.length === 0) {
             setError("Debe ingresar nombre y al menos un campo");
             return;
         }
-        // Si alguna visibilidad es pública, solo deja esa regla
+
         const esPublica = visibilidad.some(v => v.tipoDestino === "publica");
         const reglasVisibilidad = esPublica
             ? [{ tipoDestino: "publica", valorDestino: null }]
@@ -101,9 +144,20 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
             campos: campos.map((c, idx) => ({ ...c, orden: idx + 1 })),
             visibilidad: reglasVisibilidad
         };
+
+        if (formulario && formulario.id) {
+            payload.id = formulario.id;
+        }
+
+        // 🔽 Mueve esto aquí 🔽
+        const urlBase = `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`;
+        const isEdit = formulario && formulario.id; // <--- AQUÍ
+        const method = isEdit ? "PUT" : "POST";
+        const url = isEdit ? `${urlBase}/${formulario.id}` : urlBase;
+
         try {
-            await fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
-                method: "POST",
+            await fetch(url, {
+                method,
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${user.token}`
@@ -111,10 +165,10 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                 body: JSON.stringify(payload)
             });
 
-            setMsg("Formulario guardado correctamente.");
+            setMsg(isEdit ? "Formulario actualizado correctamente." : "Formulario guardado correctamente.");
             if (onSuccess) onSuccess();
         } catch {
-            setError("Error al guardar el formulario.");
+            setError(isEdit ? "Error al actualizar el formulario." : "Error al guardar el formulario.");
         }
     };
 
@@ -186,14 +240,26 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
                             </Col>
                             <Col md={2}>
                                 <Form.Label style={{ color: "#b8becd" }}>Opciones</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    value={campo.opciones || ""}
-                                    onChange={e => handleCampoChange(idx, "opciones", e.target.value)}
-                                    placeholder="Solo para select (a,b,c)"
-                                    style={inputStyle}
-                                    disabled={campo.tipo !== "select"}
-                                />
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={
+                                        <Tooltip id={`tooltip-opciones-${idx}`}>
+                                            <p>Solo para <b>select</b> o <b>radio</b>: <br />
+                                            Ingresa las opciones separadas por coma, por ejemplo:<br />
+                                                <code>Si,No,En Proceso</code></p>
+                                        </Tooltip>
+                                    }
+                                >
+                                    <Form.Control
+                                        type="text"
+                                        value={campo.opciones || ""}
+                                        onChange={e => handleCampoChange(idx, "opciones", e.target.value)}
+                                        placeholder="Solo para select/radio (a,b,c)"
+                                        style={inputStyle}
+                                        disabled={!(campo.tipo === "select" || campo.tipo === "radio")}
+                                        // Puedes añadir un ícono o un hint visual si gustas
+                                    />
+                                </OverlayTrigger>
                             </Col>
                             <Col md={2}>
                                 <Form.Check

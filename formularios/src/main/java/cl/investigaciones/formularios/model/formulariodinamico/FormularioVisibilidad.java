@@ -17,7 +17,7 @@ public class FormularioVisibilidad {
     @JoinColumn(name = "formulario_id")
     private FormularioDefinicion formulario;
 
-    private String tipoDestino;   // "unidad", "usuario", "grupo"
-    private String valorDestino;  // Sigla unidad, id de usuario, id grupo, etc
+    private String tipoDestino;   // "unidad", "usuario", "grupo", "publica"
+    private String valorDestino;  // Sigla unidad, id de usuario, id grupo, etc. Null si es pública.
 }
 

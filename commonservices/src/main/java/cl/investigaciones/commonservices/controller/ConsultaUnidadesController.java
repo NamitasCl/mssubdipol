@@ -26,6 +26,19 @@ public class ConsultaUnidadesController {
         }
     }
 
+    @GetMapping("/{idUnidad}")
+    public ResponseEntity<?> getUnidadByIdUnidad(@PathVariable Integer idUnidad) {
+        try {
+            System.out.println("[getUnidadByIdUnidad] IdUnidad: " + idUnidad);
+            ConsultaUnidadDto unidad = unidadesService.getUnidadByIdUnidad(idUnidad);
+            return ResponseEntity.ok(unidad);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al consultar unidad: " + e.getMessage());
+        }
+    }
+
+
     @GetMapping("/buscar")
     public ResponseEntity<?> buscarUnidadesPorNombre(@RequestParam String nombre) {
         try {

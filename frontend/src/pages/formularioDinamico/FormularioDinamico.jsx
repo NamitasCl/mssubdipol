@@ -212,6 +212,48 @@ const FormularioDinamico = ({ formularioId, user, onSuccess }) => {
                                                     />
                                                 </div>
                                             )}
+                                            {campo.tipo === "select" && (
+                                                <Form.Select
+                                                    name={campo.nombre}
+                                                    value={valores[campo.nombre]}
+                                                    onChange={handleChange}
+                                                    required={campo.requerido}
+                                                    style={{
+                                                        background: grisOscuro,
+                                                        color: "#fff",
+                                                        border: `1.5px solid ${doradoPDI}`,
+                                                        borderRadius: ".5rem"
+                                                    }}
+                                                >
+                                                    <option value="">Seleccione...</option>
+                                                    {(campo.opciones || "")
+                                                        .split(",")
+                                                        .map((opt, i) => (
+                                                            <option key={i} value={opt.trim()}>
+                                                                {opt.trim()}
+                                                            </option>
+                                                        ))}
+                                                </Form.Select>
+                                            )}
+                                            {campo.tipo === "radio" && (
+                                                <div>
+                                                    {(campo.opciones || "")
+                                                        .split(",")
+                                                        .map((opt, i) => (
+                                                            <Form.Check
+                                                                key={i}
+                                                                type="radio"
+                                                                name={campo.nombre}
+                                                                value={opt.trim()}
+                                                                label={opt.trim()}
+                                                                checked={valores[campo.nombre] === opt.trim()}
+                                                                onChange={handleChange}
+                                                                required={campo.requerido && i === 0} // El primero marca el required, evita duplicados
+                                                                style={{ color: doradoPDI, marginRight: "1.7rem" }}
+                                                            />
+                                                        ))}
+                                                </div>
+                                            )}
                                             {/* Puedes agregar aquí soporte para select/radio más adelante */}
                                             {campo.tipo === "funcionario" && (
                                                 <AsyncFuncionarioSelect

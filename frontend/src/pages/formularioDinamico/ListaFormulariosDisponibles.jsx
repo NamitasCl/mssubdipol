@@ -71,8 +71,9 @@ const ListaFormulariosDisponibles = () => {
                             <td>
                                 <Permiso
                                     user={user}
-                                    roles={rolesPermitidos}
-                                    usuarios={usuariosPermitidos}
+                                    visibilidad={f.visibilidad}
+                                    //roles={rolesPermitidos}
+                                    //usuarios={usuariosPermitidos}
                                     //unidades={unidadesPermitidas}
                                 >
                                     <Button

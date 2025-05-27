@@ -1,5 +1,6 @@
 package cl.investigaciones.formularios.controller.formulariodinamico;
 
+import cl.investigaciones.formularios.dto.JwtUserPrincipal;
 import cl.investigaciones.formularios.dto.formulariodinamico.FormularioDefinicionRequestDTO;
 import cl.investigaciones.formularios.dto.formulariodinamico.FormularioDefinicionResponseDTO;
 import cl.investigaciones.formularios.service.formulariodinamico.FormularioDefinicionService;
@@ -7,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,13 +23,21 @@ public class FormularioDefinicionController {
 
     @PostMapping("/definicion")
     public ResponseEntity<FormularioDefinicionResponseDTO> crearFormulario(
-            @RequestBody FormularioDefinicionRequestDTO dto) {
-        return ResponseEntity.ok(service.crearFormulario(dto));
+            @RequestBody FormularioDefinicionRequestDTO dto,
+            @AuthenticationPrincipal JwtUserPrincipal principal) {
+        Integer usuarioId = principal.getIdFuncionario();
+        return ResponseEntity.ok(service.crearFormulario(dto, usuarioId));
     }
 
     @GetMapping("/definicion")
     public ResponseEntity<List<FormularioDefinicionResponseDTO>> listarFormularios() {
         return ResponseEntity.ok(service.listarFormulariosActivos());
+    }
+
+    @GetMapping("/definicion/creador/{idCreador}")
+    public ResponseEntity<List<FormularioDefinicionResponseDTO>> listarFormulariosByCreador(@PathVariable Integer idCreador) {
+        System.out.println("idCreador: " + idCreador);
+        return ResponseEntity.ok(service.listarFormulariosActivosByCreador(idCreador));
     }
 
     @GetMapping("/definicion/{id}")
@@ -48,6 +58,16 @@ public class FormularioDefinicionController {
     ) {
         FormularioDefinicionResponseDTO dto = service.cambiarEstadoFormulario(id, estadoRequest.isActivo());
         return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/definicion/{id}")
+    public ResponseEntity<FormularioDefinicionResponseDTO> actualizarFormulario(
+            @PathVariable Long id,
+            @RequestBody FormularioDefinicionRequestDTO dto,
+            @AuthenticationPrincipal JwtUserPrincipal principal // si quieres validar autoría
+    ) throws Exception {
+        FormularioDefinicionResponseDTO actualizado = service.actualizarFormulario(id, dto, principal.getIdFuncionario());
+        return ResponseEntity.ok(actualizado);
     }
 
 

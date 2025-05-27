@@ -130,4 +130,18 @@ public class UnidadesService {
     public List<String> getRegionesPolicialesUnicas() {
         return unidadesRepository.findDistinctRegionPolicial();
     }
+
+    public ConsultaUnidadDto getUnidadByIdUnidad(Integer idUnidad) {
+        Unidad unidadEncontrada = unidadesRepository.findByIdUnidad(idUnidad)
+                .orElseThrow(() -> new RuntimeException("No existe unidad con id: " + idUnidad));
+
+        ConsultaUnidadDto dto = new ConsultaUnidadDto();
+        dto.setIdUnidad(unidadEncontrada.getIdUnidad());
+        dto.setNombreUnidad(unidadEncontrada.getNombreUnidad());
+        dto.setSiglasUnidad(unidadEncontrada.getSiglasUnidad());
+        dto.setNombreComuna(unidadEncontrada.getNombreComuna());
+        dto.setNombreUnidadPertenece(unidadEncontrada.getRegionPolicial());
+
+        return dto;
+    }
 }

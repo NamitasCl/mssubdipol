@@ -14,7 +14,10 @@ import cl.investigaciones.formularios.repository.formulariodinamico.FormularioVi
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,14 +37,15 @@ public class FormularioDefinicionService {
     private FormularioRegistroRepository registroRepo;
 
     @Transactional
-    public FormularioDefinicionResponseDTO crearFormulario(FormularioDefinicionRequestDTO dto) {
+    public FormularioDefinicionResponseDTO crearFormulario(FormularioDefinicionRequestDTO dto, Integer idCreador) {
         FormularioDefinicion entidad = new FormularioDefinicion();
         entidad.setNombre(dto.getNombre());
         entidad.setDescripcion(dto.getDescripcion());
         entidad.setActivo(true);
         entidad.setFechaCreacion(LocalDateTime.now());
+        entidad.setIdCreador(idCreador); // <--- guardar el creador si tienes este campo
 
-        // Guardar para obtener el ID
+        // Guardar primero para obtener el ID
         definicionRepo.save(entidad);
 
         // Guardar campos
@@ -60,15 +64,32 @@ public class FormularioDefinicionService {
         }
         entidad.setCampos(campos);
 
-        // Guardar visibilidad
+        // --- VISIBILIDAD ---
+        List<FormularioVisibilidadDTO> reglas = dto.getVisibilidad();
+        // Si hay alguna "pública", quédate solo con esa (y rechaza combinaciones)
+        boolean esPublica = reglas.stream()
+                .anyMatch(v -> "publica".equalsIgnoreCase(v.getTipoDestino()));
         List<FormularioVisibilidad> visibilidades = new ArrayList<>();
-        for (FormularioVisibilidadDTO visDTO : dto.getVisibilidad()) {
+
+        if (esPublica) {
+            // Solo guarda la regla pública
             FormularioVisibilidad vis = new FormularioVisibilidad();
             vis.setFormulario(entidad);
-            vis.setTipoDestino(visDTO.getTipoDestino());
-            vis.setValorDestino(visDTO.getValorDestino());
+            vis.setTipoDestino("publica");
+            vis.setValorDestino(null);
             visibilidadRepo.save(vis);
             visibilidades.add(vis);
+        } else {
+            // Guarda todas las reglas normales (usuario, unidad, grupo)
+            for (FormularioVisibilidadDTO visDTO : reglas) {
+                // Si tienes lógica para evitar duplicados, agrégala aquí
+                FormularioVisibilidad vis = new FormularioVisibilidad();
+                vis.setFormulario(entidad);
+                vis.setTipoDestino(visDTO.getTipoDestino());
+                vis.setValorDestino(visDTO.getValorDestino());
+                visibilidadRepo.save(vis);
+                visibilidades.add(vis);
+            }
         }
         entidad.setVisibilidad(visibilidades);
 
@@ -78,10 +99,23 @@ public class FormularioDefinicionService {
         return toResponseDTO(entidad);
     }
 
+
     // Para listar todos los formularios activos
     public List<FormularioDefinicionResponseDTO> listarFormulariosActivos() {
         List<FormularioDefinicion> lista = definicionRepo.findAll()
                 .stream().collect(Collectors.toList());
+        return lista.stream().map(this::toResponseDTO).collect(Collectors.toList());
+    }
+
+    public List<FormularioDefinicionResponseDTO> listarFormulariosActivosByCreador(Integer idCreador) {
+        System.out.println("Entrando al metodo listarFormulariosActivosByCreador");
+        List<FormularioDefinicion> lista = definicionRepo.findAllByIdCreador(idCreador)
+                .stream().collect(Collectors.toList());
+
+        for (FormularioDefinicion formulario : lista) {
+            System.out.println("formulario: " + formulario.getNombre());
+        }
+
         return lista.stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
 
@@ -142,5 +176,46 @@ public class FormularioDefinicionService {
         return toResponseDTO(formulario);
     }
 
+    @Transactional
+    public FormularioDefinicionResponseDTO actualizarFormulario(Long id, FormularioDefinicionRequestDTO dto, Integer idUsuario) {
+        FormularioDefinicion entidad = definicionRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Formulario no encontrado"));
+
+        // Validación de autoría omitida por claridad
+
+        // Actualizar los campos simples
+        entidad.setNombre(dto.getNombre());
+        entidad.setDescripcion(dto.getDescripcion());
+
+        // Actualizar CAMPOS del formulario
+        // 1. Borra todos los campos actuales desde la entidad
+        entidad.getCampos().clear();
+        // 2. Agrega los nuevos campos a la entidad
+        for (FormularioCampoDTO campoDTO : dto.getCampos()) {
+            FormularioCampo campo = new FormularioCampo();
+            campo.setFormulario(entidad); // MUY IMPORTANTE para la relación
+            campo.setNombre(campoDTO.getNombre());
+            campo.setEtiqueta(campoDTO.getEtiqueta());
+            campo.setTipo(campoDTO.getTipo());
+            campo.setRequerido(campoDTO.getRequerido());
+            campo.setOpciones(campoDTO.getOpciones());
+            campo.setOrden(campoDTO.getOrden());
+            entidad.getCampos().add(campo);
+        }
+
+        // Igual con visibilidad (si aplica)
+        entidad.getVisibilidad().clear();
+        for (FormularioVisibilidadDTO visDTO : dto.getVisibilidad()) {
+            FormularioVisibilidad vis = new FormularioVisibilidad();
+            vis.setFormulario(entidad);
+            vis.setTipoDestino(visDTO.getTipoDestino());
+            vis.setValorDestino(visDTO.getValorDestino());
+            entidad.getVisibilidad().add(vis);
+        }
+
+        definicionRepo.save(entidad);
+
+        return toResponseDTO(entidad);
+    }
 }
 
