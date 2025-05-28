@@ -31,7 +31,7 @@ export default function App() {
             <Routes>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />
-                <Route path="/" element={<DashboardPrincipal />} />
+                <Route path="/" element={<AuthGuard><DashboardPrincipal /></AuthGuard>} />
                 <Route path="/servicios-especiales" element={<AuthGuard><ServiciosEspecialesLayout /></AuthGuard>}>
                     <Route path="listarformsdisponibles" element={<ListaFormulariosDisponibles />} />
                     <Route path="formularios-admin" element={<RestrictedAreaAdmin component={ListaAdminFormularios} />} />

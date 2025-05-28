@@ -3,6 +3,7 @@ export default function Permiso({ user, visibilidad, roles, owner, children }) {
     console.log("User: ", user);
     console.log("Visibilidad: ", visibilidad);
     console.log("Roles: ", roles);
+    console.log("IdCreador: ", owner)
     if (Array.isArray(visibilidad) && visibilidad.length > 0) {
         for (const v of visibilidad) {
             console.log(user.sub)

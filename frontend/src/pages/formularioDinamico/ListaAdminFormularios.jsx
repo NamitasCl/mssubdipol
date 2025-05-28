@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Table, Button, Spinner, Modal } from "react-bootstrap";
 import { useAuth } from "../../AuthContext.jsx";
-import CrearEditarFormularioDinamico from "./CrearEditarFormularioDinamico.jsx"; // este lo creamos abajo
+import CrearEditarFormularioDinamico from "./CrearEditarFormularioDinamico.jsx";
+import Permiso from "../../components/Permiso.jsx"; // este lo creamos abajo
 
 const doradoPDI = "#303030";
 
@@ -95,40 +96,42 @@ export default function ListaAdminFormularios() {
                     </thead>
                     <tbody>
                     {formularios.map((f, i) => (
-                        <tr key={f.id}>
-                            <td>{i + 1}</td>
-                            <td style={{ fontWeight: 600, color: doradoPDI }}>{f.nombre}</td>
-                            <td style={{ color: "#191b1d" }}>{f.descripcion}</td>
-                            <td>{f.activo ? "Activo" : "Inactivo"}</td>
-                            <td>
-                                <Button
-                                    variant="outline-warning"
-                                    size="sm"
-                                    className="me-2"
-                                    style={{ color: doradoPDI, borderColor: doradoPDI, borderRadius: "1rem" }}
-                                    onClick={() => { setFormularioEdit(f); setShowModal(true); console.log(f) }}
-                                >
-                                    Editar
-                                </Button>
-                                <Button
-                                    variant={f.activo ? "outline-secondary" : "outline-success"}
-                                    size="sm"
-                                    className="me-2"
-                                    style={{ borderRadius: "1rem" }}
-                                    onClick={() => toggleFormularioActivo(f)}
-                                >
-                                    {f.activo ? "Inhabilitar" : "Habilitar"}
-                                </Button>
-                                <Button
-                                    variant="outline-danger"
-                                    size="sm"
-                                    style={{ borderRadius: "1rem" }}
-                                    onClick={() => eliminarFormulario(f)}
-                                >
-                                    Eliminar
-                                </Button>
-                            </td>
-                        </tr>
+                        <Permiso user={user} owner={f.idCreador} >
+                            <tr key={f.id}>
+                                <td>{i + 1}</td>
+                                <td style={{ fontWeight: 600, color: doradoPDI }}>{f.nombre}</td>
+                                <td style={{ color: "#191b1d" }}>{f.descripcion}</td>
+                                <td>{f.activo ? "Activo" : "Inactivo"}</td>
+                                <td>
+                                    <Button
+                                        variant="outline-warning"
+                                        size="sm"
+                                        className="me-2"
+                                        style={{ color: doradoPDI, borderColor: doradoPDI, borderRadius: "1rem" }}
+                                        onClick={() => { setFormularioEdit(f); setShowModal(true); console.log(f) }}
+                                    >
+                                        Editar
+                                    </Button>
+                                    <Button
+                                        variant={f.activo ? "outline-secondary" : "outline-success"}
+                                        size="sm"
+                                        className="me-2"
+                                        style={{ borderRadius: "1rem" }}
+                                        onClick={() => toggleFormularioActivo(f)}
+                                    >
+                                        {f.activo ? "Inhabilitar" : "Habilitar"}
+                                    </Button>
+                                    <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        style={{ borderRadius: "1rem" }}
+                                        onClick={() => eliminarFormulario(f)}
+                                    >
+                                        Eliminar
+                                    </Button>
+                                </td>
+                            </tr>
+                        </Permiso>
                     ))}
                     </tbody>
                 </Table>
