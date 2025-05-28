@@ -14,5 +14,6 @@ public class FormularioDefinicionResponseDTO {
     private List<FormularioVisibilidadDTO> visibilidad;
     private boolean activo;
     private LocalDateTime fechaCreacion;
+    private Integer idCreador;
 }
 

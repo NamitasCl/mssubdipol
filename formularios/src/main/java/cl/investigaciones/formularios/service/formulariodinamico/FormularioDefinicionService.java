@@ -1,9 +1,6 @@
 package cl.investigaciones.formularios.service.formulariodinamico;
 
-import cl.investigaciones.formularios.dto.formulariodinamico.FormularioCampoDTO;
-import cl.investigaciones.formularios.dto.formulariodinamico.FormularioDefinicionRequestDTO;
-import cl.investigaciones.formularios.dto.formulariodinamico.FormularioDefinicionResponseDTO;
-import cl.investigaciones.formularios.dto.formulariodinamico.FormularioVisibilidadDTO;
+import cl.investigaciones.formularios.dto.formulariodinamico.*;
 import cl.investigaciones.formularios.model.formulariodinamico.FormularioCampo;
 import cl.investigaciones.formularios.model.formulariodinamico.FormularioDefinicion;
 import cl.investigaciones.formularios.model.formulariodinamico.FormularioVisibilidad;
@@ -15,13 +12,15 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +34,9 @@ public class FormularioDefinicionService {
     private FormularioVisibilidadRepository visibilidadRepo;
     @Autowired
     private FormularioRegistroRepository registroRepo;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Transactional
     public FormularioDefinicionResponseDTO crearFormulario(FormularioDefinicionRequestDTO dto, Integer idCreador) {
@@ -87,6 +89,23 @@ public class FormularioDefinicionService {
                 vis.setFormulario(entidad);
                 vis.setTipoDestino(visDTO.getTipoDestino());
                 vis.setValorDestino(visDTO.getValorDestino());
+
+                //Obtengo nombre de unidad/funcionario para la visibilidad
+                String url = "http://commonservices:8011/api/common/unidades/" + Integer.parseInt(vis.getValorDestino());
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                HttpEntity<Map<String, String>> request = new HttpEntity<>(headers);
+                ResponseEntity<CSConsultaUnidadResponse> response = restTemplate
+                        .exchange(url, HttpMethod.GET, request, CSConsultaUnidadResponse.class);
+
+                if(response.getBody() == null) {
+                    throw new EntityNotFoundException("No se encontro la unidad.");
+                }
+
+                String nombreUnidad = response.getBody().getSiglasUnidad();
+                vis.setValorDestinoNombre(nombreUnidad);
+
                 visibilidadRepo.save(vis);
                 visibilidades.add(vis);
             }
@@ -139,11 +158,13 @@ public class FormularioDefinicionService {
                     return cDTO;
                 }).collect(Collectors.toList())
         );
+        dto.setIdCreador(entidad.getIdCreador());
         dto.setVisibilidad(
                 entidad.getVisibilidad().stream().map(v -> {
                     FormularioVisibilidadDTO vDTO = new FormularioVisibilidadDTO();
                     vDTO.setTipoDestino(v.getTipoDestino());
                     vDTO.setValorDestino(v.getValorDestino());
+                    vDTO.setValorDestinoNombre(v.getValorDestinoNombre());
                     return vDTO;
                 }).collect(Collectors.toList())
         );
@@ -210,6 +231,23 @@ public class FormularioDefinicionService {
             vis.setFormulario(entidad);
             vis.setTipoDestino(visDTO.getTipoDestino());
             vis.setValorDestino(visDTO.getValorDestino());
+
+            //Obtengo nombre de unidad/funcionario para la visibilidad
+            String url = "http://commonservices:8011/api/common/unidades/" + Integer.parseInt(vis.getValorDestino());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(headers);
+            ResponseEntity<CSConsultaUnidadResponse> response = restTemplate
+                    .exchange(url, HttpMethod.GET, request, CSConsultaUnidadResponse.class);
+
+            if(response.getBody() == null) {
+                throw new EntityNotFoundException("No se encontro la unidad.");
+            }
+
+            String nombreUnidad = response.getBody().getSiglasUnidad();
+            vis.setValorDestinoNombre(nombreUnidad);
+
             entidad.getVisibilidad().add(vis);
         }
 

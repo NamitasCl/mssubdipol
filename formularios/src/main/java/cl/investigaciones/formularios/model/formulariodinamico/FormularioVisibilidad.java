@@ -19,5 +19,6 @@ public class FormularioVisibilidad {
 
     private String tipoDestino;   // "unidad", "usuario", "grupo", "publica"
     private String valorDestino;  // Sigla unidad, id de usuario, id grupo, etc. Null si es pública.
+    private String valorDestinoNombre;
 }
 

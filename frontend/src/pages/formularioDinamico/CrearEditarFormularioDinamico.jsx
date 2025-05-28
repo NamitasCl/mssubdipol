@@ -35,6 +35,22 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
     const [error, setError] = useState(null);
 
     useEffect(() => {
+
+        const getUnidadNombre = async (idUnidad) => {
+            try {
+                console.log("Endpoint: ", import.meta.env.VITE_COMMON_SERVICES_API_URL)
+
+                const resp = await axios.get(`${import.meta.env.VITE_COMMON_SERVICES_API_URL}/unidades/${idUnidad}`, {
+                    headers: { Authorization: `Bearer ${user.token}` }
+                });
+                console.log("IdUnidad: ", idUnidad)
+                console.log("GetUnidadNombre: ", resp.data)
+                return resp.data.nombreUnidad;
+            } catch {
+                return idUnidad; // fallback, muestra el id si falla
+            }
+        };
+
         if (formulario) {
             setNombre(formulario.nombre || "");
             setDescripcion(formulario.descripcion || "");
@@ -65,22 +81,7 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
             setNombre(""); setDescripcion(""); setCampos([vacioCampo()]); setVisibilidad([vacioVisibilidad()]);
         }
         setMsg(null); setError(null);
-    }, [formulario]);
-
-    const getUnidadNombre = async (idUnidad) => {
-        try {
-            console.log("Endpoint: ", import.meta.env.VITE_COMMON_SERVICES_API_URL)
-
-            const resp = await axios.get(`${import.meta.env.VITE_COMMON_SERVICES_API_URL}/unidades/${idUnidad}`, {
-                headers: { Authorization: `Bearer ${user.token}` }
-            });
-            console.log("IdUnidad: ", idUnidad)
-            console.log("GetUnidadNombre: ", resp.data)
-            return resp.data.nombreUnidad;
-        } catch {
-            return idUnidad; // fallback, muestra el id si falla
-        }
-    };
+    }, [formulario, user.token]);
 
 
     // --- handlers campos ---

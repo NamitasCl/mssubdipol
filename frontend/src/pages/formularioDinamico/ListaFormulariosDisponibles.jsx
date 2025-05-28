@@ -6,8 +6,8 @@ import FormularioDinamico from "./FormularioDinamico"; // 👈 tu componente par
 import Permiso from "../../components/Permiso";
 import { useAuth } from "../../AuthContext";
 
-const rolesPermitidos = ["ROLE_ADMINISTRADOR", "ROLE_JEFE"];
-const usuariosPermitidos = [12254, 3023, 6789];
+//const rolesPermitidos = ["ROLE_ADMINISTRADOR", "ROLE_JEFE"];
+//const usuariosPermitidos = [12254, 3023, 6789];
 //const unidadesPermitidas = ["BRIDECMET"];
 
 const ListaFormulariosDisponibles = () => {
@@ -25,6 +25,7 @@ const ListaFormulariosDisponibles = () => {
         setLoading(true);
         axios.get(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`)
             .then(({ data }) => {
+                console.log("Resultado forms: ", data);
                 setFormularios(data.filter(f => f.activo))
             })
             .catch(() => setError("Error cargando formularios"))
@@ -36,6 +37,7 @@ const ListaFormulariosDisponibles = () => {
     }, []);
 
     const handleVerRegistros = (formulario) => {
+        console.log("Formulario: ", formulario);
         setModalRegistros({ show: true, formulario });
     };
 
@@ -64,44 +66,49 @@ const ListaFormulariosDisponibles = () => {
                     </thead>
                     <tbody>
                     {formularios.map((f, idx) => (
-                        <tr key={f.id}>
-                            <td>{idx + 1}</td>
-                            <td>{f.nombre}</td>
-                            <td>{f.descripcion}</td>
-                            <td>
-                                <Permiso
-                                    user={user}
-                                    visibilidad={f.visibilidad}
-                                    //roles={rolesPermitidos}
-                                    //usuarios={usuariosPermitidos}
-                                    //unidades={unidadesPermitidas}
-                                >
-                                    <Button
-                                        variant="info"
-                                        size="sm"
-                                        onClick={() => handleVerRegistros(f)}
-                                        className="me-2"
+                        <Permiso key={idx} user={user} visibilidad={f.visibilidad}>
+                            <tr key={f.id}>
+                                <td>{idx + 1}</td>
+                                <td>{f.nombre}</td>
+                                <td>{f.descripcion}</td>
+                                <td>
+                                    <Permiso
+                                        user={user}
+                                        //visibilidad={f.visibilidad}
+                                        //roles={rolesPermitidos}
+                                        //usuarios={usuariosPermitidos}
+                                        //unidades={unidadesPermitidas}
+                                        owner={f.idCreador}
                                     >
-                                        Ver registros
-                                    </Button>
-                                </Permiso>
-                                <Permiso
-                                    user={user}
-                                    roles={rolesPermitidos}
-                                    usuarios={usuariosPermitidos}
-                                    //unidades={unidadesPermitidas}
-                                >
-                                    <Button
-                                        variant="success"
-                                        size="sm"
-                                        onClick={() => handleAgregarRegistro(f)}
+                                        <Button
+                                            variant="info"
+                                            size="sm"
+                                            onClick={() =>{ handleVerRegistros(f)}}
+                                            className="me-2"
+                                        >
+                                            Ver registros
+                                        </Button>
+                                    </Permiso>
+                                    <Permiso
+                                        user={user}
+                                        visibilidad={f.visibilidad}
+                                        //roles={rolesPermitidos}
+                                        //usuarios={usuariosPermitidos}
+                                        //unidades={unidadesPermitidas}
                                     >
-                                        Agregar registro
-                                    </Button>
-                                </Permiso>
-                            </td>
-                        </tr>
+                                        <Button
+                                            variant="success"
+                                            size="sm"
+                                            onClick={() => handleAgregarRegistro(f)}
+                                        >
+                                            Agregar registro
+                                        </Button>
+                                    </Permiso>
+                                </td>
+                            </tr>
+                        </Permiso>
                     ))}
+
                     </tbody>
                 </Table>
             )}
