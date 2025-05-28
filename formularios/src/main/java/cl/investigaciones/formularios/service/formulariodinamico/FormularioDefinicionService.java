@@ -45,7 +45,7 @@ public class FormularioDefinicionService {
         entidad.setDescripcion(dto.getDescripcion());
         entidad.setActivo(true);
         entidad.setFechaCreacion(LocalDateTime.now());
-        entidad.setIdCreador(idCreador); // <--- guardar el creador si tienes este campo
+        entidad.setIdCreador(idCreador);
 
         // Guardar primero para obtener el ID
         definicionRepo.save(entidad);
@@ -66,55 +66,34 @@ public class FormularioDefinicionService {
         }
         entidad.setCampos(campos);
 
-        // --- VISIBILIDAD ---
+        // VISIBILIDAD
         List<FormularioVisibilidadDTO> reglas = dto.getVisibilidad();
-        // Si hay alguna "pública", quédate solo con esa (y rechaza combinaciones)
         boolean esPublica = reglas.stream()
                 .anyMatch(v -> "publica".equalsIgnoreCase(v.getTipoDestino()));
         List<FormularioVisibilidad> visibilidades = new ArrayList<>();
 
         if (esPublica) {
-            // Solo guarda la regla pública
             FormularioVisibilidad vis = new FormularioVisibilidad();
             vis.setFormulario(entidad);
             vis.setTipoDestino("publica");
             vis.setValorDestino(null);
+            vis.setValorDestinoNombre("Pública");
             visibilidadRepo.save(vis);
             visibilidades.add(vis);
         } else {
-            // Guarda todas las reglas normales (usuario, unidad, grupo)
             for (FormularioVisibilidadDTO visDTO : reglas) {
-                // Si tienes lógica para evitar duplicados, agrégala aquí
                 FormularioVisibilidad vis = new FormularioVisibilidad();
                 vis.setFormulario(entidad);
                 vis.setTipoDestino(visDTO.getTipoDestino());
                 vis.setValorDestino(visDTO.getValorDestino());
-
-                //Obtengo nombre de unidad/funcionario para la visibilidad
-                String url = "http://commonservices:8011/api/common/unidades/" + Integer.parseInt(vis.getValorDestino());
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-
-                HttpEntity<Map<String, String>> request = new HttpEntity<>(headers);
-                ResponseEntity<CSConsultaUnidadResponse> response = restTemplate
-                        .exchange(url, HttpMethod.GET, request, CSConsultaUnidadResponse.class);
-
-                if(response.getBody() == null) {
-                    throw new EntityNotFoundException("No se encontro la unidad.");
-                }
-
-                String nombreUnidad = response.getBody().getSiglasUnidad();
-                vis.setValorDestinoNombre(nombreUnidad);
-
+                vis.setValorDestinoNombre(obtenerNombreVisibilidad(visDTO.getTipoDestino(), visDTO.getValorDestino()));
                 visibilidadRepo.save(vis);
                 visibilidades.add(vis);
             }
         }
         entidad.setVisibilidad(visibilidades);
-
         definicionRepo.save(entidad);
 
-        // Devolver el DTO de respuesta
         return toResponseDTO(entidad);
     }
 
@@ -171,6 +150,44 @@ public class FormularioDefinicionService {
         return dto;
     }
 
+    private String obtenerNombreVisibilidad(String tipo, String valorDestino) {
+        if ("usuario".equals(tipo)) {
+            try {
+                String url = "http://commonservices:8011/api/common/funcionarios/" + Integer.parseInt(valorDestino);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<?> request = new HttpEntity<>(headers);
+                ResponseEntity<CSConsultaFuncionarioResponse> response = restTemplate
+                        .exchange(url, HttpMethod.GET, request, CSConsultaFuncionarioResponse.class);
+
+                if (response.getBody() != null) {
+                    CSConsultaFuncionarioResponse f = response.getBody();
+                    return f.getUsername();
+                }
+            } catch (Exception ignored) {}
+            return valorDestino; // Fallback
+        } else if ("unidad".equals(tipo)) {
+            try {
+                String url = "http://commonservices:8011/api/common/unidades/" + Integer.parseInt(valorDestino);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                HttpEntity<?> request = new HttpEntity<>(headers);
+                ResponseEntity<CSConsultaUnidadResponse> response = restTemplate
+                        .exchange(url, HttpMethod.GET, request, CSConsultaUnidadResponse.class);
+
+                if (response.getBody() != null) {
+                    return response.getBody().getSiglasUnidad();
+                }
+            } catch (Exception ignored) {}
+            return valorDestino; // Fallback
+        } else if ("grupo".equals(tipo)) {
+            return valorDestino;
+        } else if ("publica".equals(tipo)) {
+            return "Pública";
+        }
+        return valorDestino;
+    }
+
     public FormularioDefinicionResponseDTO obtenerDefinicionPorId(Long id) {
         // Lógica para buscar por ID y mapear a DTO.
         FormularioDefinicion definicion = definicionRepo.findById(id)
@@ -201,20 +218,14 @@ public class FormularioDefinicionService {
     public FormularioDefinicionResponseDTO actualizarFormulario(Long id, FormularioDefinicionRequestDTO dto, Integer idUsuario) {
         FormularioDefinicion entidad = definicionRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Formulario no encontrado"));
-
-        // Validación de autoría omitida por claridad
-
-        // Actualizar los campos simples
         entidad.setNombre(dto.getNombre());
         entidad.setDescripcion(dto.getDescripcion());
 
-        // Actualizar CAMPOS del formulario
-        // 1. Borra todos los campos actuales desde la entidad
+        // Actualizar CAMPOS
         entidad.getCampos().clear();
-        // 2. Agrega los nuevos campos a la entidad
         for (FormularioCampoDTO campoDTO : dto.getCampos()) {
             FormularioCampo campo = new FormularioCampo();
-            campo.setFormulario(entidad); // MUY IMPORTANTE para la relación
+            campo.setFormulario(entidad);
             campo.setNombre(campoDTO.getNombre());
             campo.setEtiqueta(campoDTO.getEtiqueta());
             campo.setTipo(campoDTO.getTipo());
@@ -224,35 +235,30 @@ public class FormularioDefinicionService {
             entidad.getCampos().add(campo);
         }
 
-        // Igual con visibilidad (si aplica)
+        // VISIBILIDAD
         entidad.getVisibilidad().clear();
-        for (FormularioVisibilidadDTO visDTO : dto.getVisibilidad()) {
+        List<FormularioVisibilidadDTO> reglas = dto.getVisibilidad();
+        boolean esPublica = reglas.stream().anyMatch(v -> "publica".equalsIgnoreCase(v.getTipoDestino()));
+        if (esPublica) {
             FormularioVisibilidad vis = new FormularioVisibilidad();
             vis.setFormulario(entidad);
-            vis.setTipoDestino(visDTO.getTipoDestino());
-            vis.setValorDestino(visDTO.getValorDestino());
-
-            //Obtengo nombre de unidad/funcionario para la visibilidad
-            String url = "http://commonservices:8011/api/common/unidades/" + Integer.parseInt(vis.getValorDestino());
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<Map<String, String>> request = new HttpEntity<>(headers);
-            ResponseEntity<CSConsultaUnidadResponse> response = restTemplate
-                    .exchange(url, HttpMethod.GET, request, CSConsultaUnidadResponse.class);
-
-            if(response.getBody() == null) {
-                throw new EntityNotFoundException("No se encontro la unidad.");
-            }
-
-            String nombreUnidad = response.getBody().getSiglasUnidad();
-            vis.setValorDestinoNombre(nombreUnidad);
-
+            vis.setTipoDestino("publica");
+            vis.setValorDestino(null);
+            vis.setValorDestinoNombre("Pública");
             entidad.getVisibilidad().add(vis);
+            visibilidadRepo.save(vis);
+        } else {
+            for (FormularioVisibilidadDTO visDTO : reglas) {
+                FormularioVisibilidad vis = new FormularioVisibilidad();
+                vis.setFormulario(entidad);
+                vis.setTipoDestino(visDTO.getTipoDestino());
+                vis.setValorDestino(visDTO.getValorDestino());
+                vis.setValorDestinoNombre(obtenerNombreVisibilidad(visDTO.getTipoDestino(), visDTO.getValorDestino()));
+                entidad.getVisibilidad().add(vis);
+                visibilidadRepo.save(vis);
+            }
         }
-
         definicionRepo.save(entidad);
-
         return toResponseDTO(entidad);
     }
 }

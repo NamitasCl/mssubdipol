@@ -131,6 +131,7 @@ public class FuncionariosService {
                         funcionarioExistente.setNombreUnidad(funcionario.getNombreUnidad());
                         funcionarioExistente.setSiglasUnidad(funcionario.getSiglasUnidad());
                         funcionarioExistente.setAntiguedad(funcionario.getAntiguedad());
+                        funcionarioExistente.setUsername(funcionario.getUsuarioAD());
                         funcionarioRepository.save(funcionarioExistente);
                         return;
                     } else {
@@ -144,6 +145,7 @@ public class FuncionariosService {
                         funcionarioDto.setSiglasUnidad(funcionario.getSiglasUnidad());
                         funcionarioDto.setAntiguedad(funcionario.getAntiguedad());
                         funcionarioDto.setIdFun(funcionario.getIdFun());
+                        funcionarioDto.setUsername(funcionario.getUsuarioAD());
                         funcionarioRepository.save(funcionarioDto);
                     }
                 });

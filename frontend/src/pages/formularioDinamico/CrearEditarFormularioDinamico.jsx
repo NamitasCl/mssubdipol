@@ -35,53 +35,39 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
     const [error, setError] = useState(null);
 
     useEffect(() => {
-
-        const getUnidadNombre = async (idUnidad) => {
-            try {
-                console.log("Endpoint: ", import.meta.env.VITE_COMMON_SERVICES_API_URL)
-
-                const resp = await axios.get(`${import.meta.env.VITE_COMMON_SERVICES_API_URL}/unidades/${idUnidad}`, {
-                    headers: { Authorization: `Bearer ${user.token}` }
-                });
-                console.log("IdUnidad: ", idUnidad)
-                console.log("GetUnidadNombre: ", resp.data)
-                return resp.data.nombreUnidad;
-            } catch {
-                return idUnidad; // fallback, muestra el id si falla
-            }
-        };
-
         if (formulario) {
             setNombre(formulario.nombre || "");
             setDescripcion(formulario.descripcion || "");
             setCampos(formulario.campos?.length ? formulario.campos : [vacioCampo()]);
-            // Para cada visibilidad tipo unidad, consulta el nombre
             if (formulario.visibilidad?.length) {
                 Promise.all(
                     formulario.visibilidad.map(async v => {
-                        if (v.tipoDestino === "unidad" && typeof v.valorDestino === "string") {
-                            // Aquí llamas a tu API para buscar el nombre
-                            // Debes implementar getUnidadNombre(id)
-                            const nombreUnidad = await getUnidadNombre(v.valorDestino);
+                        if ((v.tipoDestino === "unidad" || v.tipoDestino === "usuario") && typeof v.valorDestino === "string") {
+                            // Para selects, usamos value y label
                             return {
                                 ...v,
-                                valorDestino: { value: v.valorDestino, label: nombreUnidad }
+                                valorDestino: {
+                                    value: v.valorDestino,
+                                    label: v.valorDestinoNombre || v.valorDestino
+                                }
                             };
                         }
-                        // Ya está bien formado
+                        // grupo: string plano. publica: null
                         return v;
                     })
-                ).then(visFinal =>
-                    setVisibilidad(visFinal)
-                );
+                ).then(setVisibilidad);
             } else {
                 setVisibilidad([vacioVisibilidad()]);
             }
         } else {
-            setNombre(""); setDescripcion(""); setCampos([vacioCampo()]); setVisibilidad([vacioVisibilidad()]);
+            setNombre("");
+            setDescripcion("");
+            setCampos([vacioCampo()]);
+            setVisibilidad([vacioVisibilidad()]);
         }
         setMsg(null); setError(null);
     }, [formulario, user.token]);
+
 
 
     // --- handlers campos ---
@@ -135,8 +121,19 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
             ? [{ tipoDestino: "publica", valorDestino: null }]
             : visibilidad.map(v => ({
                 tipoDestino: v.tipoDestino,
-                valorDestino: v.valorDestino?.value ?? v.valorDestino ?? "",
-                valorDestinoNombre: v.valorDestino?.label ?? undefined
+                valorDestino:
+                    (v.tipoDestino === "unidad" || v.tipoDestino === "usuario")
+                        ? (v.valorDestino && typeof v.valorDestino === "object" && v.valorDestino.value
+                            ? v.valorDestino.value
+                            : "")
+                        : (
+                            v.tipoDestino === "grupo"
+                                ? (typeof v.valorDestino === "object" && v.valorDestino.value
+                                        ? v.valorDestino.value
+                                        : v.valorDestino
+                                )
+                                : v.valorDestino
+                        )
             }));
 
         const payload = {
@@ -150,9 +147,8 @@ export default function CrearEditarFormularioDinamico({ user, formulario, onSucc
             payload.id = formulario.id;
         }
 
-        // 🔽 Mueve esto aquí 🔽
         const urlBase = `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`;
-        const isEdit = formulario && formulario.id; // <--- AQUÍ
+        const isEdit = formulario && formulario.id;
         const method = isEdit ? "PUT" : "POST";
         const url = isEdit ? `${urlBase}/${formulario.id}` : urlBase;
 

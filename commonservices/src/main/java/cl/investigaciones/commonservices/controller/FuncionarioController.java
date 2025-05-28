@@ -57,7 +57,7 @@ public class FuncionarioController {
         }
     }
 
-    @PostMapping("/{idFun}")
+    @GetMapping("/{idFun}")
     public ResponseEntity<?> obtenerFuncionarioPorIdFun(@PathVariable int idFun) {
         try {
             System.out.println("Buscando funcionario con idFun: " + idFun);
@@ -72,6 +72,7 @@ public class FuncionarioController {
                 dto.setSiglasCargo(funcionario.getSiglasCargo());
                 dto.setIdFun(idFun);
                 dto.setSiglasUnidad(funcionario.getSiglasUnidad());
+                dto.setUsername(funcionario.getUsername());
 
                 System.out.println("Funcionario encontrado: " + dto);
 
