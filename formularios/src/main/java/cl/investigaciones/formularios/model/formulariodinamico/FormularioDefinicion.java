@@ -1,10 +1,7 @@
 package cl.investigaciones.formularios.model.formulariodinamico;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+
 public class FormularioDefinicion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

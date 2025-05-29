@@ -96,7 +96,7 @@ export default function ListaAdminFormularios() {
                     </thead>
                     <tbody>
                     {formularios.map((f, i) => (
-                        <Permiso user={user} owner={f.idCreador} >
+                        <Permiso key={i} user={user} owner={f.idCreador} >
                             <tr key={f.id}>
                                 <td>{i + 1}</td>
                                 <td style={{ fontWeight: 600, color: doradoPDI }}>{f.nombre}</td>

@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -78,6 +79,7 @@ public class FormularioDefinicionService {
             vis.setTipoDestino("publica");
             vis.setValorDestino(null);
             vis.setValorDestinoNombre("Pública");
+            vis.setValorDestinoSiglas(null);
             visibilidadRepo.save(vis);
             visibilidades.add(vis);
         } else {
@@ -86,12 +88,14 @@ public class FormularioDefinicionService {
                 vis.setFormulario(entidad);
                 vis.setTipoDestino(visDTO.getTipoDestino());
                 vis.setValorDestino(visDTO.getValorDestino());
-                vis.setValorDestinoNombre(obtenerNombreVisibilidad(visDTO.getTipoDestino(), visDTO.getValorDestino()));
+                vis.setValorDestinoNombre(obtenerNombreVisibilidad(visDTO.getTipoDestino(), visDTO.getValorDestino()).get("nombre"));
+                vis.setValorDestinoSiglas(obtenerNombreVisibilidad(visDTO.getTipoDestino(), visDTO.getValorDestino()).get("siglas"));
                 visibilidadRepo.save(vis);
                 visibilidades.add(vis);
             }
         }
         entidad.setVisibilidad(visibilidades);
+        System.out.println("Formulario creado: " + entidad);
         definicionRepo.save(entidad);
 
         return toResponseDTO(entidad);
@@ -144,13 +148,14 @@ public class FormularioDefinicionService {
                     vDTO.setTipoDestino(v.getTipoDestino());
                     vDTO.setValorDestino(v.getValorDestino());
                     vDTO.setValorDestinoNombre(v.getValorDestinoNombre());
+                    vDTO.setValorDestinoSiglas(v.getValorDestinoSiglas());
                     return vDTO;
                 }).collect(Collectors.toList())
         );
         return dto;
     }
 
-    private String obtenerNombreVisibilidad(String tipo, String valorDestino) {
+    private Map<String, String> obtenerNombreVisibilidad(String tipo, String valorDestino) {
         if ("usuario".equals(tipo)) {
             try {
                 String url = "http://commonservices:8011/api/common/funcionarios/" + Integer.parseInt(valorDestino);
@@ -162,10 +167,19 @@ public class FormularioDefinicionService {
 
                 if (response.getBody() != null) {
                     CSConsultaFuncionarioResponse f = response.getBody();
-                    return f.getUsername();
+                    System.out.println("[obtenerNombreVisibilidad] Username obtenido: " + f.getNombreFun());
+
+                    Map<String, String> funcionarioData = new HashMap<>();
+                    funcionarioData.put("siglas", f.getUsername());
+                    funcionarioData.put("nombre", f.getNombreFun() + " " + f.getApellidoPaternoFun() + " " + f.getApellidoMaternoFun());
+
+                    return funcionarioData;
                 }
             } catch (Exception ignored) {}
-            return valorDestino; // Fallback
+            Map<String, String> funcionarioData = new HashMap<>();
+            funcionarioData.put("siglas", valorDestino);
+            funcionarioData.put("nombre", valorDestino);
+            return funcionarioData; // Fallback
         } else if ("unidad".equals(tipo)) {
             try {
                 String url = "http://commonservices:8011/api/common/unidades/" + Integer.parseInt(valorDestino);
@@ -176,16 +190,26 @@ public class FormularioDefinicionService {
                         .exchange(url, HttpMethod.GET, request, CSConsultaUnidadResponse.class);
 
                 if (response.getBody() != null) {
-                    return response.getBody().getSiglasUnidad();
+                    Map<String, String> unidadData = new HashMap<>();
+                    unidadData.put("nombre", response.getBody().getNombreUnidad());
+                    unidadData.put("siglas", response.getBody().getSiglasUnidad());
+                    return unidadData;
                 }
             } catch (Exception ignored) {}
-            return valorDestino; // Fallback
+            Map<String, String> unidadData = new HashMap<>();
+            unidadData.put("nombre", valorDestino);
+            unidadData.put("siglas", valorDestino);
+            return unidadData; // Fallback
         } else if ("grupo".equals(tipo)) {
-            return valorDestino;
+            Map<String, String> grupoData = new HashMap<>();
+            grupoData.put("nombre", valorDestino);
+            return grupoData;
         } else if ("publica".equals(tipo)) {
-            return "Pública";
+            Map<String, String> publicaData = new HashMap<>();
+            publicaData.put("visibilidad", "Pública");
+            return publicaData;
         }
-        return valorDestino;
+        return new HashMap<>();
     }
 
     public FormularioDefinicionResponseDTO obtenerDefinicionPorId(Long id) {
@@ -253,11 +277,13 @@ public class FormularioDefinicionService {
                 vis.setFormulario(entidad);
                 vis.setTipoDestino(visDTO.getTipoDestino());
                 vis.setValorDestino(visDTO.getValorDestino());
-                vis.setValorDestinoNombre(obtenerNombreVisibilidad(visDTO.getTipoDestino(), visDTO.getValorDestino()));
+                vis.setValorDestinoNombre(obtenerNombreVisibilidad(visDTO.getTipoDestino(), visDTO.getValorDestino()).get("nombre"));
+                vis.setValorDestinoSiglas(obtenerNombreVisibilidad(visDTO.getTipoDestino(), visDTO.getValorDestino()).get("siglas"));
                 entidad.getVisibilidad().add(vis);
                 visibilidadRepo.save(vis);
             }
         }
+        System.out.println("Formulario editado: " + entidad);
         definicionRepo.save(entidad);
         return toResponseDTO(entidad);
     }

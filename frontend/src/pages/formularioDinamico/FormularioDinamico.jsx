@@ -29,10 +29,13 @@ const FormularioDinamico = ({ formularioId, user, onSuccess }) => {
         axios.get(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formularioId}`)
             .then(({ data }) => {
                 setDefinicion(data);
-                // Inicializa los valores con vacío/false
+                // Inicializa los valores con vacío/false y también _label para tipos select
                 const ini = {};
                 data.campos.forEach(c => {
                     ini[c.nombre] = c.tipo === "boolean" ? false : "";
+                    if (["funcionario", "unidad", "repol"].includes(c.tipo)) {
+                        ini[`${c.nombre}_label`] = "";
+                    }
                 });
                 setValores(ini);
             })
@@ -254,7 +257,7 @@ const FormularioDinamico = ({ formularioId, user, onSuccess }) => {
                                                         ))}
                                                 </div>
                                             )}
-                                            {/* Puedes agregar aquí soporte para select/radio más adelante */}
+                                            {/* Selectores especiales */}
                                             {campo.tipo === "funcionario" && (
                                                 <AsyncFuncionarioSelect
                                                     user={user}

@@ -12,6 +12,9 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    // Busca si algún campo es tipo "funcionario"
+    const tieneCampoFuncionario = formulario?.campos?.some(c => c.tipo === "funcionario");
+
     useEffect(() => {
         if (!show || !formulario || !formulario.campos) return;
         setLoading(true);
@@ -40,23 +43,26 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
     const handleExportarExcel = () => {
         if (!registros.length) return;
 
+        // Exporta "Funcionario" solo si NO hay campo funcionario en el formulario
         const headers = [
             "#",
             ...formulario.campos.map((c) => c.etiqueta),
-            "Fecha",
-            "Funcionario"
+            ...(tieneCampoFuncionario ? [] : ["Funcionario"]),
+            "Fecha"
         ];
 
         const data = registros.map((r, idx) => {
             const fila = { "#": idx + 1 };
             formulario.campos.forEach((campo) => {
-                let valor = r.datos[campo.nombre];
+                let valor = r.datos[`${campo.nombre}_label`] ?? r.datos[campo.nombre];
                 if (typeof valor === "boolean") valor = valor ? "Sí" : "No";
                 if (valor === null || valor === undefined) valor = "-";
                 fila[campo.etiqueta] = valor;
             });
+            if (!tieneCampoFuncionario) {
+                fila["Funcionario"] = r.datos && r.datos["funcionario_label"] ? r.datos["funcionario_label"] : r.idFuncionario;
+            }
             fila["Fecha"] = r.fechaRespuesta?.replace("T", " ").substring(0, 16);
-            fila["Funcionario"] = r.idFuncionario;
             return fila;
         });
 
@@ -174,8 +180,8 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
                                         {campo.etiqueta}
                                     </th>
                                 ))}
+                                {!tieneCampoFuncionario && <th>Funcionario</th>}
                                 <th>Fecha</th>
-                                <th>Funcionario</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -183,7 +189,6 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
                                 <tr key={r.id}>
                                     <td>{idx + 1}</td>
                                     {formulario.campos.map((campo, cidx) => {
-                                        // ¿Hay un label disponible? Si sí, lo muestra; si no, muestra el valor (id o texto).
                                         const valor =
                                             r.datos[`${campo.nombre}_label`] ??
                                             (typeof r.datos[campo.nombre] === "boolean"
@@ -195,11 +200,12 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
                                             </td>
                                         );
                                     })}
+                                    {!tieneCampoFuncionario && (
+                                        <td>
+                                            {r.datos && r.datos["funcionario_label"] ? r.datos["funcionario_label"] : r.idFuncionario}
+                                        </td>
+                                    )}
                                     <td>{r.fechaRespuesta?.replace("T", " ").substring(0, 16)}</td>
-                                    {/* También puedes mostrar el nombre del funcionario aquí, si lo tienes: */}
-                                    <td>
-                                        {r.idFuncionario}
-                                    </td>
                                 </tr>
                             ))}
                             </tbody>

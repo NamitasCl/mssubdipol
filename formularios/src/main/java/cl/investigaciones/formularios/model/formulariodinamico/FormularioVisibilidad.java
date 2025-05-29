@@ -3,11 +3,13 @@ package cl.investigaciones.formularios.model.formulariodinamico;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "formulario_visibilidad")
 @Getter
 @Setter
+
 public class FormularioVisibilidad {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +21,8 @@ public class FormularioVisibilidad {
 
     private String tipoDestino;   // "unidad", "usuario", "grupo", "publica"
     private String valorDestino;  // Sigla unidad, id de usuario, id grupo, etc. Null si es pública.
+    private String valorDestinoSiglas;
     private String valorDestinoNombre;
+
 }
 

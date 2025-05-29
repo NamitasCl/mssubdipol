@@ -11,10 +11,10 @@ export default function Permiso({ user, visibilidad, roles, owner, children }) {
                 case "publica":
                     return children;
                 case "usuario":
-                    if (`${v.valorDestinoNombre.toLowerCase()}` === `${user.sub.toLowerCase()}`) return children;
+                    if (`${v.valorDestinoSiglas.toLowerCase()}` === `${user.sub.toLowerCase()}`) return children;
                     break;
                 case "unidad":
-                    if (`${v.valorDestinoNombre.toLowerCase()}` === `${user.siglasUnidad.toLowerCase()}`) return children;
+                    if (`${v.valorDestinoSiglas.toLowerCase()}` === `${user.siglasUnidad.toLowerCase()}`) return children;
                     break;
                 case "grupo":
                     // Si tienes grupos en user (array), compara:
