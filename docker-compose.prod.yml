@@ -17,10 +17,10 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ipqq7890
-      POSTGRES_DB: desarrollo
     ports:
       - "55555:5432"  # <-- un puerto expuesto sólo para dev
     volumes:
+      - ./db/dev-init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata-dev:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
