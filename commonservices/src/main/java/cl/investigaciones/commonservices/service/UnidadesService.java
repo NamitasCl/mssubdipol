@@ -144,4 +144,13 @@ public class UnidadesService {
 
         return dto;
     }
+
+    public ConsultaUnidadDto getUnidadBySiglasUnidad(String siglasUnidad) {
+        Unidad unidadEncontrada = unidadesRepository.findBySiglasUnidad(siglasUnidad)
+                .orElseThrow(() -> new RuntimeException("No existe unidad: " + siglasUnidad));
+
+        ConsultaUnidadDto dto = new ConsultaUnidadDto();
+        dto.setIdUnidad(unidadEncontrada.getIdUnidad());
+        return dto;
+    }
 }

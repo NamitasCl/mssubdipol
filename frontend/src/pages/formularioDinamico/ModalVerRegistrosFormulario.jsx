@@ -43,6 +43,8 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
     const handleExportarExcel = () => {
         if (!registros.length) return;
 
+        console.log("Registros: ", registros)
+
         // Exporta "Funcionario" solo si NO hay campo funcionario en el formulario
         const headers = [
             "#",

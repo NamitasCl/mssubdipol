@@ -10,8 +10,11 @@ import java.util.Optional;
 public interface UnidadesRepository extends JpaRepository<Unidad, Long> {
     Optional<Unidad> findByIdUnidad(int idUnidad);
 
+    Optional<Unidad> findBySiglasUnidad(String siglasUnidad);
+
     List<Unidad> findByNombreUnidadContainingIgnoreCase(String nombre);
 
     @Query("SELECT DISTINCT u.regionPolicial FROM Unidad u WHERE u.regionPolicial IS NOT NULL")
     List<String> findDistinctRegionPolicial();
+
 }

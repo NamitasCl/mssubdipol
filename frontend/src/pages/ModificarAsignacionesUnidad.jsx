@@ -16,8 +16,8 @@ function ModificarAsignacionesUnidad() {
     const [loading, setLoading] = useState(false);
 
     // Calendario/Modal states
-    const [selectedDia, setSelectedDia] = useState(null); // Día seleccionado para abrir modal
-    const [turnosDia, setTurnosDia] = useState([]);       // Turnos del día seleccionado
+    const [selectedDia, setSelectedDia] = useState(null);
+    const [turnosDia, setTurnosDia] = useState([]);
     const [showTurnosModal, setShowTurnosModal] = useState(false);
 
     // Modal de cambio individual
@@ -86,7 +86,18 @@ function ModificarAsignacionesUnidad() {
             .finally(() => setLoading(false));
     }, [mes, anio, unidadUsuario]);
 
-    // --------- Buscar funcionarios disponibles para "servicio" (todas unidades) -----
+    // ----------- IDs de funcionarios designados para turnos este mes -----------
+    const idsFuncionariosDesignados = useMemo(
+        () =>
+            new Set(
+                (funcionariosUnidad || [])
+                    .map(f => f.idFuncionario || f.id)
+                    .filter(Boolean)
+            ),
+        [funcionariosUnidad]
+    );
+
+    // --------- Buscar funcionarios disponibles para "servicio" (todas unidades, pero filtra designados) -----
     const buscarFuncionariosDisponibles = debounce((inputValue, callback) => {
         if (inputValue.length < 3) return callback([]);
         axios.get(`${import.meta.env.VITE_COMMON_SERVICES_API_URL}/funcionarios/porunidad`, {
@@ -95,13 +106,15 @@ function ModificarAsignacionesUnidad() {
             .then((res) => {
                 const results = Array.isArray(res.data) ? res.data : [];
                 callback(
-                    results.map((f) => ({
-                        value: f.idFun, // este es el identificador de funcionario
-                        label: `${f.siglasCargo} ${f.nombreFun} ${f.apellidoPaternoFun} ${f.apellidoMaternoFun}`,
-                        grado: f.siglasCargo,
-                        nombreCompleto: `${f.nombreFun} ${f.apellidoPaternoFun} ${f.apellidoMaternoFun}`,
-                        unidad: f.siglasUnidad || f.unidad,
-                    }))
+                    results
+                        .filter(f => !idsFuncionariosDesignados.has(f.idFun || f.id))
+                        .map((f) => ({
+                            value: f.idFun || f.id,
+                            label: `${f.siglasCargo} ${f.nombreFun} ${f.apellidoPaternoFun} ${f.apellidoMaternoFun}`,
+                            grado: f.siglasCargo,
+                            nombreCompleto: `${f.nombreFun} ${f.apellidoPaternoFun} ${f.apellidoMaternoFun}`,
+                            unidad: f.siglasUnidad || f.unidad,
+                        }))
                 );
             })
             .catch(() => callback([]));
@@ -123,10 +136,9 @@ function ModificarAsignacionesUnidad() {
         const rows = [];
         let cells = [];
         let day = 1;
-        // Ajuste para que domingo sea 7 (último), lunes=1 (inicio semana)
         const realFirstDay = firstDayWeek === 0 ? 7 : firstDayWeek;
         for (let i = 1; i < realFirstDay; i++) {
-            cells.push(null); // Días en blanco antes del 1
+            cells.push(null);
         }
         while (day <= daysInMonth) {
             cells.push(day);
@@ -136,7 +148,7 @@ function ModificarAsignacionesUnidad() {
             }
             day++;
         }
-        while (cells.length < 7) cells.push(null); // completa la última fila
+        while (cells.length < 7) cells.push(null);
         if (cells.some(c => c !== null)) rows.push(cells);
         return rows;
     }, [anio, mes, daysInMonth, firstDayWeek]);
@@ -168,7 +180,6 @@ function ModificarAsignacionesUnidad() {
 
     const handleConfirmarCambio = () => {
         if (modalValue && turnoIndex !== null) {
-            // Hay que actualizar la asignación en el array global!
             const diaGlobalIdx = asignaciones.findIndex(
                 a =>
                     a.dia === turnosDia[turnoIndex].dia &&
@@ -180,7 +191,6 @@ function ModificarAsignacionesUnidad() {
                 actual[diaGlobalIdx].funcionarioNuevo = modalValue;
                 setAsignaciones(actual);
 
-                // Refresca turnos del día en el modal para mostrar el cambio
                 const updatedTurnos = [...turnosDia];
                 updatedTurnos[turnoIndex].funcionarioNuevo = modalValue;
                 setTurnosDia(updatedTurnos);
@@ -278,8 +288,8 @@ function ModificarAsignacionesUnidad() {
         <Alert variant="info" className="mt-3 mb-2">
             <strong>Restricciones:</strong>
             <ul className="mb-0" style={{ fontSize: 15 }}>
-                <li>El "Cambio de funcionario por razones de mejor servicio" permite buscar cualquier funcionario disponible.</li>
-                <li>El "Cambio normal de funcionario" solo permite seleccionar funcionarios de la unidad.</li>
+                <li>El "Cambio de funcionario por razones de mejor servicio" permite buscar cualquier funcionario disponible, <b>excepto quienes ya están designados a turnos este mes</b>.</li>
+                <li>El "Cambio normal de funcionario" solo permite seleccionar funcionarios de la unidad que fueron designados a turnos este mes.</li>
                 <li>No se permite el cambio si el funcionario reemplazante no cumple con los requisitos de la función asignada.</li>
             </ul>
         </Alert>
@@ -338,7 +348,7 @@ function ModificarAsignacionesUnidad() {
         </Modal>
     );
 
-    // Modal de cambio de funcionario individual (NO incluye datos de día/turno en el título)
+    // Modal de cambio de funcionario individual
     const renderCambioModal = (
         <Modal show={showCambioModal} onHide={() => setShowCambioModal(false)} centered>
             <Modal.Header closeButton>
@@ -486,7 +496,6 @@ function ModificarAsignacionesUnidad() {
                                                     >
                                                         {day}
                                                     </Button>
-                                                    {/* Muestra cantidad de turnos para ese día */}
                                                     <div className="mt-1" style={{ fontSize: 13 }}>
                                                         {asignaciones.filter(a => a.dia === day).length > 0 ? (
                                                             <span className="text-success">

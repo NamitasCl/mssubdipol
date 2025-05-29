@@ -38,6 +38,17 @@ public class ConsultaUnidadesController {
         }
     }
 
+    @GetMapping("/sigla/{siglasUnidad}")
+    public ResponseEntity<?> getUnidadBySiglasUnidad(@PathVariable String siglasUnidad) {
+        try {
+            ConsultaUnidadDto unidad = unidadesService.getUnidadBySiglasUnidad(siglasUnidad);
+            return ResponseEntity.ok(unidad);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al consultar unidad: " + e.getMessage());
+        }
+    }
+
 
     @GetMapping("/buscar")
     public ResponseEntity<?> buscarUnidadesPorNombre(@RequestParam String nombre) {

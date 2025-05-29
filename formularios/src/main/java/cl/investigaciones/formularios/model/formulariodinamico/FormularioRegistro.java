@@ -23,6 +23,7 @@ public class FormularioRegistro {
     private FormularioDefinicion formulario;
 
     private Integer idFuncionario;
+    private Integer idUnidad;
 
     private LocalDateTime fechaRespuesta;
 

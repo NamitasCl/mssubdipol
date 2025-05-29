@@ -12,5 +12,6 @@ public class FormularioRegistroResponseDTO {
     private Integer idFuncionario;
     private LocalDateTime fechaRespuesta;
     private Map<String, Object> datos;
+    private Integer idUnidad;
 }
 
