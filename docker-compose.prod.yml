@@ -10,3 +10,22 @@ services:
       - NODE_ENV=production
     networks:
       - ms-network
+
+  database-dev:
+    image: postgres:15
+    container_name: pgdatabase-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ipqq7890
+      POSTGRES_DB: desarrollo
+    ports:
+      - "55555:5432"  # <-- un puerto expuesto sólo para dev
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ms-network
+
+volumes:
+  pgdata-dev:
+    name: microserviciosv1_pgdata_dev

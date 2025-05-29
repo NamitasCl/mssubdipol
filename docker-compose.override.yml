@@ -13,13 +13,27 @@ services:
       - CHOKIDAR_USEPOLLING=true
     command: npm run dev
 
-  database:
-    container_name: pgdatabase-dev
-    ports:
-      - "5432:5432"  # ← En dev, expón en 5433 si ya usas 5432 localmente
-    volumes:
-      - ./db/dev-init.sql:/docker-entrypoint-initdb.d/init.sql
-      - pgdata-dev:/var/lib/postgresql/data  # ← Volumen distinto al de producción
+  auth:
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://172.21.15.23:55555/auth
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ipqq7890
 
-volumes:
-  pgdata-dev:
+  turnos:
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://172.21.15.23:55555/turnos
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ipqq7890
+
+  commonservices:
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://172.21.15.23:55555/commonservices
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ipqq7890
+
+  formularios:
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://172.21.15.23:55555/formularios
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ipqq7890
+
