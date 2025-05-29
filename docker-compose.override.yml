@@ -37,3 +37,7 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ipqq7890
 
+  #Anula la base de datos de docker-compose y solo utiliza la remota, asi no se utilizan recursos de la máquina local.
+  database:
+    entrypoint: ["sleep", "infinity"]
+    ports: []
