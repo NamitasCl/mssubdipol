@@ -43,7 +43,8 @@ public class AsignacionFuncionarioService {
 
         return asignados.stream().map(func -> {
             FuncionarioAsignadoDTO dto = new FuncionarioAsignadoDTO();
-            dto.setId(func.getIdFuncionario());
+            dto.setId(func.getId());
+            dto.setIdFuncionario(func.getIdFuncionario());
             dto.setNombreCompleto(func.getNombreCompleto());
             dto.setSiglasCargo(func.getSiglasCargo());
             dto.setAntiguedad(func.getAntiguedad());

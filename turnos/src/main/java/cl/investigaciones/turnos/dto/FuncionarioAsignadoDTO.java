@@ -6,7 +6,8 @@ import java.util.List;
 
 @Data
 public class FuncionarioAsignadoDTO {
-    private int id;
+    private Long id;
+    private int idFuncionario;
     private String nombreCompleto;
     private String siglasCargo;
     private int antiguedad;
