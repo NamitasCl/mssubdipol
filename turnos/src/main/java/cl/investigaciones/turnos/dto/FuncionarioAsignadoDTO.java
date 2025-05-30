@@ -16,7 +16,7 @@ public class FuncionarioAsignadoDTO {
     public FuncionarioAsignadoDTO() {
     }
 
-    public FuncionarioAsignadoDTO(int id, String nombreCompleto, String siglasCargo, int antiguedad) {
+    public FuncionarioAsignadoDTO(Long id, String nombreCompleto, String siglasCargo, int antiguedad) {
         this.id = id;
         this.nombreCompleto = nombreCompleto;
         this.siglasCargo = siglasCargo;
