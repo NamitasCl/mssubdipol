@@ -40,7 +40,8 @@ public class AsignacionFuncionarioController {
                 System.out.println("Asignación de: " + funcionario.getNombreCompleto());
 
                 AsignacionFuncionario asignacionFuncionario = new AsignacionFuncionario();
-                asignacionFuncionario.setIdFuncionario(funcionario.getId());
+                asignacionFuncionario.setId(funcionario.getId());
+                asignacionFuncionario.setIdFuncionario(funcionario.getIdFuncionario());
                 asignacionFuncionario.setNombreCompleto(funcionario.getNombreCompleto());
                 asignacionFuncionario.setSiglasCargo(funcionario.getSiglasCargo());
                 asignacionFuncionario.setAntiguedad(funcionario.getAntiguedad());
