@@ -42,4 +42,24 @@ public class FormularioRegistroController {
         ex.printStackTrace(); // 👈 Siempre imprime en consola/log de Docker
         return ResponseEntity.status(500).body("Error interno del servidor: " + ex.getMessage());
     }
+
+    @GetMapping("/{formularioId}/listar")
+    public ResponseEntity<List<FormularioRegistroResponseDTO>> listarMiosPorFormulario(
+            @PathVariable Long formularioId,
+            @AuthenticationPrincipal JwtUserPrincipal principal) {
+        Integer usuarioId = principal.getIdFuncionario();
+        List<FormularioRegistroResponseDTO> registros = service.listarPorFormularioYUsuario(formularioId, usuarioId);
+        return ResponseEntity.ok(registros != null ? registros : List.of());
+    }
+
+    @PutMapping("/{registroId}")
+    public ResponseEntity<FormularioRegistroResponseDTO> editarRegistro(
+            @PathVariable Long registroId,
+            @RequestBody FormularioRegistroRequestDTO dto,
+            @AuthenticationPrincipal JwtUserPrincipal principal) {
+        Integer usuarioId = principal.getIdFuncionario();
+        return ResponseEntity.ok(service.editarRegistroPropio(registroId, usuarioId, dto));
+    }
+
+
 }

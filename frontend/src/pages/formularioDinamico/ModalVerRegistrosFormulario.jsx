@@ -7,7 +7,7 @@ const doradoPDI = "#FFC700";
 const azulPDI = "#17355A";
 const grisOscuro = "#222938";
 
-const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
+const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user, soloMios }) => {
     const [registros, setRegistros] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -16,29 +16,19 @@ const ModalVerRegistrosFormulario = ({ show, onHide, formulario, user }) => {
     const tieneCampoFuncionario = formulario?.campos?.some(c => c.tipo === "funcionario");
 
     useEffect(() => {
-        if (!show || !formulario || !formulario.campos) return;
+        if (!show || !formulario || !formulario.id) return;
         setLoading(true);
         setError(null);
 
-        axios.get(
-            `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formulario.id}`,
-            { headers: { Authorization: `Bearer ${user.token}` } }
-        )
-            .then((resp) => {
-                const data = resp.data;
-                if (Array.isArray(data)) {
-                    setRegistros(data);
-                } else if (Array.isArray(data?.content)) {
-                    setRegistros(data.content);
-                } else if (data == null) {
-                    setRegistros([]);
-                } else {
-                    setRegistros(Object.values(data));
-                }
-            })
-            .catch(() => setError("No se pudieron cargar los registros."))
+        // 👇 MODIFICACIÓN AQUÍ
+        let url = `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formulario.id}`;
+        if (soloMios) url += "/listar";
+
+        axios.get(url, { headers: { Authorization: `Bearer ${user.token}` } })
+            .then(({ data }) => setRegistros(data))
+            .catch(() => setError("Error cargando registros"))
             .finally(() => setLoading(false));
-    }, [show, formulario, user.token]);
+    }, [show, formulario, soloMios, user.token]); // <-- agrega soloMios como dependencia
 
     const handleExportarExcel = () => {
         if (!registros.length) return;

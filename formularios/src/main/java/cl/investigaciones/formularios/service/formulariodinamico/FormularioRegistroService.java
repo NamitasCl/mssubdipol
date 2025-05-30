@@ -99,6 +99,45 @@ public class FormularioRegistroService {
         return unidadResponse.getBody().getIdUnidad();
     }
 
+    public List<FormularioRegistroResponseDTO> listarPorFormularioYUsuario(Long formularioId, Integer usuarioId) {
+        List<FormularioRegistro> registros = registroRepo.findByFormularioIdAndIdFuncionario(formularioId, usuarioId);
+        return registros.stream().map(r -> {
+            FormularioRegistroResponseDTO dto = new FormularioRegistroResponseDTO();
+            dto.setId(r.getId());
+            dto.setFormularioId(formularioId);
+            dto.setIdFuncionario(r.getIdFuncionario());
+            dto.setIdUnidad(r.getIdUnidad());
+            dto.setFechaRespuesta(r.getFechaRespuesta());
+            dto.setDatos(r.getDatos() != null ? r.getDatos() : Collections.emptyMap());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    public FormularioRegistroResponseDTO editarRegistroPropio(Long registroId, Integer usuarioId, FormularioRegistroRequestDTO dto) {
+        FormularioRegistro reg = registroRepo.findById(registroId)
+                .orElseThrow(() -> new EntityNotFoundException("Registro no encontrado"));
+
+        if (!reg.getIdFuncionario().equals(usuarioId)) {
+            throw new SecurityException("No puede editar registros de otro usuario.");
+        }
+
+        // Actualiza solo los campos editables (ejemplo: datos)
+        reg.setDatos(dto.getDatos());
+        reg.setFechaRespuesta(LocalDateTime.now()); // Opcional: marcar nueva fecha de edición
+
+        registroRepo.save(reg);
+
+        // Retorna el DTO actualizado
+        FormularioRegistroResponseDTO res = new FormularioRegistroResponseDTO();
+        res.setId(reg.getId());
+        res.setFormularioId(reg.getFormulario().getId());
+        res.setIdFuncionario(usuarioId);
+        res.setFechaRespuesta(reg.getFechaRespuesta());
+        res.setDatos(reg.getDatos());
+        res.setIdUnidad(reg.getIdUnidad());
+        return res;
+    }
+
 
 
 }

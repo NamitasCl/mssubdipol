@@ -36,6 +36,15 @@ const LoginForm = () => {
             }}
         >
             <Container>
+                <div style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "20px"
+                }}>
+                    <Button variant={"warning"} onClick={() => window.location.href="https://rac.investigaciones.cl"}>
+                        Volver a RAC
+                    </Button>
+                </div>
                 <Card
                     className="mx-auto border-0 shadow"
                     style={{
