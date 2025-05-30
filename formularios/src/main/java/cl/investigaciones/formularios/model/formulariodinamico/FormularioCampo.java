@@ -22,6 +22,7 @@ public class FormularioCampo {
     private String etiqueta;    // Etiqueta visible (ej: "Nombre del Servicio")
     private String tipo;        // Tipo (text, select, date, boolean, etc)
     private Boolean requerido;
+    @Lob
     private String opciones;    // Para select/radio, JSON de opciones o string separado por comas
     private Integer orden;
 
