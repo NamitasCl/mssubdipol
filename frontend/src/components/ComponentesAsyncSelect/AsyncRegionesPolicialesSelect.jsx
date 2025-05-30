@@ -40,7 +40,7 @@ export default function AsyncRegionesPolicialesSelect({ value, onChange, user })
             loadOptions={loadRegionesPoliciales}
             value={value}
             onChange={onChange}
-            placeholder="Buscar unidad (mínimo 3 letras)..."
+            placeholder="Buscar Región Policial (mínimo 3 letras)..."
             noOptionsMessage={() => "Escribe al menos 3 letras para buscar"}
         />
     );
