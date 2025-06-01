@@ -1,6 +1,7 @@
 package cl.investigaciones.formularios.controller.formulariodinamico;
 
 import cl.investigaciones.formularios.dto.JwtUserPrincipal;
+import cl.investigaciones.formularios.dto.formulariodinamico.FormularioAvanceDTO;
 import cl.investigaciones.formularios.dto.formulariodinamico.FormularioRegistroRequestDTO;
 import cl.investigaciones.formularios.dto.formulariodinamico.FormularioRegistroResponseDTO;
 import cl.investigaciones.formularios.service.formulariodinamico.FormularioRegistroService;
@@ -59,6 +60,18 @@ public class FormularioRegistroController {
             @AuthenticationPrincipal JwtUserPrincipal principal) {
         Integer usuarioId = principal.getIdFuncionario();
         return ResponseEntity.ok(service.editarRegistroPropio(registroId, usuarioId, dto));
+    }
+
+    @GetMapping("/avance/{formularioId}")
+    public ResponseEntity<FormularioAvanceDTO> obtenerAvance(
+            @PathVariable Long formularioId,
+            @AuthenticationPrincipal JwtUserPrincipal principal,
+            @RequestParam(required = false) String idUnidad,
+            @RequestParam(required = false) Integer idUsuario
+    ) {
+        Integer userId = (idUsuario != null) ? idUsuario : principal.getIdFuncionario();
+        String siglasUnidad = (idUnidad != null) ? idUnidad : principal.getSiglasUnidad();
+        return ResponseEntity.ok(service.obtenerAvance(formularioId, userId, siglasUnidad));
     }
 
 

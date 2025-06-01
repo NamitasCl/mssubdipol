@@ -43,13 +43,33 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
 
+
         ActiveDirectoryUserResponseDTO respuesta = consultaUsuarioActiveDirectory(username, password);
 
         if (!respuesta.isSuccess()) {
             throw new BadCredentialsException("Credenciales incorrectas");
         }
 
+
         UsuarioActiveDirectoryDTO usuarioAD = respuesta.getResult();
+        /*
+        UsuarioActiveDirectoryDTO usuarioAD = new UsuarioActiveDirectoryDTO(
+            "ERAMIREZS",
+                "15783070",
+                "8",
+                "ENZO ALEJANDRO",
+                "RAMIREZ",
+                12254,
+                "SUBCOMISARIO (OPP)",
+                "SILVA",
+                "BRIGADA INVESTIGADORA DE DELITOS ECONOMICOS METROPOLITANA",
+                "FUNCIONARIO",
+                "BRIDECMET",
+                "SUBCOMISARIO (OPP)",
+                "ERAMIREZS@INVESTIGACIONES.CL",
+                "14"
+        );
+        */
 
         // 🔄 Mutable set para evitar java.lang.UnsupportedOperationException
         Set<Rol> rolesAsignados = new HashSet<>();
@@ -107,8 +127,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         Map<String, String> tokenBodyRequest = new HashMap<>();
 
-        tokenBodyRequest.put("usuarioAD", "lcarrascol");
-        tokenBodyRequest.put("contraseñaFun", "Pdi2024+++");
+        tokenBodyRequest.put("usuarioAD", "eramirezs");
+        tokenBodyRequest.put("contraseñaFun", "Mhb2015.@");
         tokenBodyRequest.put("keySistema", "UNE1KBATI6BNVLQF8Z9O");
 
         RestTemplate restTemplate = new RestTemplate();

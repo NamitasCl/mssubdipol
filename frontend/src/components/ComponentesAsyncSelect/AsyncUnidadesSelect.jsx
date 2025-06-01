@@ -31,7 +31,7 @@ export default function AsyncUnidadesSelect({ value, onChange, user }) {
             loadOptions={loadOptions}
             value={value}
             onChange={onChange}
-            placeholder="Buscar unidad (mínimo 3 letras)..."
+            placeholder="Buscar unidad..."
             noOptionsMessage={() => "Escribe al menos 3 letras para buscar"}
         />
     );

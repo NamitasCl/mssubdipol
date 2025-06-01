@@ -1,11 +1,13 @@
 package cl.investigaciones.formularios.service.formulariodinamico;
 
+import cl.investigaciones.formularios.dto.formulariodinamico.FormularioAvanceDTO;
 import cl.investigaciones.formularios.dto.formulariodinamico.FormularioRegistroRequestDTO;
 import cl.investigaciones.formularios.dto.formulariodinamico.FormularioRegistroResponseDTO;
 import cl.investigaciones.formularios.dto.formulariodinamico.registroservicedto.RegistroServiceFuncResponse;
 import cl.investigaciones.formularios.dto.formulariodinamico.registroservicedto.RegistroServiceUnidadResponse;
 import cl.investigaciones.formularios.model.formulariodinamico.FormularioDefinicion;
 import cl.investigaciones.formularios.model.formulariodinamico.FormularioRegistro;
+import cl.investigaciones.formularios.repository.formulariodinamico.AsignacionCuotaFormularioRepository;
 import cl.investigaciones.formularios.repository.formulariodinamico.FormularioDefinicionRepository;
 import cl.investigaciones.formularios.repository.formulariodinamico.FormularioRegistroRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,6 +33,9 @@ public class FormularioRegistroService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private AsignacionCuotaFormularioRepository asignacionCuotaRepo;
 
     public FormularioRegistroResponseDTO guardarRegistro(Integer usuarioId, FormularioRegistroRequestDTO dto) {
         FormularioDefinicion def = definicionRepo.findById(dto.getFormularioId())
@@ -99,6 +104,22 @@ public class FormularioRegistroService {
         return unidadResponse.getBody().getIdUnidad();
     }
 
+    // Puedes implementar este método usando el mismo llamado que ya haces para obtener idUnidad
+    public Integer obtenerUnidadPorSigla(String siglasUnidad) {
+        // Si ya tienes uno, usa ese. Si no, este es un ejemplo:
+        String urlUnidad = "http://commonservices:8011/api/common/unidades/sigla/" + siglasUnidad;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<RegistroServiceUnidadResponse> unidadResponse = restTemplate.exchange(
+                urlUnidad, HttpMethod.GET, entity, RegistroServiceUnidadResponse.class
+        );
+        if (unidadResponse.getBody() != null) {
+            return unidadResponse.getBody().getIdUnidad();
+        }
+        return null;
+    }
+
     public List<FormularioRegistroResponseDTO> listarPorFormularioYUsuario(Long formularioId, Integer usuarioId) {
         List<FormularioRegistro> registros = registroRepo.findByFormularioIdAndIdFuncionario(formularioId, usuarioId);
         return registros.stream().map(r -> {
@@ -138,6 +159,35 @@ public class FormularioRegistroService {
         return res;
     }
 
+    public FormularioAvanceDTO obtenerAvance(Long formularioId, Integer idUsuario, String siglasUnidad) {
+        FormularioAvanceDTO dto = new FormularioAvanceDTO();
+
+        // Total registros de este formulario
+        dto.total = registroRepo.findByFormularioId(formularioId).size();
+
+        // Registros míos
+        dto.mios = registroRepo.findByFormularioIdAndIdFuncionario(formularioId, idUsuario).size();
+
+        // Registros de mi unidad
+        // Obtén el idUnidad desde siglasUnidad (usa el método que ya tienes)
+        Integer idUnidad = null;
+        try {
+            idUnidad = obtenerUnidadPorSigla(siglasUnidad); // Implementa si no existe
+        } catch (Exception ignored) {}
+        Integer finalIdUnidad = idUnidad;
+        dto.unidad = (idUnidad != null)
+                ? (int) registroRepo.findByFormularioId(formularioId)
+                .stream().filter(r -> finalIdUnidad.equals(r.getIdUnidad())).count()
+                : 0;
+
+        // Cuota asignada a la unidad
+        if (idUnidad != null) {
+            var asignacion = asignacionCuotaRepo.findByFormularioIdAndIdUnidad(formularioId, idUnidad);
+            dto.cuotaUnidad = (!asignacion.isEmpty()) ? asignacion.get(0).getCuotaAsignada() : null;
+        }
+
+        return dto;
+    }
 
 
 }

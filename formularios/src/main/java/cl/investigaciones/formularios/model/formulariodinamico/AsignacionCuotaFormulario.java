@@ -21,7 +21,9 @@ public class AsignacionCuotaFormulario {
 
     private Integer cuotaAsignada; // Puede ser null o 0 si es flexible
 
-    private Integer cuotaPadreId;  // ID de la asignación padre (opcional, si quieres trazar redistribuciones)
+    private Long cuotaPadreId;  // ID de la asignación padre (opcional, si quieres trazar redistribuciones)
+
+    private Integer idFuncionario;
 
     // Podrías agregar fecha de asignación, usuario asignador, comentarios, etc.
 }

@@ -10,5 +10,7 @@ public class FormularioCampoDTO {
     private Boolean requerido;
     private String opciones; // JSON o separado por coma para selects/radios
     private Integer orden;
+    private Boolean allowMultiple;
+    private String subformulario;
 }
 

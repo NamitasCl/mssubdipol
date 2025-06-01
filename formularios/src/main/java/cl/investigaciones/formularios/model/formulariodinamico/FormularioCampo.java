@@ -26,5 +26,8 @@ public class FormularioCampo {
     private String opciones;    // Para select/radio, JSON de opciones o string separado por comas
     private Integer orden;
 
+    private Boolean allowMultiple;     // Si el campo puede repetirse (solo para type=group)
+    private String subformulario;      // Nombre/ID del subformulario (solo para type=group)
+
 }
 

@@ -62,6 +62,8 @@ public class FormularioDefinicionService {
             campo.setRequerido(campoDTO.getRequerido());
             campo.setOpciones(campoDTO.getOpciones());
             campo.setOrden(campoDTO.getOrden());
+            campo.setAllowMultiple(campoDTO.getAllowMultiple()); // <<----
+            campo.setSubformulario(campoDTO.getSubformulario()); // <<----
             campoRepo.save(campo);
             campos.add(campo);
         }
@@ -138,6 +140,8 @@ public class FormularioDefinicionService {
                     cDTO.setRequerido(c.getRequerido());
                     cDTO.setOpciones(c.getOpciones());
                     cDTO.setOrden(c.getOrden());
+                    cDTO.setAllowMultiple(c.getAllowMultiple()); // <<----
+                    cDTO.setSubformulario(c.getSubformulario()); // <<----
                     return cDTO;
                 }).collect(Collectors.toList())
         );

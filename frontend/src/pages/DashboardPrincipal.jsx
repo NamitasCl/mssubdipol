@@ -11,6 +11,14 @@ const doradoPDI = "#FFC700";
 const grisOscuro = "#222938";
 const blanco = "#f7f8fc";
 
+// Paleta pastel
+const azulSuave = "#7fa6da";
+const azulOscuro = "#23395d";
+const grisClaro = "#eceff4";
+const verdeMenta = "#a6e3cf";
+const textoPrincipal = "#23395d";
+const textoSecundario = "#4a5975";
+
 const modules = [
     {
         title: "Turnos Cuartel Independencia",
@@ -36,7 +44,7 @@ const modules = [
 ];
 
 function Header() {
-    const { user, logout } = useAuth();
+    const { logout } = useAuth();
     const navigate = useNavigate();
     const handleLogout = () => {
         logout();
@@ -44,39 +52,46 @@ function Header() {
     };
     return (
         <Navbar
-            variant="dark"
+            variant="light"
             expand="lg"
             className="px-2 py-0"
             style={{
-                background: `linear-gradient(90deg, ${azulPDI} 80%, ${doradoPDI} 200%)`,
-                borderBottom: `2.5px solid ${doradoPDI}`,
+                background: azulOscuro,
+                borderBottom: `2.5px solid ${azulSuave}`,
                 minHeight: "84px",
-                boxShadow: "0 5px 20px 0 #0c1733aa",
+                boxShadow: "0 5px 20px 0 #aecbf855",
                 zIndex: 1030
             }}
-            fixed="top"
         >
-            <Container fluid className="align-items-center py-2" style={{minHeight: "78px"}}>
+            <Container fluid className="align-items-center py-2" style={{ minHeight: "78px" }}>
                 <div className="d-flex flex-column align-items-center" style={{ minWidth: 140, cursor: "pointer" }}>
                     <Image src={PdiLogo} alt="Logo" height={48} onClick={() => navigate("/")} />
-                    <span className="text-uppercase fw-semibold" style={{ color: doradoPDI, fontSize: "0.98rem", letterSpacing: ".09em" }}>Plana Mayor Subdipol</span>
+                    <span className="text-uppercase fw-semibold" style={{ color: azulSuave, fontSize: "0.98rem", letterSpacing: ".09em" }}>
+                        Plana Mayor Subdipol
+                    </span>
                 </div>
                 <div className="flex-grow-1 d-flex flex-column align-items-center">
-                    <h1 className="mb-0 fw-bold text-light text-center" style={{ fontSize: "1.42rem", letterSpacing: ".02em", textTransform: "uppercase" }}>
-                        Sistema Integrado de Gestión de Servicios
+                    <h1 className="mb-0 fw-bold text-center"
+                        style={{
+                            color: blanco,
+                            fontSize: "1.42rem",
+                            letterSpacing: ".02em",
+                            textTransform: "uppercase"
+                        }}>
+                        Sistema Integrado de Gestión de Formularios
                     </h1>
                 </div>
                 <div className="d-flex align-items-center gap-2">
                     <Button
-                        variant="outline-light"
+                        variant="outline-dark"
                         className="d-flex align-items-center gap-2"
                         size="sm"
                         onClick={handleLogout}
                         style={{
                             fontWeight: 600,
                             borderRadius: "1.7rem",
-                            border: `1.5px solid ${doradoPDI}`,
-                            color: doradoPDI,
+                            border: `1.5px solid ${azulSuave}`,
+                            color: blanco,
                             background: "transparent"
                         }}
                     >
@@ -97,15 +112,16 @@ export default function DashboardPrincipal() {
             <Header />
             {/* Espaciado para header fijo */}
             <div style={{
-                background: `radial-gradient(circle at 60% 20%, #23395d 0%, #172338 90%)`,
+                background: "#f6f7fa",
                 minHeight: "100vh",
-                paddingTop: "104px", // Compensa altura del header
+                paddingTop: "52px",
                 paddingBottom: "32px"
             }}>
                 <Container fluid="md" style={{ maxWidth: 1100 }}>
                     <h2
-                        className="fw-bold mb-4 text-light"
+                        className="fw-bold mb-4"
                         style={{
+                            color: azulPDI,
                             letterSpacing: ".09em",
                             textTransform: "uppercase",
                             fontSize: "1.38rem",
@@ -121,45 +137,46 @@ export default function DashboardPrincipal() {
                                 <Card
                                     className="dashboard-card h-100"
                                     style={{
-                                        border: `2.5px solid ${doradoPDI}`,
-                                        borderRadius: "1.2rem",
-                                        background: `linear-gradient(125deg, ${mod.color} 85%, #181d2d 150%)`,
-                                        color: "#fff",
-                                        boxShadow: "0 6px 28px 0 #0e2042a0",
+                                        border: "none",
+                                        borderRadius: "1.5rem",
+                                        background: "#fff",
+                                        color: azulPDI,
+                                        boxShadow: "0 7px 24px 0 #2223",
                                         cursor: "pointer",
                                         minHeight: "220px",
                                         transition: "transform .16s, box-shadow .15s"
                                     }}
                                     onClick={() => navigate(mod.route)}
                                     onMouseEnter={e => {
-                                        e.currentTarget.style.transform = "translateY(-10px) scale(1.032)";
-                                        e.currentTarget.style.boxShadow = `0 12px 34px 0 ${doradoPDI}33`;
-                                        e.currentTarget.style.borderColor = "#fff";
+                                        e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
+                                        e.currentTarget.style.boxShadow = `0 16px 32px 0 ${mod.color}22`;
+                                        e.currentTarget.style.border = `2px solid ${mod.color}`;
                                     }}
                                     onMouseLeave={e => {
                                         e.currentTarget.style.transform = "none";
-                                        e.currentTarget.style.boxShadow = "0 6px 28px 0 #0e2042a0";
-                                        e.currentTarget.style.borderColor = doradoPDI;
+                                        e.currentTarget.style.boxShadow = "0 7px 24px 0 #2223";
+                                        e.currentTarget.style.border = "none";
                                     }}
                                 >
                                     <Card.Body className="d-flex flex-column justify-content-between">
                                         <div className="d-flex align-items-center mb-3" style={{ gap: "0.85rem" }}>
                                             <div style={{
-                                                background: "rgba(255,255,255,0.10)",
+                                                background: mod.color + "10",
                                                 borderRadius: "50%",
-                                                padding: "0.68rem",
+                                                padding: "0.72rem",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
-                                                border: `2.5px solid ${doradoPDI}`
+                                                border: `2.5px solid ${mod.color}66`,
+                                                color: mod.color
                                             }}>
                                                 {mod.icon}
                                             </div>
-                                            <Card.Title className="mb-0 fs-6 fw-bold" style={{ color: doradoPDI, textTransform: "uppercase", letterSpacing: ".07em" }}>
+                                            <Card.Title className="mb-0 fs-6 fw-bold" style={{ color: azulPDI, textTransform: "uppercase", letterSpacing: ".07em" }}>
                                                 {mod.title}
                                             </Card.Title>
                                         </div>
-                                        <Card.Text style={{ color: "#e7e9ed", fontSize: "1.04rem", minHeight: "62px" }}>
+                                        <Card.Text style={{ color: grisOscuro, fontSize: "1.09rem", minHeight: "62px" }}>
                                             {mod.text}
                                         </Card.Text>
                                     </Card.Body>
@@ -172,7 +189,7 @@ export default function DashboardPrincipal() {
             <style>
                 {`
                     .dashboard-card:active {
-                        filter: brightness(0.98);
+                        filter: brightness(0.97);
                     }
                 `}
             </style>
