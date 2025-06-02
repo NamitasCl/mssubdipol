@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import CalendarioTurnosFuncionarios from "./CalendarioTurnosFuncionarios";
+import CalendarioTurnosFuncionarios from "./CalendarioTurnosFuncionarios.jsx";
 import axios from "axios";
 import * as XLSX from "xlsx";
 

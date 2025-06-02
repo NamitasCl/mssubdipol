@@ -3,7 +3,7 @@ import { Card, Button, Spinner, Form, Row, Col, Alert, Modal, Table, Badge } fro
 import AsyncSelect from "react-select/async";
 import axios from "axios";
 import debounce from "lodash.debounce";
-import { useAuth } from "../AuthContext.jsx";
+import { useAuth } from "../../AuthContext.jsx";
 
 function ModificarAsignacionesUnidad() {
     const { user } = useAuth();

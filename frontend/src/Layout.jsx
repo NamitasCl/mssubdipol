@@ -1,9 +1,29 @@
 import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import {Container, Row, Col, Navbar, Nav, Image as BImage, Button} from "react-bootstrap";
+import {
+    Container,
+    Row,
+    Col,
+    Navbar,
+    Nav,
+    Image as BImage,
+    Button,
+    Card,
+} from "react-bootstrap";
+import { FaUserCircle, FaSignOutAlt, FaChevronRight } from "react-icons/fa";
 import PdiLogo from "./assets/imagenes/pdilogo.png";
-import {useAuth} from "./AuthContext.jsx";
+import { useAuth } from "./AuthContext.jsx";
 
+// PALETA
+const azulBase = "#2a4d7c";
+const azulMedio = "#4f7eb9";
+const azulClaro = "#b1cfff";
+const azulSidebar = "#eaf4fb";
+const blanco = "#fff";
+const grisClaro = "#f8fbfd";
+const textoPrincipal = "#22334a";
+const textoSecundario = "#4b6382";
+const doradoSuave = "#ffe8a3";
 
 const ROLES = {
     ADMINISTRADOR: "ROLE_ADMINISTRADOR",
@@ -18,13 +38,9 @@ export default function Layout() {
     const { user, logout } = useAuth();
 
     const handleClick = () => {
-        if (user) {
-            logout();
-            window.location.href = "/turnos/login";
-        } else {
-            window.location.href = "/turnos/login";
-        }
-    }
+        logout();
+        window.location.href = "/turnos/login";
+    };
 
     const navConfig = [
         { to: "/layout", label: "Dashboard", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO] },
@@ -36,80 +52,152 @@ export default function Layout() {
         { to: "/layout/disponibles", label: "Ver personal disponible", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
         { to: "/layout/jefe", label: "Restringido Jefes", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE] },
         { to: "/layout/admin", label: "Administración", allowedRoles: [ROLES.ADMINISTRADOR] },
-        // El enlace de Login que estaba en tu `navItems` original se omite aquí
-        // porque el botón superior "Iniciar sesión" / "Cerrar sesión" ya cumple esa función
-        // de manera más explícita y contextual.
     ];
 
-    // Filtra los navItems basados en el rol del usuario.
-    // React.useMemo memoriza el resultado para no recalcular en cada renderizado si 'user' no cambia.
     const visibleNavItems = React.useMemo(() => {
-        if (user && user.roles) { // Usuario está logueado y tiene un rol asignado
-
-            console.log("Roles del usuario: ", user.roles);
-
-            return navConfig.filter(item => {
-                // Si el item tiene 'allowedRoles', verificar si el rol del usuario está incluido.
-                return item.allowedRoles && item.allowedRoles.includes(user.roles[0]);
-            });
-        } else { // Usuario no está logueado o no tiene un rol definido.
-            // En este caso, el sidebar estará vacío.
-            return [];
+        if (user && user.roles) {
+            return navConfig.filter((item) =>
+                item.allowedRoles.includes(user.roles[0])
+            );
         }
-    }, [user]); // La dependencia es 'user'; si 'user' cambia, se recalcula.
-
-    console.log("Visible navItems: ", visibleNavItems);
+        return [];
+    }, [user]);
 
     return (
-        <div className="min-vh-100 d-flex flex-column">
-            {/* Barra superior */}
-            <Navbar bg="dark" variant="dark">
-                <Container fluid className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex flex-column align-items-center">
-                        <BImage src={PdiLogo} alt="Logo" height={"100%"} />
-                        <h6 className="text-white text-uppercase">Plana Mayor Subdipol</h6>
+        <div style={{ minHeight: "100vh", background: grisClaro }}>
+            {/* Header */}
+            <Navbar
+                expand="lg"
+                style={{
+                    background: azulBase,
+                    boxShadow: "0 2px 18px #23395d22",
+                    minHeight: 64,
+                    padding: "0.8rem 0",
+                }}
+                className="mb-2"
+            >
+                <Container fluid style={{ maxWidth: 1920 }}>
+                    <div className="d-flex align-items-center gap-3">
+                        <BImage src={PdiLogo} alt="Logo" height={48} />
+                        <div>
+                            <h4 className="mb-0 fw-bold" style={{ color: blanco, letterSpacing: 1.2, fontSize: 24 }}>
+                                Plataforma de gestión de turnos
+                            </h4>
+                            <span className="small" style={{ color: doradoSuave }}>
+                Subdirección de Investigación Policial y Criminalística
+              </span>
+                        </div>
                     </div>
-                    <div className="d-flex flex-column align-items-center">
-                        <h1 className="mb-4 fw-bold text-white">Sistema de Gestión de Turnos</h1>
-                        <h5 className="mt-0 fw-bold text-white">Complejo Policial Cuartel Independencia</h5>
-                    </div>
-                    <div className="d-flex gap-2">
-                        <Button variant="light" onClick={() => window.location.href = 'https://rac.investigaciones.cl'}>Volver a RAC</Button>
-                        <Button variant="outline-light" className="d-flex align-items-center gap-2" onClick={() => handleClick()}>
-                            <span>{user ? "Cerrar sesión" : "Iniciar sesión"}</span>
-                            <i className="bi bi-box-arrow-right"></i>
+                    <div className="d-flex align-items-center gap-3">
+                        <FaUserCircle size={26} color={blanco} />
+                        <span style={{ color: blanco, fontWeight: 600, fontSize: 17 }}>
+              {user?.nombreUsuario || "Usuario"}
+            </span>
+                        <Button
+                            variant="light"
+                            onClick={handleClick}
+                            className="rounded-pill px-3 d-flex align-items-center"
+                            style={{
+                                borderColor: azulClaro,
+                                color: azulBase,
+                                fontWeight: 600,
+                                fontSize: 16,
+                            }}
+                        >
+                            <FaSignOutAlt className="me-2" />
+                            Cerrar sesión
                         </Button>
                     </div>
                 </Container>
             </Navbar>
 
-            {/* Contenido general con sidebar + contenido */}
-            <Container fluid className="flex-grow-1">
-                <Row className="flex-grow-1" style={{ minHeight: "calc(100vh - 56px)" }}>
+            {/* Main Content with Sidebar */}
+            <Container fluid style={{ maxWidth: 1920 }}>
+                <Row className="flex-nowrap" style={{ minHeight: "calc(100vh - 80px)" }}>
                     {/* Sidebar */}
-                    <Col md={2} className="bg-light p-3 border-end min-vh-100">
-                        <Nav className="flex-column">
-                            {visibleNavItems.map((item) => { // No necesitas idx si usas item.to como key
+                    <Col
+                        md={2}
+                        style={{
+                            background: azulSidebar,
+                            borderRight: `2px solid ${azulClaro}`,
+                            minHeight: "85vh",
+                            minWidth: 220,
+                            maxWidth: 270,
+                            paddingTop: 22,
+                            paddingBottom: 20,
+                            paddingLeft: 0,
+                            paddingRight: 0,
+                            boxShadow: "1.5px 0 9px #bfd3f325",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "start",
+                            zIndex: 2,
+                            fontSize: 17
+                        }}
+                    >
+                        <Nav className="flex-column w-100">
+                            {visibleNavItems.map((item) => {
                                 const isActive = location.pathname === item.to;
                                 return (
                                     <Nav.Link
                                         as={Link}
                                         to={item.to}
-                                        key={item.to} // 'item.to' es una key ideal si es única
-                                        className={`mb-1 px-3 py-2 rounded text-dark text-decoration-none ${
-                                            isActive ? "bg-white border-start border-4 border-primary fw-bold shadow-sm" : "hover-shadow"
-                                        }`}
+                                        key={item.to}
+                                        className={`
+                      my-1 py-2 px-3
+                      rounded-pill
+                      d-flex align-items-center gap-2
+                      ${isActive ? "fw-bold shadow-sm" : ""}
+                    `}
+                                        style={{
+                                            background: isActive ? azulMedio : "transparent",
+                                            color: isActive ? blanco : textoPrincipal,
+                                            fontSize: 14,
+                                            marginLeft: 10,
+                                            marginRight: 8,
+                                            letterSpacing: 0.1,
+                                            boxShadow: isActive ? "0 2px 8px #4f7eb950" : undefined,
+                                            transition: "background 0.16s, color 0.16s",
+                                        }}
                                     >
+                                        <FaChevronRight size={19} style={{ opacity: isActive ? 1 : 0.6 }} />
                                         {item.label}
                                     </Nav.Link>
                                 );
                             })}
                         </Nav>
                     </Col>
+                    {/* Content */}
+                    <Col
+                        md={10}
+                        style={{
+                            background: grisClaro,
+                            minHeight: "85vh",
+                            borderRadius: "32px 0 0 32px",
+                            boxShadow: "-6px 0 42px #b1bed91b inset",
+                            padding: "18px 18px 20px 18px",
+                            zIndex: 1,
+                        }}
+                    >
+                        <Card
+                            style={{
+                                background: blanco,
+                                border: "none",
+                                borderRadius: 15,
+                                boxShadow: "0 8px 36px #b0c5e820",
+                                padding: 0,
+                                minHeight: "79vh",
+                                overflow: "visible",
+                                maxWidth: 1450,
 
-                    {/* Contenido dinámico */}
-                    <Col md={10} className="py-4">
-                        <Outlet />
+                                fontSize: 16.3,
+                            }}
+                            className="px-3 py-2"
+                        >
+                            <Card.Body className="p-2">
+                                <Outlet />
+                            </Card.Body>
+                        </Card>
                     </Col>
                 </Row>
             </Container>

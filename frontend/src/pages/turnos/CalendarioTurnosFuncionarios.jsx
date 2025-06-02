@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Table, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { compareFuncionarioHierarchy } from "./AsignacionTurnosMensual";
+import { compareFuncionarioHierarchy } from "./AsignacionTurnosMensual.jsx";
 
 export default function CalendarioTurnosFuncionarios({ asig, funcionarios, mes, anio }) {
     const [filtroNombre, setFiltroNombre] = useState("");

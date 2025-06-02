@@ -221,6 +221,8 @@ export default function FormularioDinamico({ fields, onSubmit }) {
                                 )}
                             </div>
                             {(plantilla.fields || []).map((subf, subIdx) => {
+                                console.log("Subf: ", subf);
+                                console.log("SubIdx: ", subIdx)
                                 const subFieldKey = subf.nombre || subf.name || subf.etiqueta || subf.label || `campo_${subIdx}`;
                                 return (
                                     <Form.Group key={subf.id || subFieldKey || `${groupName}-subf-${subIdx}`} className="mb-2">
