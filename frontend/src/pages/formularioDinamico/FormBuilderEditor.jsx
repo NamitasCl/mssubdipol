@@ -13,11 +13,15 @@ export const FIELD_TYPES = [
     { value: "number", label: "Número" },
     { value: "select", label: "Selección" },
     { value: "checkbox", label: "Checkbox" },
+    { value: "radio", label: "Radio" },
+    { value: "date", label: "Fecha" },
+    { value: "datetime-local", label: "Fecha y Hora" },
     { value: "funcionario", label: "Funcionario" },
     { value: "unidad", label: "Unidad" },
     { value: "repol", label: "Región Policial" },
     { value: "group", label: "Bloque/Subformulario" }
 ];
+
 
 // Catálogo de subformularios
 export const SUBFORMULARIOS_CATALOGO = [

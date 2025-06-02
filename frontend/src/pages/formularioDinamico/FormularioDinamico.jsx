@@ -60,6 +60,40 @@ function renderCampo(field, value, onChange, user) {
                     label={field.etiqueta || field.label || field.nombre}
                 />
             )}
+            {(field.type === "radio" || field.tipo === "radio") && (
+                <div>
+                    {(field.opciones || field.options || "")
+                        .toString()
+                        .split(",")
+                        .filter(opt => opt.trim())
+                        .map((opt, idx) => (
+                            <Form.Check
+                                key={opt + idx}
+                                type="radio"
+                                name={key}
+                                label={opt}
+                                value={opt}
+                                checked={value === opt}
+                                onChange={() => onChange(key, opt)}
+                                style={{ display: "block" }}
+                            />
+                        ))}
+                </div>
+            )}
+            {(field.type === "date" || field.tipo === "date") && (
+                <Form.Control
+                    type="date"
+                    value={value || ""}
+                    onChange={e => onChange(key, e.target.value)}
+                />
+            )}
+            {(field.type === "datetime-local" || field.tipo === "datetime-local") && (
+                <Form.Control
+                    type="datetime-local"
+                    value={value || ""}
+                    onChange={e => onChange(key, e.target.value)}
+                />
+            )}
             {(field.type === "funcionario" || field.tipo === "funcionario") && (
                 <AsyncFuncionarioSelect
                     value={value || null}
