@@ -1,11 +1,13 @@
 package cl.investigaciones.formularios.service.formulariodinamico;
 
 import cl.investigaciones.formularios.dto.formulariodinamico.AsignacionCuotaFormularioDTO;
+import cl.investigaciones.formularios.dto.formulariodinamico.CSConsultaFuncionarioResponse;
 import cl.investigaciones.formularios.dto.formulariodinamico.CSConsultaUnidadResponse;
 import cl.investigaciones.formularios.model.formulariodinamico.AsignacionCuotaFormulario;
 import cl.investigaciones.formularios.model.formulariodinamico.FormularioDefinicion;
 import cl.investigaciones.formularios.repository.formulariodinamico.AsignacionCuotaFormularioRepository;
 import cl.investigaciones.formularios.repository.formulariodinamico.FormularioDefinicionRepository;
+import cl.investigaciones.formularios.repository.formulariodinamico.FormularioRegistroRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -27,6 +29,9 @@ public class AsignacionCuotaFormularioService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private FormularioRegistroRepository registroRepo;
 
     // Asignar una cuota nueva (padre o normal)
     @Transactional
@@ -105,10 +110,9 @@ public class AsignacionCuotaFormularioService {
                 .collect(Collectors.toList());
     }
 
-    // Método para contar registros completados por unidad y formulario (avance)
     public int contarRegistrosCompletados(Long formularioId, Integer idUnidad) {
-        // TODO: Implementa con tu registroRepo si corresponde
-        return 0;
+        // Devuelve la cantidad de registros que ha completado esta unidad en este formulario
+        return registroRepo.findByFormularioIdAndIdUnidad(formularioId, idUnidad).size();
     }
 
     // --------- Utilidades ---------
@@ -120,6 +124,32 @@ public class AsignacionCuotaFormularioService {
         dto.setCuotaAsignada(entidad.getCuotaAsignada());
         dto.setCuotaPadreId(entidad.getCuotaPadreId());
         dto.setIdFuncionario(entidad.getIdFuncionario()); // <-- NUEVO
+        // Calcular avance:
+        int avance = 0;
+        if (entidad.getIdUnidad() != null) {
+            avance = registroRepo.findByFormularioIdAndIdUnidad(
+                    entidad.getFormulario().getId(),
+                    entidad.getIdUnidad()
+            ).size();
+            // Traer nombre de la unidad
+            try {
+                String url = "http://commonservices:8011/api/common/unidades/" + entidad.getIdUnidad();
+                var resp = restTemplate.getForObject(url, CSConsultaUnidadResponse.class);
+                if (resp != null) dto.setNombreUnidad(resp.getNombreUnidad());
+            } catch (Exception ignored) {}
+        } else if (entidad.getIdFuncionario() != null) {
+            avance = registroRepo.findByFormularioIdAndIdFuncionario(
+                    entidad.getFormulario().getId(),
+                    entidad.getIdFuncionario()
+            ).size();
+            // Traer nombre de funcionario
+            try {
+                String url = "http://commonservices:8011/api/common/funcionarios/" + entidad.getIdFuncionario();
+                var resp = restTemplate.getForObject(url, CSConsultaFuncionarioResponse.class);
+                if (resp != null) dto.setNombreFuncionario(resp.getNombreFun() + " " + resp.getApellidoPaternoFun());
+            } catch (Exception ignored) {}
+        }
+        dto.setAvance(avance);
         return dto;
     }
 

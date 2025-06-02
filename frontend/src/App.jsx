@@ -24,6 +24,7 @@ import './assets/App.css';
 import ListaFormulariosDisponibles from "./pages/formularioDinamico/ListaFormulariosDisponibles.jsx";
 import FormBuilderApp from "./pages/formularioDinamico/FormBuilderApp.jsx";
 import FormularioDinamicoPage from "./pages/formularioDinamico/FormularioDinamicoPage.jsx";
+import VistaRegistrosFormulario from "./pages/formularioDinamico/VistaRegistrosFormulario.jsx";
 
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
                     <Route index element={<ListaFormulariosDisponibles />} />
                     <Route path="crear-formulario" element={<FormBuilderApp />} />
                     <Route path="formulario/:id" element={<FormularioDinamicoPage />} />
+                    <Route path="verregistros" element={<VistaRegistrosFormulario />} />
                 </Route>
                 <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />

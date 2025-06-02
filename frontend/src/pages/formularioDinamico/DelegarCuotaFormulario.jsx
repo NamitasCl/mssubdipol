@@ -8,7 +8,6 @@ import { useAuth } from "../../AuthContext";
 export default function DelegarCuotaFormulario({ show, cuota, formulario, onClose, onDelegado }) {
     const { user } = useAuth();
 
-    // HOOKS VAN ANTES DE CUALQUIER RETURN!!!
     const [tipoDestino, setTipoDestino] = useState("unidad");
     const [destinoObj, setDestinoObj] = useState(null);
     const [cantidad, setCantidad] = useState(1);
@@ -19,6 +18,21 @@ export default function DelegarCuotaFormulario({ show, cuota, formulario, onClos
     const [error, setError] = useState(null);
     const [guardando, setGuardando] = useState(false);
     const [success, setSuccess] = useState(null);
+
+    // Limpia el estado al cerrar el modal
+    useEffect(() => {
+        if (!show) {
+            setTipoDestino("unidad");
+            setDestinoObj(null);
+            setCantidad(1);
+            setSubcuotas([]);
+            setDelegadas([]);
+            setCargandoDelegadas(false);
+            setError(null);
+            setGuardando(false);
+            setSuccess(null);
+        }
+    }, [show]);
 
     // Cargar delegadas al abrir modal
     useEffect(() => {
@@ -31,8 +45,6 @@ export default function DelegarCuotaFormulario({ show, cuota, formulario, onClos
             .finally(() => setCargandoDelegadas(false));
     }, [show, cuota, user.token]);
 
-
-    // Lógica: después de los hooks
     if (!show || !cuota) return null;
 
     const totalAsignado = [
@@ -86,7 +98,7 @@ export default function DelegarCuotaFormulario({ show, cuota, formulario, onClos
             if (onDelegado) onDelegado();
             // Recargar delegadas:
             setCargandoDelegadas(true);
-            axios.get(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/delegadas/${cuota.id}`,
+            axios.get(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/padre/${cuota.id}`,
                 { headers: { Authorization: `Bearer ${user.token}` } })
                 .then(res => setDelegadas(res.data || []))
                 .finally(() => setCargandoDelegadas(false));
@@ -95,6 +107,15 @@ export default function DelegarCuotaFormulario({ show, cuota, formulario, onClos
         } finally {
             setGuardando(false);
         }
+    };
+
+    // Renderizado claro de destino
+    const renderDestinoDelegada = (d) => {
+        if (d.nombreUnidad) return d.nombreUnidad;
+        if (d.nombreFuncionario) return d.nombreFuncionario;
+        if (d.idUnidad) return `Unidad #${d.idUnidad}`;
+        if (d.idFuncionario) return `Funcionario #${d.idFuncionario}`;
+        return "?";
     };
 
     return (
@@ -198,13 +219,7 @@ export default function DelegarCuotaFormulario({ show, cuota, formulario, onClos
                         {delegadas.length > 0 ? delegadas.map((d, i) => (
                             <tr key={d.id}>
                                 <td>{i + 1}</td>
-                                <td>
-                                    {d.nombreUnidad
-                                        || d.nombreFuncionario
-                                        || d.idUnidad
-                                        || d.idFuncionario
-                                        || "?"}
-                                </td>
+                                <td>{renderDestinoDelegada(d)}</td>
                                 <td>{d.idUnidad ? "Unidad" : d.idFuncionario ? "Funcionario" : "-"}</td>
                                 <td>{d.cuotaAsignada}</td>
                             </tr>

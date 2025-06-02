@@ -161,7 +161,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                 subformulario: f.subformulario || null
             }));
 
-            // Armar reglas de visibilidad
+            // Armar reglas de visibilidad, filtrando vacías
             const reglas = visibilidad
                 .filter(v =>
                     v.tipoDestino &&
@@ -181,16 +181,22 @@ export default function FormBuilderEditor({ fields, setFields }) {
                 visibilidad: reglas
             };
 
-            const { data } = await axios.post(
+            console.log(dto);
+
+            const response = await axios.post(
                 `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`,
                 dto,
                 {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
                 }
             );
-            setFormularioGuardado(data); // Guardar respuesta para cuotas
-            setStep(2); // Ir a cuotas
-            setSuccess(null);
+            setFormularioGuardado(response.data)
+            setStep(2)
+            setSuccess("¡Formulario guardado exitosamente!");
+            setFields([]);
+            setNombre("");
+            setDescripcion("");
+            setVisibilidad([]);
         } catch (e) {
             setError("No se pudo guardar el formulario");
         } finally {
@@ -198,9 +204,11 @@ export default function FormBuilderEditor({ fields, setFields }) {
         }
     };
 
+
     // ---------- CUOTAS ----------
     const agregarCuota = () => {
         // Solo agregar si hay destino y cantidad
+        console.log("Nueva cuota: ", nuevaCuota);
         if (
             (!nuevaCuota.unidadObj && nuevaCuota.tipo === "unidad") ||
             (!nuevaCuota.funcionarioObj && nuevaCuota.tipo === "usuario") ||
@@ -208,29 +216,18 @@ export default function FormBuilderEditor({ fields, setFields }) {
         ) {
             return;
         }
-
-        let nombre = "";
-        if (nuevaCuota.tipo === "unidad" && nuevaCuota.unidadObj) {
-            // Defensivo: si no existe nombreUnidad usa label, si tampoco, vacío
-            nombre = nuevaCuota.unidadObj.nombreUnidad || nuevaCuota.unidadObj.label || "";
-        }
-        if (nuevaCuota.tipo === "usuario" && nuevaCuota.funcionarioObj) {
-            const f = nuevaCuota.funcionarioObj;
-            nombre =
-                [f.nombreFun, f.apellidoPaternoFun, f.apellidoMaternoFun]
-                    .filter(Boolean) // Quita undefined/null
-                    .join(" ")
-                    .trim() || f.label || "";
-        }
-
         setCuotas(prev => [
             ...prev,
             {
                 tipo: nuevaCuota.tipo,
                 valor: nuevaCuota.tipo === "unidad"
-                    ? nuevaCuota.unidadObj?.idUnidad
-                    : nuevaCuota.funcionarioObj?.idFun,
-                nombre, // <-- nombre bien formado o vacío
+                    ? nuevaCuota.unidadObj?.value
+                    : nuevaCuota.funcionarioObj?.value,
+                nombre: nuevaCuota.tipo === "unidad"
+                    ? nuevaCuota.unidadObj?.label
+                    : nuevaCuota.funcionarioObj
+                        ? `${nuevaCuota.funcionarioObj.label}`.trim()
+                        : "",
                 cantidad: nuevaCuota.cantidad,
                 unidadObj: nuevaCuota.tipo === "unidad" ? nuevaCuota.unidadObj : null,
                 funcionarioObj: nuevaCuota.tipo === "usuario" ? nuevaCuota.funcionarioObj : null
@@ -246,7 +243,6 @@ export default function FormBuilderEditor({ fields, setFields }) {
         });
     };
 
-
     const eliminarCuota = idx => setCuotas(cuotas.filter((_, i) => i !== idx));
 
     const handleGuardarCuotas = async () => {
@@ -254,6 +250,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
         setError(null);
         try {
             for (const cuota of cuotas) {
+
                 console.log("Antes de guardar CUOTA: ", cuota)
                 await axios.post(
                     `${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas`,
@@ -319,8 +316,6 @@ export default function FormBuilderEditor({ fields, setFields }) {
         }
         return null;
     };
-
-
 
     // ------ Renderiza el input correcto para cada tipo de visibilidad ------
     function renderVisibilidadInput(v, idx) {

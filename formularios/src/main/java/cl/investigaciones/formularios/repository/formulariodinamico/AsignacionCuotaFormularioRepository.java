@@ -15,4 +15,5 @@ public interface AsignacionCuotaFormularioRepository extends JpaRepository<Asign
     List<AsignacionCuotaFormulario> findByIdFuncionario(Integer idFuncionario);
 
     List<AsignacionCuotaFormulario> findByCuotaPadreId(Long cuotaPadreId);
+
 }

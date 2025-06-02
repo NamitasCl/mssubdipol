@@ -62,4 +62,5 @@ public class AsignacionCuotaFormularioController {
         // Tu service debe mapear siglasUnidad a idUnidad (como ya conversamos)
         return service.listarPorUsuarioYUnidad(user.getIdFuncionario(), user.getSiglasUnidad());
     }
+
 }

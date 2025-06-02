@@ -11,4 +11,7 @@ public class AsignacionCuotaFormularioDTO {
     private Integer cuotaAsignada;
     private Long cuotaPadreId;        // null si es raíz, set si fue delegada
     private Integer idFuncionario;
+    private Integer avance;
+    private String nombreUnidad;
+    private String nombreFuncionario;
 }

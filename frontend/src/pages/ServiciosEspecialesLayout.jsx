@@ -12,7 +12,6 @@ const grisClaro = "#eceff4";
 const blanco = "#fff";
 const verdeMenta = "#a6e3cf";
 const textoPrincipal = "#23395d";
-const textoSecundario = "#4a5975";
 
 function Header() {
     const { logout } = useAuth();
@@ -143,18 +142,34 @@ const ServiciosEspecialesPanelLayout = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    /*
     useEffect(() => {
-
+        if (!user) return;
         setLoading(true);
-        fetch(`${import.meta.env.VITE_FORMS_API_URL}/estadisticas?usuarioId=${user?.id}`)
-            .then(res => res.json())
-            .then(data => setStats(data))
+
+        Promise.all([
+            // Formularios creados por el usuario
+            fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/creador/${user.idFuncionario}`, {
+                headers: { Authorization: `Bearer ${user.token}` }
+            }).then(res => res.json()),
+            // Todos los formularios
+            fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
+                headers: { Authorization: `Bearer ${user.token}` }
+            }).then(res => res.json()),
+            // Cuotas asignadas al usuario
+            fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/mis`, {
+                headers: { Authorization: `Bearer ${user.token}` }
+            }).then(res => res.json())
+        ])
+            .then(([misFormularios, todosFormularios, cuotas]) => {
+                setStats({
+                    creados: Array.isArray(misFormularios) ? misFormularios.length : "-",
+                    activos: Array.isArray(todosFormularios) ? todosFormularios.filter(f => f.activo !== false).length : "-",
+                    asignados: Array.isArray(cuotas) ? cuotas.length : "-"
+                });
+            })
             .catch(() => setStats({}))
             .finally(() => setLoading(false));
     }, [user]);
-
-     */
 
     // Botón flotante para crear formulario
     const crearFormulario = () => {
@@ -175,7 +190,6 @@ const ServiciosEspecialesPanelLayout = ({ children }) => {
 
             {/* Contenido principal ocupa todo el espacio */}
             <Container
-
                 className="pt-4"
                 style={{
                     minHeight: "60vh",
