@@ -2,15 +2,14 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 import Dashboard from "./pages/turnos/Dashboard.jsx";
-import GestionUnidades from "./pages/turnos/GestionUnidades.jsx";
-import GestionTurnos from "./GestionTurnos.jsx";
-import UnitAssignmentView from "./UnitAssignmentView.jsx";
+import GestionTurnos from "./pages/turnos/GestionTurnos.jsx";
+import UnitAssignmentView from "./pages/turnos/UnitAssignmentView.jsx";
 import AsignacionTurnosMensual from "./pages/turnos/AsignacionTurnosMensual.jsx";
 import {RestrictedAreaJefe} from "./components/RestrictedAreaJefe.jsx";
-import {Jefe} from "./Jefe.jsx";
+import {Jefe} from "./pages/turnos/Jefe.jsx";
 import LoginForm from "./LoginForm.jsx";
 import {RestrictedAreaAdmin} from "./components/RestrictedAreaAdmin.jsx";
-import Admin from "./Admin.jsx";
+import Admin from "./pages/turnos/Admin.jsx";
 import {RestrictedAreaSubJefe} from "./components/RestrictedAreaSubJefe.jsx";
 import {RestrictedAreaSecuin} from "./components/RestrictedAreaSecuin.jsx";
 import AuthGuard from "./components/AuthGuard.jsx";
@@ -42,7 +41,6 @@ export default function App() {
                 </Route>
                 <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
-                    <Route path="unidades" element={<GestionUnidades />} />
                     <Route path="turnos" element={<RestrictedAreaSecuin component={GestionTurnos} />} />
                     <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={UnitAssignmentView} />} />
                     <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />

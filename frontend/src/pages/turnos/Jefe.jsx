@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AsyncSelect from "react-select/async";
 import axios from "axios";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../../AuthContext.jsx";
 import {
     Row,
     Col,

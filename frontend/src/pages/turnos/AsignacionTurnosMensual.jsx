@@ -8,6 +8,15 @@ import axios                from "axios";
 import { Row, Col, Form, Spinner, Button, Card, Modal } from "react-bootstrap";
 import * as XLSX            from "xlsx";
 import CalendarioTurnosFuncionarios from "./CalendarioTurnosFuncionarios.jsx";
+import { FaSyncAlt, FaSave, FaFileExcel } from "react-icons/fa"; // Para iconos de botones
+
+const azulPastel = "#b1cfff";
+const azulPrincipal = "#2a4d7c";
+const azulClaro = "#eaf4fb";
+const dorado = "#FFC700";
+const grisBg = "#f7fafd";
+const textoPrincipal = "#22334a";
+const badgeTurno = "#f3fafb";
 
 /* ---------- Endpoints ---------- */
 const ENDPOINT_FUNC_DISP   = `${import.meta.env.VITE_TURNOS_API_URL}/asignaciones/disponibles`;
@@ -774,31 +783,216 @@ export default function AsignacionTurnosMensual(){
         </Modal>
     );
 
-    return(
-        <div className="p-3">
-            <h5 className="fw-bold mb-3">Asignación de Turnos por Día</h5>
-            {selector}
-            {paginator}
-            {loading && <div className="text-center mt-5"><Spinner animation="border" role="status"><span className="visually-hidden">Cargando...</span></Spinner></div>}
-            {!loading && Object.keys(asig).length > 0 && grid}
-            {!loading && Object.keys(asig).length === 0 && (
-                <div className="text-center text-muted mt-4">
-                    No hay turnos generados para este mes/año.
-                </div>
-            )}
-            {/*
-                !loading && Object.keys(asig).length > 0 && byId.length > 0 && (
-                <>
-                    <CalendarioTurnosFuncionarios
-                        asig={asig}
-                        funcionarios={byId}
-                        mes={mes}
-                        anio={anio}
-                    />
-                </>
-            )
-            */}
-            {confirmationModal}
+    return (
+        <div style={{ minHeight: "100vh" }}>
+            <div style={{
+                maxWidth: 1920,
+                margin: "0 auto",
+                background: "#fff",
+                borderRadius: "1.5rem",
+                boxShadow: "0 8px 32px #174e7d15",
+                padding: "32px 36px",
+            }}>
+                <h3 className="fw-bold mb-3" style={{
+                    color: azulPrincipal,
+                    letterSpacing: ".09em",
+                    borderLeft: `5px solid ${dorado}`,
+                    paddingLeft: "1rem"
+                }}>
+                    Asignación de Turnos por Día
+                </h3>
+
+                {/* Selector Panel */}
+                <Card className="shadow-sm mb-4 border-0" style={{
+                    borderRadius: 16,
+                    background: azulClaro,
+                    padding: "18px 22px"
+                }}>
+                    <Row className="align-items-end">
+                        <Col xs={12} md={5} className="mb-2 mb-md-0">
+                            <Form.Label htmlFor="selectMes" className="fw-semibold" style={{ color: azulPrincipal }}>Mes</Form.Label>
+                            <Form.Select id="selectMes" value={mes} disabled={loading}
+                                         style={{ borderRadius: 11 }}
+                                         onChange={e => { setMes(+e.target.value); setSem(0); }}>
+                                {[...Array(12)].map((_, i) =>
+                                    <option key={i + 1} value={i + 1}>
+                                        {new Date(2000, i, 1).toLocaleDateString("es-ES", { month: "long" }).toUpperCase()}
+                                    </option>)}
+                            </Form.Select>
+                        </Col>
+                        <Col xs={12} md={4} className="mb-2 mb-md-0">
+                            <Form.Label htmlFor="inputAnio" className="fw-semibold" style={{ color: azulPrincipal }}>Año</Form.Label>
+                            <Form.Control id="inputAnio" type="number" value={anio} disabled={loading}
+                                          style={{ borderRadius: 11 }}
+                                          onChange={e => { setAnio(+e.target.value); setSem(0); }} />
+                        </Col>
+                        <Col xs={12} md={3} className="d-flex justify-content-start justify-content-md-end mt-3 mt-md-0 align-items-center">
+                            <Button size="sm" className="me-2"
+                                    style={{
+                                        background: "linear-gradient(120deg, #4f7eb9 50%, #7fa6da 100%)",
+                                        border: "none", borderRadius: 11, fontWeight: 500
+                                    }}
+                                    title="Volver a generar turnos para este mes/año (descarta cambios manuales)"
+                                    disabled={loading || funcs.length === 0}
+                                    onClick={async () => {
+                                        if (window.confirm("¿Regenerar turnos? Se perderán los cambios manuales no guardados.")) {
+                                            setLoading(true); setAsig({});
+                                            const resultadoGeneracion = await generarIterativo(funcs, dnd);
+                                            setLoading(false);
+                                            if (resultadoGeneracion.seEncontroIdeal) {
+                                                alert("Turnos regenerados exitosamente con la combinación ideal. 👍\n" + resultadoGeneracion.detalleResultado);
+                                            } else {
+                                                alert(`Turnos regenerados. No se alcanzó la combinación ideal deseada.\n${resultadoGeneracion.detalleResultado}`);
+                                            }
+                                        }
+                                    }}>
+                                <FaSyncAlt className="me-1" /> Regenerar
+                            </Button>
+                            <Button size="sm" className="me-2"
+                                    style={{
+                                        background: "linear-gradient(120deg, #2a4d7c 60%, #4f7eb9 100%)",
+                                        border: "none", borderRadius: 11, fontWeight: 500
+                                    }}
+                                    title="Guardar asignaciones actuales en la base de datos"
+                                    disabled={loading || !Object.keys(asig).length}
+                                    onClick={handleGuardar}>
+                                {loading && <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-1" />}
+                                <FaSave className="me-1" /> Guardar
+                            </Button>
+                            <Button size="sm"
+                                    style={{
+                                        background: "linear-gradient(120deg, #41b475 70%, #a6e3cf 100%)",
+                                        border: "none", borderRadius: 11, fontWeight: 500, color: "#234"
+                                    }}
+                                    title="Exportar tabla actual a Excel"
+                                    disabled={loading || !Object.keys(asig).length}
+                                    onClick={handleExport}>
+                                <FaFileExcel className="me-1" /> Exportar
+                            </Button>
+                        </Col>
+                    </Row>
+                </Card>
+
+                {/* Barra paginación */}
+                {!loading && semanas.length > 1 && (
+                    <div className="d-flex justify-content-between align-items-center mb-4 py-2 px-3" style={{
+                        background: azulClaro, borderRadius: 12
+                    }}>
+                        <Button size="sm" variant="outline-secondary" style={{ borderRadius: 11, minWidth: 90 }}
+                                disabled={sem === 0}
+                                onClick={() => setSem(s => s - 1)}>← Semana Ant.</Button>
+                        <span className="fw-semibold" style={{ color: azulPrincipal, fontSize: 17 }}>Semana {sem + 1} de {semanas.length}</span>
+                        <Button size="sm" variant="outline-secondary" style={{ borderRadius: 11, minWidth: 90 }}
+                                disabled={sem === semanas.length - 1}
+                                onClick={() => setSem(s => s + 1)}>Semana Sig. →</Button>
+                    </div>
+                )}
+
+                {/* Loading Spinner */}
+                {loading && (
+                    <div className="text-center mt-5">
+                        <Spinner animation="border" variant="primary" role="status" style={{ width: 48, height: 48 }} />
+                    </div>
+                )}
+
+                {/* Grid de turnos */}
+                {!loading && Object.keys(asig).length > 0 && (
+                    <Row className="g-4">
+                        {semanas[sem].map(([dStr, tDia]) => {
+                            const dia = +dStr;
+                            const fecha = new Date(anio, mes - 1, dia);
+                            const fechaStr = fecha.toLocaleDateString("es-CL", { weekday: "short", day: "2-digit" });
+                            const isWeekend = [0, 6].includes(fecha.getDay());
+                            return (
+                                <Col xs={12} sm={6} md={4} lg={3} xl={2} key={`${anio}-${mes}-${dia}`}>
+                                    <Card className="h-100 border-0 shadow-sm"
+                                          style={{
+                                              borderRadius: 17,
+                                              background: isWeekend ? "#f0f5fa" : "#fff",
+                                              minHeight: 270,
+                                              transition: "box-shadow .16s"
+                                          }}>
+                                        <Card.Header
+                                            className="text-center fw-bold small"
+                                            style={{
+                                                borderTopLeftRadius: 17,
+                                                borderTopRightRadius: 17,
+                                                background: isWeekend ? azulPastel : "#f5f7fc",
+                                                color: textoPrincipal,
+                                                border: "none",
+                                                letterSpacing: 0.1,
+                                                fontSize: 15
+                                            }}>
+                                            {fechaStr} <span className="fw-normal" style={{ fontWeight: 400 }}>({dia})</span>
+                                        </Card.Header>
+                                        <Card.Body className="p-2">
+                                            {TURNOS.map(t => {
+                                                const idSel = tDia?.[t] || "";
+                                                const det = idSel ? funcionarioMap.get(idSel) : null;
+                                                return (
+                                                    <div key={t} className="mb-2">
+                                                        <small
+                                                            className="fw-semibold d-block text-truncate"
+                                                            title={t}
+                                                            style={{
+                                                                color: textoPrincipal,
+                                                                background: badgeTurno,
+                                                                borderRadius: 8,
+                                                                padding: "2px 8px",
+                                                                fontSize: 13.7,
+                                                                marginBottom: 3
+                                                            }}
+                                                        >{t}</small>
+                                                        <Form.Select
+                                                            size="sm"
+                                                            className="mt-1"
+                                                            style={{ borderRadius: 10, fontSize: 14.2 }}
+                                                            value={idSel}
+                                                            title={det ? `${det.nombreCompleto} (${det.siglasCargo})` : 'Sin Asignar'}
+                                                            onChange={e => handleChange(dia, t, e.target.value)}
+                                                            disabled={loading}
+                                                        >
+                                                            <option value="">- Sin Asignar -</option>
+                                                            {det && !dropdown.some(f => f.id === det.id) &&
+                                                                <option key={`current-${det.id}`} value={det.id}>*{det.nombreCompleto}</option>}
+                                                            {dropdown.map(f =>
+                                                                <option key={f.id} value={f.id}>{f.nombreCompleto}</option>)}
+                                                        </Form.Select>
+                                                        {det && (
+                                                            <div className="text-muted small mt-1 text-truncate" title={`${det.siglasCargo} · ${det.unidad && det.unidad !== "-" ? det.unidad : "Unidad no informada"}`}>
+                                                                {det.siglasCargo} · {det.unidad && det.unidad !== "-" ? det.unidad : <span className="text-warning">Unidad no informada</span>}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            );
+                        })}
+                    </Row>
+                )}
+
+                {/* Sin datos */}
+                {!loading && Object.keys(asig).length === 0 && (
+                    <div className="text-center text-muted mt-4" style={{ fontSize: 17 }}>
+                        No hay turnos generados para este mes/año.
+                    </div>
+                )}
+
+                {confirmationModal}
+            </div>
+            {/* Mini CSS para interacción */}
+            <style>
+                {`
+        .form-select:focus {
+          box-shadow: 0 0 0 1.5px #4f7eb966 !important;
+          border-color: #4f7eb9 !important;
+        }
+        .card:hover { box-shadow: 0 8px 32px #4f7eb91a !important; }
+      `}
+            </style>
         </div>
     );
 }

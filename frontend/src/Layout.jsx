@@ -47,7 +47,6 @@ export default function Layout() {
         { to: "/layout/asignacionunidad", label: "Gestión por unidad", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
         { to: "/layout/modificaturnosunidad", label: "Modifica servicios", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
         { to: "/layout/calendario", label: "Calendario de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE] },
-        { to: "/layout/unidades", label: "Gestión de unidades", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE] },
         { to: "/layout/turnos", label: "Gestión de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
         { to: "/layout/disponibles", label: "Ver personal disponible", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
         { to: "/layout/jefe", label: "Restringido Jefes", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE] },
@@ -177,6 +176,7 @@ export default function Layout() {
                             boxShadow: "-6px 0 42px #b1bed91b inset",
                             padding: "18px 18px 20px 18px",
                             zIndex: 1,
+                            maxWidth: "100%"
                         }}
                     >
                         <Card
@@ -188,11 +188,11 @@ export default function Layout() {
                                 padding: 0,
                                 minHeight: "79vh",
                                 overflow: "visible",
-                                maxWidth: 1450,
+                                maxWidth: "100%",
 
                                 fontSize: 16.3,
                             }}
-                            className="px-3 py-2"
+
                         >
                             <Card.Body className="p-2">
                                 <Outlet />

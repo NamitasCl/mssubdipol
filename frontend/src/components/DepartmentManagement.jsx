@@ -4,6 +4,7 @@ import axios from "axios";
 import debounce from "lodash.debounce";
 import { Button, Card, Form, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import AsyncSelect from "react-select/async";
+import {FaArrowLeft} from "react-icons/fa";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -11,7 +12,7 @@ const azulBoton = "#2565c7";
 const grisClaro = "#eceff4";
 const textoSecundario = "#4a5975";
 
-export function DepartmentManagement({ departments, setDepartments }) {
+export function DepartmentManagement({ departments, setDepartments, setModo }) {
     const [showModal, setShowModal] = useState(false);
     const [editDept, setEditDept] = useState(null);
     const [selectedUnit, setSelectedUnit] = useState(null);
@@ -90,17 +91,23 @@ export function DepartmentManagement({ departments, setDepartments }) {
         >
             <Card.Body>
                 <div className="d-flex justify-content-between align-items-center mb-2" style={{ marginTop: -10 }}>
-                    <h3
-                        className="fw-bold"
-                        style={{
-                            color: azulPDI,
-                            fontSize: 21,
-                            letterSpacing: ".04em",
-                            marginBottom: 0
-                        }}
-                    >
-                        Gestión de Departamentos
-                    </h3>
+                    <div className={"d-flex gap-3 align-items-center"}>
+                        <Button variant={"warning"} size={"sm"} style={{width: 80}} onClick={() => setModo(null)}>
+                            <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
+                            Hola
+                        </Button>
+                        <h3
+                            className="fw-bold"
+                            style={{
+                                color: azulPDI,
+                                fontSize: 21,
+                                letterSpacing: ".04em",
+                                marginBottom: 0
+                            }}
+                        >
+                            Gestión de Departamentos
+                        </h3>
+                    </div>
                     <Button
                         variant="success"
                         style={{

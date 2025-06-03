@@ -32,8 +32,20 @@ public class TurnoAsignacionService {
                 .orElseThrow(() -> new RuntimeException(
                         "El mes no fue creado previamente. Debes abrir el mes antes de guardar turnos."));
 
+        registro.setTipo(dto.getTipo());
+        registro.setUnidadPrincipal(dto.getUnidadPrincipal());
+        registro.setIdFuncionario(dto.getIdFuncionario());
+        registro.setIdUnidad(dto.getIdUnidad());
+
+        // (Opcional: otros campos nuevos como autoría)
+        // registro.setIdFuncionarioCreador(dto.getIdFuncionarioCreador());
+        // registro.setNombreCreador(dto.getNombreCreador());
+        // registro.setUnidadCreador(dto.getUnidadCreador());
+
         // 2. Limpiar asignaciones actuales (forma segura)
-        registro.getAsignaciones().clear();
+        if (registro.getAsignaciones() != null) {
+            registro.getAsignaciones().clear();
+        }
 
         // 3. Convertir DTOs en entidades y agregar una por una
         for (DiaAsignacionDTO diaDto : dto.getAsignaciones()) {

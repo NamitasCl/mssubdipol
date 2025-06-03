@@ -19,8 +19,6 @@ public class AsignacionFuncionario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    @Column(unique = true)
     private int idFuncionario;
 
     private String nombreCompleto;
@@ -29,9 +27,11 @@ public class AsignacionFuncionario {
     private String unidad;
     private int mes;
     private int anio;
+    private int tipoAsignacion; // "UNIDAD" o "COMPLEJO"
 
     @OneToMany(mappedBy = "identificadorFuncionario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FuncionarioDiasNoDisponible> diasNoDisponibles;
 
+    @ManyToOne TurnoAsignacion turnoAsignacion;
 
 }

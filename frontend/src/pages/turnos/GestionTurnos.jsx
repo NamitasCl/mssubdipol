@@ -11,8 +11,9 @@ import {
     Tooltip
 } from "react-bootstrap";
 import axios from "axios";
-import { DepartmentManagement } from "./components/DepartmentManagement.jsx";
-import { MonthSelector } from "./components/MonthSelector.jsx";
+import { DepartmentManagement } from "../../components/DepartmentManagement.jsx";
+import { MonthSelector } from "../../components/MonthSelector.jsx";
+import UnitAssignmentView from "./UnitAssignmentView.jsx";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -32,6 +33,7 @@ function GestionTurnos() {
     const [turnosRestantes, setTurnosRestantes] = useState(0);
     const [turnosPorDia, setTurnosPorDia] = useState(0);
     const [showInfo, setShowInfo] = useState(true);
+    const [modo, setModo] = useState(null); // "UNIDAD" | "COMPLEJO"
 
     useEffect(() => {
         fetchUnidadesColaboradoras();
@@ -137,9 +139,9 @@ function GestionTurnos() {
             background: blanco,
             borderRadius: 20,
             boxShadow: "0 8px 36px #b0c5e820",
-            padding: "36px 22px 32px 22px",
+            padding: "18px 11px 16px 11px",
             minHeight: 540,
-            maxWidth: 1280,
+            maxWidth: "100%",
             margin: "0 auto"
         }}>
             <h2
@@ -328,32 +330,68 @@ function GestionTurnos() {
 
                 {/* Panel principal */}
                 <Col xs={12} md={7} lg={8}>
-                    {/* Aquí va DepartmentManagement con nuevo diseño */}
-                    <DepartmentManagement
-                        departments={departments}
-                        setDepartments={setDepartments}
-                    />
-
-                    <div className="d-flex justify-content-end mt-4">
-                        <OverlayTrigger
-                            placement="left"
-                            overlay={<Tooltip>Guardar asignación de unidades colaboradoras</Tooltip>}
+                    {!modo && (
+                        <Card
+                            className="mb-4 p-4 text-center"
+                            style={{ borderRadius: 17, boxShadow: "0 3px 18px #d5e1fa55" }}
                         >
-                            <Button
-                                variant="primary"
-                                className="rounded-pill px-4 fw-bold"
-                                onClick={handleSaveUnidadColaboradora}
-                                style={{
-                                    fontSize: 17,
-                                    boxShadow: "0 3px 16px #19374a21",
-                                    letterSpacing: 0.8
-                                }}
-                            >
-                                Guardar Unidades
-                            </Button>
-                        </OverlayTrigger>
-                    </div>
+                            <h5 className="mb-3">¿Qué deseas gestionar?</h5>
+                            <div className="d-flex justify-content-center gap-4 mb-2">
+                                <Button
+                                    variant="primary"
+                                    size="lg"
+                                    className="px-5"
+                                    onClick={() => setModo("UNIDAD")}
+                                >Gestionar UNIDAD</Button>
+                                <Button
+                                    variant="secondary"
+                                    size="lg"
+                                    className="px-5"
+                                    onClick={() => setModo("COMPLEJO")}
+                                >Gestionar COMPLEJO</Button>
+                            </div>
+                            <div style={{ fontSize: 15, color: "#555" }}>
+                                <span className="me-2">Elige <b>Unidad</b> para gestionar solo tu unidad, o <b>Complejo</b> para configurar varias unidades colaboradoras.</span>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* Si elige UNIDAD, carga UnitAssignmentView */}
+                    {modo === "UNIDAD" && (
+                        <UnitAssignmentView modoVista={modo} mes={selectedMonth} anio={selectedYear} setModo={setModo} />
+                    )}
+
+                    {/* Si elige COMPLEJO, deja el flujo actual */}
+                    {modo === "COMPLEJO" && (
+                        <>
+                            <DepartmentManagement
+                                setModo={setModo}
+                                departments={departments}
+                                setDepartments={setDepartments}
+                            />
+                            <div className="d-flex justify-content-end mt-4">
+                                <OverlayTrigger
+                                    placement="left"
+                                    overlay={<Tooltip>Guardar asignación de unidades colaboradoras</Tooltip>}
+                                >
+                                    <Button
+                                        variant="primary"
+                                        className="rounded-pill px-4 fw-bold"
+                                        onClick={handleSaveUnidadColaboradora}
+                                        style={{
+                                            fontSize: 17,
+                                            boxShadow: "0 3px 16px #19374a21",
+                                            letterSpacing: 0.8
+                                        }}
+                                    >
+                                        Guardar Unidades
+                                    </Button>
+                                </OverlayTrigger>
+                            </div>
+                        </>
+                    )}
                 </Col>
+
             </Row>
         </div>
     );
