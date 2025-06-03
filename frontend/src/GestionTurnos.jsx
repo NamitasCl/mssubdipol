@@ -14,6 +14,14 @@ import axios from "axios";
 import { DepartmentManagement } from "./components/DepartmentManagement.jsx";
 import { MonthSelector } from "./components/MonthSelector.jsx";
 
+// Paleta institucional
+const azulPDI = "#17355A";
+const doradoPDI = "#FFC700";
+const grisOscuro = "#222938";
+const blanco = "#f7f8fc";
+const grisClaro = "#eceff4";
+const textoSecundario = "#4a5975";
+
 function GestionTurnos() {
     const today = new Date();
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
@@ -23,6 +31,7 @@ function GestionTurnos() {
     const [totalTurnos, setTotalTurnos] = useState(0);
     const [turnosRestantes, setTurnosRestantes] = useState(0);
     const [turnosPorDia, setTurnosPorDia] = useState(0);
+    const [showInfo, setShowInfo] = useState(true);
 
     useEffect(() => {
         fetchUnidadesColaboradoras();
@@ -124,78 +133,221 @@ function GestionTurnos() {
         : 0;
 
     return (
-        <div className="p-3">
-            <h5 className="fw-bold mb-3">Gestión de Turnos Mensuales</h5>
-
-            <Row>
-                {/* Panel lateral */}
-                <Col md={4}>
-                    <div className="bg-light p-3 rounded-3 shadow-sm mb-4">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <div className="fw-semibold">Estado mes {selectedMonth + 1}/{selectedYear}:</div>
-                                <Badge bg={isMonthOpen ? "success" : "danger"} className="mt-1">
-                                    {isMonthOpen ? "Abierto" : "Cerrado"}
-                                </Badge>
-                            </div>
-                            <OverlayTrigger
-                                placement="top"
-                                overlay={<Tooltip>{isMonthOpen ? "Cerrar mes" : "Abrir mes"}</Tooltip>}
+        <div style={{
+            background: blanco,
+            borderRadius: 20,
+            boxShadow: "0 8px 36px #b0c5e820",
+            padding: "36px 22px 32px 22px",
+            minHeight: 540,
+            maxWidth: 1280,
+            margin: "0 auto"
+        }}>
+            <h2
+                className="fw-bold mb-4"
+                style={{
+                    color: azulPDI,
+                    letterSpacing: ".09em",
+                    textTransform: "uppercase",
+                    fontSize: "1.35rem",
+                    borderLeft: `5px solid ${doradoPDI}`,
+                    paddingLeft: "1rem"
+                }}
+            >
+                Gestión de Turnos Mensuales
+            </h2>
+            {showInfo && (
+                <Row>
+                    <Col xs={12}>
+                        <Card
+                            bg="info"
+                            style={{
+                                margin: "0 auto 18px auto",
+                                maxWidth: 980,
+                                color: "#183B68",
+                                border: "none",
+                                borderRadius: 17,
+                                boxShadow: "0 4px 32px #3d6fd71b",
+                                fontSize: 16.4,
+                                padding: 0,
+                                position: "relative"
+                            }}
+                            className="mb-3"
+                        >
+                            {/* Botón de cierre */}
+                            <Button
+                                variant="link"
+                                style={{
+                                    position: "absolute",
+                                    top: 13,
+                                    right: 18,
+                                    fontSize: 23,
+                                    color: "#17355A",
+                                    textDecoration: "none",
+                                    fontWeight: 700,
+                                    opacity: 0.74,
+                                    zIndex: 10
+                                }}
+                                onClick={() => setShowInfo(false)}
+                                aria-label="Cerrar caja informativa"
                             >
-                                <Button
-                                    variant={isMonthOpen ? "outline-warning" : "success"}
-                                    onClick={toggleMonth}
-                                    className="rounded-pill"
+                                ×
+                            </Button>
+                            <Card.Body style={{ padding: "26px 32px" }}>
+                                <div style={{ display: "flex", alignItems: "flex-start", gap: 18 }}>
+                                    <div style={{
+                                        background: "#fff",
+                                        color: "#1a4172",
+                                        borderRadius: "50%",
+                                        fontWeight: 800,
+                                        fontSize: 23,
+                                        width: 42,
+                                        height: 42,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        boxShadow: "0 2px 9px #99bbf82a"
+                                    }}>
+                                        i
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: 700, fontSize: 18.2, marginBottom: 2 }}>
+                                            ¿Cómo abrir un mes y asignar unidades colaboradoras?
+                                        </div>
+                                        <ol style={{ marginLeft: 22, marginBottom: 0, paddingLeft: 0, fontSize: 15.8 }}>
+                                            <li style={{ marginBottom: 4 }}>
+                                                <b>Selecciona el mes y año</b> que deseas abrir, y define el número de <b>turnos diarios</b>.
+                                            </li>
+                                            <li style={{ marginBottom: 4 }}>
+                                                Haz clic en <b>"Abrir"</b> para habilitar el mes. El estado cambiará a <span style={{ color: "#22a35b" }}>Abierto</span>.
+                                            </li>
+                                            <li style={{ marginBottom: 4 }}>
+                                                Agrega las <b>unidades colaboradoras</b> usando el botón <b>"Agregar Departamento"</b>.<br />
+                                                Para cada unidad, completa los datos solicitados.
+                                            </li>
+                                            <li style={{ marginBottom: 4 }}>
+                                                Cuando termines, presiona <b>"Guardar Unidades"</b> para registrar la configuración.
+                                            </li>
+                                        </ol>
+                                        <div style={{
+                                            fontSize: 15,
+                                            color: "#11554b",
+                                            background: "#d9f7ec",
+                                            borderRadius: 9,
+                                            padding: "6px 15px",
+                                            marginTop: 9
+                                        }}>
+                                            <b>Recuerda:</b> No podrás abrir el mes si los turnos diarios están en cero.<br />
+                                            Para modificar las unidades después de guardar, simplemente edítalas en el listado y vuelve a guardar.
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            )}
+
+
+            <Row className="g-4">
+                {/* Panel lateral */}
+                <Col xs={12} md={5} lg={4}>
+                    <Card
+                        style={{
+                            background: grisClaro,
+                            border: "none",
+                            borderRadius: 18,
+                            boxShadow: "0 3px 16px #c7d3ef25",
+                        }}
+                        className="mb-3"
+                    >
+                        <Card.Body>
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <div className="fw-semibold" style={{ color: textoSecundario }}>
+                                        Estado mes {selectedMonth + 1}/{selectedYear}:
+                                    </div>
+                                    <Badge bg={isMonthOpen ? "success" : "danger"} className="mt-1 px-3 py-1 fs-6 rounded-pill">
+                                        {isMonthOpen ? "Abierto" : "Cerrado"}
+                                    </Badge>
+                                </div>
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={<Tooltip>{isMonthOpen ? "Cerrar mes" : "Abrir mes"}</Tooltip>}
                                 >
-                                    {isMonthOpen ? "Cerrar" : "Abrir"}
-                                </Button>
-                            </OverlayTrigger>
-                        </div>
+                                    <Button
+                                        variant={isMonthOpen ? "outline-warning" : "success"}
+                                        onClick={toggleMonth}
+                                        className="rounded-pill fw-bold"
+                                        style={{ fontSize: 15, minWidth: 88 }}
+                                        disabled={!isMonthOpen && turnosPorDia <= 0}
+                                    >
+                                        {isMonthOpen ? "Cerrar" : "Abrir"}
+                                    </Button>
+                                </OverlayTrigger>
+                            </div>
 
-                        <MonthSelector
-                            selectedMonth={selectedMonth}
-                            selectedYear={selectedYear}
-                            setSelectedMonth={setSelectedMonth}
-                            setSelectedYear={setSelectedYear}
-                        />
+                            <div className="mt-3">
+                                <MonthSelector
+                                    selectedMonth={selectedMonth}
+                                    selectedYear={selectedYear}
+                                    setSelectedMonth={setSelectedMonth}
+                                    setSelectedYear={setSelectedYear}
+                                />
+                            </div>
 
-                        <hr />
+                            <hr style={{ borderColor: "#bcd2f3" }} />
 
-                        <Form.Group className="mb-3">
-                            <Form.Label className="fw-semibold">Turnos diarios</Form.Label>
-                            <Form.Control
-                                type="number"
-                                min={1}
-                                value={turnosPorDia}
-                                onChange={(e) => setTurnosPorDia(Number(e.target.value))}
-                            />
-                        </Form.Group>
+                            <Form.Group className="mb-3">
+                                <Form.Label className="fw-semibold" style={{ color: textoSecundario }}>
+                                    Turnos diarios
+                                </Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    min={1}
+                                    value={turnosPorDia}
+                                    onChange={(e) => setTurnosPorDia(Number(e.target.value))}
+                                    style={{ borderRadius: 12, fontSize: 16 }}
+                                />
+                            </Form.Group>
 
-                        <div className="mt-3">
-                            <div><strong>Total turnos:</strong> {totalTurnos}</div>
-                            <div><strong>Cubiertos:</strong> {totalTurnos - turnosRestantes}</div>
-                            <div><strong>Restantes:</strong> {turnosRestantes}</div>
-                            <ProgressBar now={porcentajeCubierto} className="mt-2" label={`${porcentajeCubierto}%`} />
-                        </div>
-                    </div>
+                            <div className="mt-3" style={{ fontSize: 16 }}>
+                                <div><strong>Total turnos:</strong> {totalTurnos}</div>
+                                <div><strong>Cubiertos:</strong> {totalTurnos - turnosRestantes}</div>
+                                <div><strong>Restantes:</strong> {turnosRestantes}</div>
+                                <ProgressBar
+                                    now={porcentajeCubierto}
+                                    className="mt-2"
+                                    style={{ borderRadius: 18, height: 18, background: blanco }}
+                                    variant={porcentajeCubierto >= 100 ? "success" : "info"}
+                                    label={`${porcentajeCubierto}%`}
+                                />
+                            </div>
+                        </Card.Body>
+                    </Card>
                 </Col>
 
                 {/* Panel principal */}
-                <Col md={8}>
+                <Col xs={12} md={7} lg={8}>
+                    {/* Aquí va DepartmentManagement con nuevo diseño */}
                     <DepartmentManagement
                         departments={departments}
                         setDepartments={setDepartments}
                     />
 
-                    <div className="d-flex justify-content-end mt-3">
+                    <div className="d-flex justify-content-end mt-4">
                         <OverlayTrigger
                             placement="left"
                             overlay={<Tooltip>Guardar asignación de unidades colaboradoras</Tooltip>}
                         >
                             <Button
                                 variant="primary"
-                                className="rounded-pill px-4"
+                                className="rounded-pill px-4 fw-bold"
                                 onClick={handleSaveUnidadColaboradora}
+                                style={{
+                                    fontSize: 17,
+                                    boxShadow: "0 3px 16px #19374a21",
+                                    letterSpacing: 0.8
+                                }}
                             >
                                 Guardar Unidades
                             </Button>

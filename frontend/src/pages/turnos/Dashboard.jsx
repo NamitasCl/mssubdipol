@@ -114,9 +114,9 @@ export default function Dashboard() {
                     >
                         Panel principal de servicios
                     </h2>
-                    <Row className="g-4">
+                    <Row className="g-4 flex-wrap">
                         {visibleCards.map((mod, idx) => (
-                            <Col key={idx} xs={12} sm={4} md={3}>
+                            <Col key={idx}  xs={12} md={4} lg={3}>
                                 <Card
                                     className="dashboard-card h-100"
                                     style={{
@@ -127,7 +127,9 @@ export default function Dashboard() {
                                         boxShadow: "0 7px 24px 0 #2223",
                                         cursor: "pointer",
                                         minHeight: "218px",
-                                        transition: "transform .16s, box-shadow .15s"
+                                        transition: "transform .16s, box-shadow .15s",
+                                        maxWidth: 320,
+                                        minWidth: 320,
                                     }}
                                     onClick={() => navigate(mod.route)}
                                     onMouseEnter={e => {
