@@ -14,6 +14,7 @@ import axios from "axios";
 import { DepartmentManagement } from "../../components/DepartmentManagement.jsx";
 import { MonthSelector } from "../../components/MonthSelector.jsx";
 import UnitAssignmentView from "./UnitAssignmentView.jsx";
+import {FaArrowLeft} from "react-icons/fa";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -23,7 +24,7 @@ const blanco = "#f7f8fc";
 const grisClaro = "#eceff4";
 const textoSecundario = "#4a5975";
 
-function GestionTurnos() {
+function GestionTurnos({setModo}) {
     const today = new Date();
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
     const [selectedYear, setSelectedYear] = useState(today.getFullYear());
@@ -33,7 +34,6 @@ function GestionTurnos() {
     const [turnosRestantes, setTurnosRestantes] = useState(0);
     const [turnosPorDia, setTurnosPorDia] = useState(0);
     const [showInfo, setShowInfo] = useState(true);
-    const [modo, setModo] = useState(null); // "UNIDAD" | "COMPLEJO"
 
     useEffect(() => {
         fetchUnidadesColaboradoras();
@@ -144,6 +144,10 @@ function GestionTurnos() {
             maxWidth: "100%",
             margin: "0 auto"
         }}>
+            <Button variant={"secondary"} size={"sm"} style={{width: "auto", marginBottom: 10}} onClick={() => setModo(null)}>
+                <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
+                Volver
+            </Button>
             <h2
                 className="fw-bold mb-4"
                 style={{
@@ -330,66 +334,30 @@ function GestionTurnos() {
 
                 {/* Panel principal */}
                 <Col xs={12} md={7} lg={8}>
-                    {!modo && (
-                        <Card
-                            className="mb-4 p-4 text-center"
-                            style={{ borderRadius: 17, boxShadow: "0 3px 18px #d5e1fa55" }}
+                    <DepartmentManagement
+                        setModo={setModo}
+                        departments={departments}
+                        setDepartments={setDepartments}
+                    />
+                    <div className="d-flex justify-content-end mt-4">
+                        <OverlayTrigger
+                            placement="left"
+                            overlay={<Tooltip>Guardar asignación de unidades colaboradoras</Tooltip>}
                         >
-                            <h5 className="mb-3">¿Qué deseas gestionar?</h5>
-                            <div className="d-flex justify-content-center gap-4 mb-2">
-                                <Button
-                                    variant="primary"
-                                    size="lg"
-                                    className="px-5"
-                                    onClick={() => setModo("UNIDAD")}
-                                >Gestionar UNIDAD</Button>
-                                <Button
-                                    variant="secondary"
-                                    size="lg"
-                                    className="px-5"
-                                    onClick={() => setModo("COMPLEJO")}
-                                >Gestionar COMPLEJO</Button>
-                            </div>
-                            <div style={{ fontSize: 15, color: "#555" }}>
-                                <span className="me-2">Elige <b>Unidad</b> para gestionar solo tu unidad, o <b>Complejo</b> para configurar varias unidades colaboradoras.</span>
-                            </div>
-                        </Card>
-                    )}
-
-                    {/* Si elige UNIDAD, carga UnitAssignmentView */}
-                    {modo === "UNIDAD" && (
-                        <UnitAssignmentView modoVista={modo} mes={selectedMonth} anio={selectedYear} setModo={setModo} />
-                    )}
-
-                    {/* Si elige COMPLEJO, deja el flujo actual */}
-                    {modo === "COMPLEJO" && (
-                        <>
-                            <DepartmentManagement
-                                setModo={setModo}
-                                departments={departments}
-                                setDepartments={setDepartments}
-                            />
-                            <div className="d-flex justify-content-end mt-4">
-                                <OverlayTrigger
-                                    placement="left"
-                                    overlay={<Tooltip>Guardar asignación de unidades colaboradoras</Tooltip>}
-                                >
-                                    <Button
-                                        variant="primary"
-                                        className="rounded-pill px-4 fw-bold"
-                                        onClick={handleSaveUnidadColaboradora}
-                                        style={{
-                                            fontSize: 17,
-                                            boxShadow: "0 3px 16px #19374a21",
-                                            letterSpacing: 0.8
-                                        }}
-                                    >
-                                        Guardar Unidades
-                                    </Button>
-                                </OverlayTrigger>
-                            </div>
-                        </>
-                    )}
+                            <Button
+                                variant="primary"
+                                className="rounded-pill px-4 fw-bold"
+                                onClick={handleSaveUnidadColaboradora}
+                                style={{
+                                    fontSize: 17,
+                                    boxShadow: "0 3px 16px #19374a21",
+                                    letterSpacing: 0.8
+                                }}
+                            >
+                                Guardar Unidades
+                            </Button>
+                        </OverlayTrigger>
+                    </div>
                 </Col>
 
             </Row>

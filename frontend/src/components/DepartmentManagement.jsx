@@ -92,10 +92,6 @@ export function DepartmentManagement({ departments, setDepartments, setModo }) {
             <Card.Body>
                 <div className="d-flex justify-content-between align-items-center mb-2" style={{ marginTop: -10 }}>
                     <div className={"d-flex gap-3 align-items-center"}>
-                        <Button variant={"warning"} size={"sm"} style={{width: 80}} onClick={() => setModo(null)}>
-                            <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
-                            Hola
-                        </Button>
                         <h3
                             className="fw-bold"
                             style={{

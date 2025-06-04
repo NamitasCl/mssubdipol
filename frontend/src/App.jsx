@@ -24,6 +24,7 @@ import ListaFormulariosDisponibles from "./pages/formularioDinamico/ListaFormula
 import FormBuilderApp from "./pages/formularioDinamico/FormBuilderApp.jsx";
 import FormularioDinamicoPage from "./pages/formularioDinamico/FormularioDinamicoPage.jsx";
 import VistaRegistrosFormulario from "./pages/formularioDinamico/VistaRegistrosFormulario.jsx";
+import PaginaTurnos from "./pages/turnos/PaginaTurnos.jsx";
 
 
 export default function App() {
@@ -39,8 +40,9 @@ export default function App() {
                     <Route path="formulario/:id" element={<FormularioDinamicoPage />} />
                     <Route path="verregistros" element={<VistaRegistrosFormulario />} />
                 </Route>
-                <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
+                <Route path="/layout" element={<AuthGuard><PaginaTurnos /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
+                    {/*<Route path="turnos" element={<RestrictedAreaSecuin component={GestionTurnos} />} />*/}
                     <Route path="turnos" element={<RestrictedAreaSecuin component={GestionTurnos} />} />
                     <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={UnitAssignmentView} />} />
                     <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
