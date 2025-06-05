@@ -8,13 +8,14 @@ import {
     Badge,
     ProgressBar,
     OverlayTrigger,
-    Tooltip
+    Tooltip,
+    Spinner
 } from "react-bootstrap";
 import axios from "axios";
 import { DepartmentManagement } from "../../components/DepartmentManagement.jsx";
 import { MonthSelector } from "../../components/MonthSelector.jsx";
 import UnitAssignmentView from "./UnitAssignmentView.jsx";
-import {FaArrowLeft} from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 import PlantillasTurnoCrudModal from "./PlantillasTurnoCrudModal.jsx";
 import AgregarPlantillasMes from "./AgregarPlantillasMes.jsx";
 
@@ -26,27 +27,42 @@ const blanco = "#f7f8fc";
 const grisClaro = "#eceff4";
 const textoSecundario = "#4a5975";
 
-function GestionTurnos({setModo}) {
+function GestionTurnos({ setModo }) {
     const today = new Date();
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
     const [selectedYear, setSelectedYear] = useState(today.getFullYear());
     const [departments, setDepartments] = useState([]);
     const [isMonthOpen, setIsMonthOpen] = useState(false);
-    const [totalTurnos, setTotalTurnos] = useState(0);
-    const [turnosRestantes, setTurnosRestantes] = useState(0);
-    const [turnosPorDia, setTurnosPorDia] = useState(0);
+    const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState([]);
     const [showInfo, setShowInfo] = useState(true);
     const [showPlantillas, setShowPlantillas] = useState(false);
     const [showAgregarPlantillas, setShowAgregarPlantillas] = useState(false);
+    const [loading, setLoading] = useState(false);
 
+    // Carga estado de apertura y plantillas usadas en el mes (si existe TurnoAsignacion)
     useEffect(() => {
+        fetchMesData();
         fetchUnidadesColaboradoras();
-        checkMonthStatus();
     }, [selectedMonth, selectedYear]);
 
-    useEffect(() => {
-        calcularTotales();
-    }, [departments, turnosPorDia]);
+    const fetchMesData = async () => {
+        try {
+            setLoading(true);
+            // Busca si hay TurnoAsignacion para el mes/año
+            const resp = await axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/turnos`, {
+                params: { mes: selectedMonth + 1, anio: selectedYear }
+            });
+            const dto = resp.data;
+            setIsMonthOpen(true); // Si hay registro, está abierto (ajusta si tienes flag)
+            // Asume que tu DTO incluye las plantillas usadas en el mes, si no, carga por otro endpoint
+            setPlantillasSeleccionadas(dto.plantillasUsadas ?? []);
+        } catch (err) {
+            setIsMonthOpen(false);
+            setPlantillasSeleccionadas([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchUnidadesColaboradoras = async () => {
         try {
@@ -56,7 +72,6 @@ function GestionTurnos({setModo}) {
                     anio: selectedYear,
                 },
             });
-
             const fetchedDepts = resp.data.map((u, i) => ({
                 id: u.id ?? Date.now() + i,
                 name: u.nombreUnidad,
@@ -65,55 +80,59 @@ function GestionTurnos({setModo}) {
                 workersPerDay: u.trabajadoresPorDia,
                 noWeekend: !u.trabajaFindesemana,
             }));
-
             setDepartments(fetchedDepts);
         } catch (err) {
-            console.error("Error al cargar unidades:", err);
             setDepartments([]);
         }
     };
 
-    const checkMonthStatus = async () => {
-        try {
-            const resp = await axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/status`, {
-                params: { mes: selectedMonth + 1, anio: selectedYear },
-            });
-            setIsMonthOpen(resp.data?.activo ?? false);
-        } catch {
-            setIsMonthOpen(false);
+    // Guarda la lista de plantillas seleccionadas desde el modal
+    const handleAgregarPlantillas = (plantillas) => {
+        setPlantillasSeleccionadas(plantillas);
+        setShowAgregarPlantillas(false);
+    };
+
+    // Abrir mes (POST TurnoAsignacion)
+    const handleOpenMonth = async () => {
+        if (plantillasSeleccionadas.length === 0) {
+            alert("Debes agregar al menos un servicio (plantilla) para abrir el mes.");
+            return;
         }
-    };
-
-    const calcularTotales = () => {
-        const days = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-        const total = days * turnosPorDia;
-        setTotalTurnos(total);
-
-        const turnosCubiertos = departments.reduce((acc, dept) => {
-            const personas = dept.totalPeople ?? 0;
-            return acc + (personas * 2);
-        }, 0);
-
-        setTurnosRestantes(Math.max(total - turnosCubiertos, 0));
-    };
-
-    const toggleMonth = async () => {
         try {
-            await axios.put(`${import.meta.env.VITE_TURNOS_API_URL}/open-close`, null, {
-                params: {
-                    mes: selectedMonth + 1,
-                    anio: selectedYear,
-                    open: !isMonthOpen,
-                    turnos: totalTurnos,
-                },
-            });
-            checkMonthStatus();
+            setLoading(true);
+            const payload = {
+                mes: selectedMonth + 1,
+                anio: selectedYear,
+                plantillaIds: plantillasSeleccionadas.map(p => p.id)
+            };
+            await axios.post(`${import.meta.env.VITE_TURNOS_API_URL}/turnos`, payload);
+            setIsMonthOpen(true);
+            alert("Mes abierto correctamente.");
         } catch (error) {
-            console.error("Error abriendo/cerrando mes:", error);
-            alert("Ocurrió un error al cambiar el estado del mes.");
+            alert("Ocurrió un error al abrir el mes.");
+        } finally {
+            setLoading(false);
         }
     };
 
+    // Cerrar mes (puedes ajustar el endpoint si usas PUT o PATCH)
+    const handleCloseMonth = async () => {
+        try {
+            setLoading(true);
+            await axios.put(`${import.meta.env.VITE_TURNOS_API_URL}/turnos/close`, {
+                mes: selectedMonth + 1,
+                anio: selectedYear
+            });
+            setIsMonthOpen(false);
+            alert("Mes cerrado correctamente.");
+        } catch (err) {
+            alert("Ocurrió un error al cerrar el mes.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Guarda unidades colaboradoras (puedes ajustar si tienes endpoint por mes/año)
     const handleSaveUnidadColaboradora = async () => {
         const payload = departments.map((dept) => ({
             name: dept.name,
@@ -124,19 +143,13 @@ function GestionTurnos({setModo}) {
             mes: selectedMonth + 1,
             anio: selectedYear,
         }));
-
         try {
             await axios.post(`${import.meta.env.VITE_TURNOS_API_URL}/unidades-colaboradoras/lote`, payload);
             alert("Unidades guardadas");
-        } catch (err) {
-            console.error("Error al guardar unidades:", err);
+        } catch {
             alert("Error al guardar las unidades");
         }
     };
-
-    const porcentajeCubierto = totalTurnos > 0
-        ? Math.round(((totalTurnos - turnosRestantes) / totalTurnos) * 100)
-        : 0;
 
     return (
         <div style={{
@@ -148,7 +161,7 @@ function GestionTurnos({setModo}) {
             maxWidth: "100%",
             margin: "0 auto"
         }}>
-            <Button variant={"secondary"} size={"sm"} style={{width: "auto", marginBottom: 10}} onClick={() => setModo(null)}>
+            <Button variant={"secondary"} size={"sm"} style={{ width: "auto", marginBottom: 10 }} onClick={() => setModo(null)}>
                 <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
                 Volver
             </Button>
@@ -225,7 +238,7 @@ function GestionTurnos({setModo}) {
                                         </div>
                                         <ol style={{ marginLeft: 22, marginBottom: 0, paddingLeft: 0, fontSize: 15.8 }}>
                                             <li style={{ marginBottom: 4 }}>
-                                                <b>Selecciona el mes y año</b> que deseas abrir, y define el número de <b>turnos diarios</b>.
+                                                <b>Selecciona el mes y año</b> que deseas abrir, y <b>agrega los servicios/plantillas</b> del mes.
                                             </li>
                                             <li style={{ marginBottom: 4 }}>
                                                 Haz clic en <b>"Abrir"</b> para habilitar el mes. El estado cambiará a <span style={{ color: "#22a35b" }}>Abierto</span>.
@@ -246,7 +259,7 @@ function GestionTurnos({setModo}) {
                                             padding: "6px 15px",
                                             marginTop: 9
                                         }}>
-                                            <b>Recuerda:</b> No podrás abrir el mes si los turnos diarios están en cero.<br />
+                                            <b>Recuerda:</b> El mes solo se puede abrir si hay plantillas agregadas.<br />
                                             Para modificar las unidades después de guardar, simplemente edítalas en el listado y vuelve a guardar.
                                         </div>
                                     </div>
@@ -256,7 +269,6 @@ function GestionTurnos({setModo}) {
                     </Col>
                 </Row>
             )}
-
 
             <Row className="g-4">
                 {/* Panel lateral */}
@@ -286,11 +298,12 @@ function GestionTurnos({setModo}) {
                                 >
                                     <Button
                                         variant={isMonthOpen ? "outline-warning" : "success"}
-                                        onClick={toggleMonth}
+                                        onClick={isMonthOpen ? handleCloseMonth : handleOpenMonth}
                                         className="rounded-pill fw-bold"
                                         style={{ fontSize: 15, minWidth: 88 }}
-                                        disabled={!isMonthOpen && turnosPorDia <= 0}
+                                        disabled={loading || (!isMonthOpen && plantillasSeleccionadas.length === 0)}
                                     >
+                                        {loading && <Spinner size="sm" className="me-1" />}
                                         {isMonthOpen ? "Cerrar" : "Abrir"}
                                     </Button>
                                 </OverlayTrigger>
@@ -304,8 +317,8 @@ function GestionTurnos({setModo}) {
                                     setSelectedYear={setSelectedYear}
                                 />
                             </div>
-
                             <hr style={{ borderColor: "#bcd2f3" }} />
+
                             <div>
                                 <Button onClick={() => setShowPlantillas(true)}>Administrar Plantillas de Turno</Button>
                                 <PlantillasTurnoCrudModal show={showPlantillas} onClose={() => setShowPlantillas(false)} />
@@ -316,20 +329,28 @@ function GestionTurnos({setModo}) {
                                 <Button variant="primary" onClick={() => setShowAgregarPlantillas(true)}>
                                     + Agregar Servicios del Mes
                                 </Button>
-                                <AgregarPlantillasMes show={showAgregarPlantillas} mes={selectedMonth} anio={selectedYear} onHide={() => setShowAgregarPlantillas(false)} />
+                                <AgregarPlantillasMes
+                                    show={showAgregarPlantillas}
+                                    mes={selectedMonth + 1}
+                                    anio={selectedYear}
+                                    seleccionadas={plantillasSeleccionadas}
+                                    onPlantillasGuardadas={handleAgregarPlantillas}
+                                    onHide={() => setShowAgregarPlantillas(false)}
+                                />
                             </div>
 
-                            <div className="mt-3" style={{ fontSize: 16 }}>
-                                <div><strong>Total turnos:</strong> {totalTurnos}</div>
-                                <div><strong>Cubiertos:</strong> {totalTurnos - turnosRestantes}</div>
-                                <div><strong>Restantes:</strong> {turnosRestantes}</div>
-                                <ProgressBar
-                                    now={porcentajeCubierto}
-                                    className="mt-2"
-                                    style={{ borderRadius: 18, height: 18, background: blanco }}
-                                    variant={porcentajeCubierto >= 100 ? "success" : "info"}
-                                    label={`${porcentajeCubierto}%`}
-                                />
+                            {/* Mostrar plantillas seleccionadas */}
+                            <div className="mt-4">
+                                <h6>Servicios del mes:</h6>
+                                {plantillasSeleccionadas.length === 0 && <div className="text-muted">No hay servicios agregados aún.</div>}
+                                <ul style={{ paddingLeft: 20 }}>
+                                    {plantillasSeleccionadas.map(p => (
+                                        <li key={p.id}>
+                                            <b>{p.nombre}</b>{" "}
+                                            <span className="text-muted" style={{ fontSize: 13 }}>{p.descripcion}</span>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         </Card.Body>
                     </Card>
@@ -362,7 +383,6 @@ function GestionTurnos({setModo}) {
                         </OverlayTrigger>
                     </div>
                 </Col>
-
             </Row>
         </div>
     );

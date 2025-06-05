@@ -38,4 +38,12 @@ public class TurnoAsignacion {
     @OneToMany(mappedBy = "turnoAsignacion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UnidadColaboradora> unidadesColaboradoras;
 
+    @ManyToMany
+    @JoinTable(
+            name = "turno_asignacion_plantilla",
+            joinColumns = @JoinColumn(name = "turno_asignacion_id"),
+            inverseJoinColumns = @JoinColumn(name = "plantilla_turno_id")
+    )
+    private List<PlantillaTurno> plantillas;
+
 }

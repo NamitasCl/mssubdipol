@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/plantillas")
+@RequestMapping("/api/turnos/plantillas")
 public class PlantillaTurnoController {
 
     private final PlantillaTurnoService service;

@@ -1,56 +1,54 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Form, ListGroup, Row, Col, Spinner, Alert } from "react-bootstrap";
+import { Modal, Button, Form, ListGroup, Spinner, Alert } from "react-bootstrap";
 import axios from "axios";
 
-export default function AgregarPlantillasMes({ show, onHide, mes, anio, turnoAsignacionId, onPlantillasGuardadas }) {
+// Props:
+// - show, onHide
+// - mes, anio (para visual)
+// - seleccionadas (array de plantillas ya seleccionadas)
+// - onPlantillasGuardadas (callback: recibe array de plantillas seleccionadas)
+
+export default function AgregarPlantillasMes({ show, onHide, mes, anio, seleccionadas = [], onPlantillasGuardadas }) {
     const [plantillas, setPlantillas] = useState([]);
-    const [seleccionadas, setSeleccionadas] = useState([]);
+    const [seleccion, setSeleccion] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 
-    // Cargar plantillas existentes
+    // Cargar plantillas y preseleccionar
     useEffect(() => {
         if (show) {
             setLoading(true);
             axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/plantillas`)
-                .then(resp => setPlantillas(resp.data))
-                .catch(e => setError("Error al cargar plantillas"))
+                .then(resp => {
+                    setPlantillas(resp.data || []);
+                    // Marca como seleccionadas las que ya están en props
+                    setSeleccion(seleccionadas || []);
+                })
+                .catch(() => setError("Error al cargar plantillas"))
                 .finally(() => setLoading(false));
         }
-    }, [show]);
+    }, [show, seleccionadas]);
 
     const handleAgregar = (plantilla) => {
-        if (!seleccionadas.some(p => p.id === plantilla.id)) {
-            setSeleccionadas([...seleccionadas, plantilla]);
+        if (!seleccion.some(p => p.id === plantilla.id)) {
+            setSeleccion([...seleccion, plantilla]);
         }
     };
 
     const handleEliminar = (id) => {
-        setSeleccionadas(seleccionadas.filter(p => p.id !== id));
+        setSeleccion(seleccion.filter(p => p.id !== id));
     };
 
-    const handleGuardar = async () => {
+    // Solo pasa al padre la selección actual
+    const handleGuardar = () => {
         setSaving(true);
         setError(null);
         try {
-            // Si ya tienes turnoAsignacionId, actualizas, si no, creas nuevo
-            let res;
-            if (turnoAsignacionId) {
-                res = await axios.put(
-                    `${import.meta.env.VITE_TURNOS_API_URL}/turnosasignacion/${turnoAsignacionId}/plantillas`,
-                    { plantillaIds: seleccionadas.map(p => p.id) }
-                );
-            } else {
-                res = await axios.post(
-                    `${import.meta.env.VITE_TURNOS_API_URL}/turnosasignacion`,
-                    { mes, anio, plantillaIds: seleccionadas.map(p => p.id) }
-                );
-            }
-            onPlantillasGuardadas(res.data);
+            onPlantillasGuardadas(seleccion);
             onHide();
         } catch (e) {
-            setError("No se pudo guardar. Revise la conexión.");
+            setError("Error inesperado.");
         } finally {
             setSaving(false);
         }
@@ -59,7 +57,7 @@ export default function AgregarPlantillasMes({ show, onHide, mes, anio, turnoAsi
     return (
         <Modal show={show} onHide={onHide} centered>
             <Modal.Header closeButton>
-                <Modal.Title>Agregar Plantillas para el Mes</Modal.Title>
+                <Modal.Title>Agregar Servicios del Mes</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <div>
@@ -82,7 +80,7 @@ export default function AgregarPlantillasMes({ show, onHide, mes, anio, turnoAsi
                                         <Button
                                             size="sm"
                                             variant="outline-primary"
-                                            disabled={!!seleccionadas.find(sel => sel.id === p.id)}
+                                            disabled={!!seleccion.find(sel => sel.id === p.id)}
                                             onClick={() => handleAgregar(p)}
                                         >
                                             Añadir
@@ -92,10 +90,10 @@ export default function AgregarPlantillasMes({ show, onHide, mes, anio, turnoAsi
                             </ListGroup>
                         </Form.Group>
                         <div className="mt-4">
-                            <h6>Plantillas seleccionadas:</h6>
-                            {seleccionadas.length === 0 && <div className="text-muted">No hay plantillas seleccionadas aún.</div>}
+                            <h6>Servicios seleccionados:</h6>
+                            {seleccion.length === 0 && <div className="text-muted">No hay servicios seleccionados aún.</div>}
                             <ListGroup>
-                                {seleccionadas.map(p => (
+                                {seleccion.map(p => (
                                     <ListGroup.Item key={p.id} className="d-flex justify-content-between align-items-center">
                                         <span>
                                             <strong>{p.nombre}</strong> {" "}
@@ -116,7 +114,7 @@ export default function AgregarPlantillasMes({ show, onHide, mes, anio, turnoAsi
                 <Button
                     variant="primary"
                     onClick={handleGuardar}
-                    disabled={saving || seleccionadas.length === 0}
+                    disabled={saving || seleccion.length === 0}
                 >
                     {saving ? <Spinner size="sm" animation="border" /> : "Guardar"}
                 </Button>

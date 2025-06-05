@@ -15,8 +15,5 @@ public class TurnoAsignacionDTO {
     private int mes;
     private int anio;
     private List<DiaAsignacionDTO> asignaciones;
-    private String tipo;
-    private String unidadPrincipal;
-    private Integer idFuncionario; //Quien creo el registro
-    private Integer idUnidad;
+    private List<Long> plantillasIds; //Plantillas de turnos elegidas
 }
