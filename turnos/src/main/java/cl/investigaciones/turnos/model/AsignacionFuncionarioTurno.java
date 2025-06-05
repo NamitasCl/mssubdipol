@@ -17,6 +17,9 @@ public class AsignacionFuncionarioTurno {
 
     private String nombreTurno; // Ej: "Jefe de Servicio", "Encargado Primera Guardia..."
 
+    @ManyToOne
+    private ServicioDiario servicioDiario;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_funcionario", referencedColumnName = "id", nullable = false)
     private AsignacionFuncionario funcionario;

@@ -32,10 +32,10 @@ public class TurnoAsignacionService {
                 .orElseThrow(() -> new RuntimeException(
                         "El mes no fue creado previamente. Debes abrir el mes antes de guardar turnos."));
 
-        registro.setTipo(dto.getTipo());
-        registro.setUnidadPrincipal(dto.getUnidadPrincipal());
-        registro.setIdFuncionario(dto.getIdFuncionario());
-        registro.setIdUnidad(dto.getIdUnidad());
+        //registro.setTipo(dto.getTipo());
+        //registro.setUnidadPrincipal(dto.getUnidadPrincipal());
+        //registro.setIdFuncionario(dto.getIdFuncionario());
+        //registro.setIdUnidad(dto.getIdUnidad());
 
         // (Opcional: otros campos nuevos como autoría)
         // registro.setIdFuncionarioCreador(dto.getIdFuncionarioCreador());
@@ -81,7 +81,6 @@ public class TurnoAsignacionService {
                     nuevo.setMes(mes);
                     nuevo.setAnio(anio);
                     nuevo.setActivo(false);
-                    nuevo.setCantidadTurnosDiarios(turnos);
                     return nuevo;
                 });
 

@@ -14,7 +14,7 @@ const textoSecundario = "#4a5975";
 export default function SelectorTipoTurno({ onSeleccion }) {
     // onSeleccion(tipo) => "UNIDAD", "COMPLEJO", "CONSULTA"
     return (
-        <Container style={{ maxWidth: 700, marginTop: 32 }}>
+        <Container style={{ maxWidth: 900, marginTop: 32 }}>
             <Card
                 className="shadow rounded-4"
                 style={{
@@ -23,6 +23,7 @@ export default function SelectorTipoTurno({ onSeleccion }) {
                     padding: "44px 32px 32px 32px",
                     boxShadow: "0 6px 36px 0 #b1cfff36",
                     borderLeft: `7px solid ${doradoPDI}`,
+                    borderRight: `7px solid ${doradoPDI}`
                 }}
             >
                 <h3

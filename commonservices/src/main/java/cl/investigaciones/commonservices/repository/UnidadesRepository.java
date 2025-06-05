@@ -14,7 +14,7 @@ public interface UnidadesRepository extends JpaRepository<Unidad, Long> {
 
     List<Unidad> findByNombreUnidadContainingIgnoreCase(String nombre);
 
-    @Query("SELECT DISTINCT u.regionPolicial FROM Unidad u WHERE u.regionPolicial IS NOT NULL")
+    @Query("SELECT DISTINCT u.nombreUnidad FROM Unidad u WHERE u.nombreUnidad IS NOT NULL")
     List<String> findDistinctRegionPolicial();
 
 }

@@ -23,13 +23,14 @@ public class TurnoAsignacion {
     // Flag para indicar si el mes está abierto o cerrado
     private boolean activo;
 
-    private int cantidadTurnosDiarios;
-
-    private String tipo; //"COMPLEJO" o "UNIDAD"
-    private String unidadPrincipal;
-
-    private Integer idFuncionario; //Quien creo el registro
-    private Integer idUnidad; //En que unidad se encontraba asignado el funcionario que hizo el registro.
+    // Relación a las plantillas seleccionadas para este mes
+    @ManyToMany
+    @JoinTable(
+            name = "turno_asignacion_plantillas",
+            joinColumns = @JoinColumn(name = "turno_asignacion_id"),
+            inverseJoinColumns = @JoinColumn(name = "plantilla_turno_id")
+    )
+    private List<PlantillaTurno> plantillasMes;
 
     @OneToMany(mappedBy = "turnoAsignacion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DiaAsignacion> asignaciones;

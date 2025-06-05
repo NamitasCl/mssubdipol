@@ -27,11 +27,9 @@ public class AsignacionFuncionario {
     private String unidad;
     private int mes;
     private int anio;
-    private String tipoAsignacion; // "UNIDAD" o "COMPLEJO"
 
     @OneToMany(mappedBy = "identificadorFuncionario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FuncionarioDiasNoDisponible> diasNoDisponibles;
 
-    @ManyToOne TurnoAsignacion turnoAsignacion;
 
 }

@@ -15,6 +15,8 @@ import { DepartmentManagement } from "../../components/DepartmentManagement.jsx"
 import { MonthSelector } from "../../components/MonthSelector.jsx";
 import UnitAssignmentView from "./UnitAssignmentView.jsx";
 import {FaArrowLeft} from "react-icons/fa";
+import PlantillasTurnoCrudModal from "./PlantillasTurnoCrudModal.jsx";
+import AgregarPlantillasMes from "./AgregarPlantillasMes.jsx";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -34,6 +36,8 @@ function GestionTurnos({setModo}) {
     const [turnosRestantes, setTurnosRestantes] = useState(0);
     const [turnosPorDia, setTurnosPorDia] = useState(0);
     const [showInfo, setShowInfo] = useState(true);
+    const [showPlantillas, setShowPlantillas] = useState(false);
+    const [showAgregarPlantillas, setShowAgregarPlantillas] = useState(false);
 
     useEffect(() => {
         fetchUnidadesColaboradoras();
@@ -302,19 +306,18 @@ function GestionTurnos({setModo}) {
                             </div>
 
                             <hr style={{ borderColor: "#bcd2f3" }} />
+                            <div>
+                                <Button onClick={() => setShowPlantillas(true)}>Administrar Plantillas de Turno</Button>
+                                <PlantillasTurnoCrudModal show={showPlantillas} onClose={() => setShowPlantillas(false)} />
+                            </div>
+                            <hr style={{ borderColor: "#bcd2f3" }} />
 
-                            <Form.Group className="mb-3">
-                                <Form.Label className="fw-semibold" style={{ color: textoSecundario }}>
-                                    Turnos diarios
-                                </Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    min={1}
-                                    value={turnosPorDia}
-                                    onChange={(e) => setTurnosPorDia(Number(e.target.value))}
-                                    style={{ borderRadius: 12, fontSize: 16 }}
-                                />
-                            </Form.Group>
+                            <div>
+                                <Button variant="primary" onClick={() => setShowAgregarPlantillas(true)}>
+                                    + Agregar Servicios del Mes
+                                </Button>
+                                <AgregarPlantillasMes show={showAgregarPlantillas} mes={selectedMonth} anio={selectedYear} onHide={() => setShowAgregarPlantillas(false)} />
+                            </div>
 
                             <div className="mt-3" style={{ fontSize: 16 }}>
                                 <div><strong>Total turnos:</strong> {totalTurnos}</div>
