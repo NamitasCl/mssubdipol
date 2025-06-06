@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from './components/contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { Form, Button, Alert, Container, Card, Image } from 'react-bootstrap';
 import PdiLogo from "./assets/imagenes/pdilogo.png";

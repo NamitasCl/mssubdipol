@@ -1,6 +1,6 @@
 // App.js
 import React from 'react';
-import { AuthProvider, useAuth } from './AuthContext';
+import { AuthProvider, useAuth } from './components/contexts/AuthContext.jsx';
 import LoginForm from './LoginForm';
 import App from "./App.jsx";
 import UnitAssignmentView from "./pages/turnos/UnitAssignmentView.jsx";

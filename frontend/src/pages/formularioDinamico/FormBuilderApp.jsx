@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
-import {useAuth} from "../../AuthContext.jsx";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 const azulSuave = "#7fa6da";
 

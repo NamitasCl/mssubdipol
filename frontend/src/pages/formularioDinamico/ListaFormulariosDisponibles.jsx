@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col, Button, Spinner, Alert, Badge, ProgressBar } from "react-bootstrap";
 import { FaFolderOpen, FaUserCircle, FaGlobeAmericas, FaTasks, FaPlus, FaShare } from "react-icons/fa";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import DelegarCuotaFormulario from "./DelegarCuotaFormulario";
 

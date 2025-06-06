@@ -12,7 +12,7 @@ import {
 } from "react-bootstrap";
 import { FaUserCircle, FaSignOutAlt, FaChevronRight } from "react-icons/fa";
 import PdiLogo from "./assets/imagenes/pdilogo.png";
-import { useAuth } from "./AuthContext.jsx";
+import { useAuth } from "./components/contexts/AuthContext.jsx";
 
 // PALETA
 const azulBase = "#2a4d7c";

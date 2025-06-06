@@ -4,7 +4,7 @@ import { SUBFORMULARIOS_CATALOGO } from "./FormBuilderEditor";
 import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect.jsx";
 import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect.jsx";
 import AsyncRegionesPolicialesSelect from "../../components/ComponentesAsyncSelect/AsyncRegionesPolicialesSelect.jsx";
-import { useAuth } from "../../AuthContext.jsx";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 // Util para inicializar un objeto de subcampos vacío según plantilla
 function makeEmptySubObj(plantilla) {

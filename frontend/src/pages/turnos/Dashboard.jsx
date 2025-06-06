@@ -11,7 +11,7 @@ import {
     FaUserShield,
     FaListAlt
 } from "react-icons/fa";
-import { useAuth } from "../../AuthContext.jsx";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 // Paleta institucional y pastel
 const azulPDI = "#17355A";

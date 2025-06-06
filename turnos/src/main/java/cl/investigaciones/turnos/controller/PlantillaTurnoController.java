@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/turnos/plantillas")
+@CrossOrigin("*")
 public class PlantillaTurnoController {
 
     private final PlantillaTurnoService service;

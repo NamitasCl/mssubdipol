@@ -3,7 +3,7 @@ import { Modal, Button, Alert, Form, Row, Col, Table, Spinner, Badge } from "rea
 import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect";
 import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect";
 import axios from "axios";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 export default function DelegarCuotaFormulario({ show, cuota, formulario, onClose, onDelegado }) {
     const { user } = useAuth();

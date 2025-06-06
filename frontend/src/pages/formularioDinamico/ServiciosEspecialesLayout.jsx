@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Navbar, Row, Col, Image, Card, Button, Spinner } from "react-bootstrap";
 import PdiLogo from "../../assets/imagenes/pdilogo.png";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "../../AuthContext.jsx";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import { FaSignOutAlt, FaPlus, FaClipboardList, FaCheckCircle, FaUserCheck } from "react-icons/fa";
 
 // Paleta pastel

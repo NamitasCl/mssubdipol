@@ -116,7 +116,7 @@ export default function PlantillasTurnoCrudModal({ show, onClose }) {
     }
 
     return (
-        <Modal show={show} onHide={onClose} size="lg" centered>
+        <Modal show={show} onHide={onClose} size="xl" centered>
             <Modal.Header closeButton>
                 <Modal.Title>
                     Plantillas de Turno <span className="fs-6 text-secondary">- Configura los servicios</span>

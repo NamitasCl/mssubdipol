@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Table, Button, Spinner, Alert, Modal, Form, Badge } from "react-bootstrap";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 // Paleta institucional
 const doradoPDI = "#FFC700";

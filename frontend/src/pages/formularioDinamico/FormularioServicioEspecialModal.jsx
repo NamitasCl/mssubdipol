@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AsyncSelect from 'react-select/async';
 import axios from 'axios';
 import { Modal, Form, Button, Row, Col, Alert, Spinner } from 'react-bootstrap';
-import {useAuth} from "../../AuthContext.jsx";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 // Estado inicial del formulario
 const initialForm = {

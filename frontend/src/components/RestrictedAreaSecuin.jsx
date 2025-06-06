@@ -1,5 +1,5 @@
 import React from 'react';
-import {useAuth} from "../AuthContext.jsx";
+import {useAuth} from "./contexts/AuthContext.jsx";
 import {Alert} from "react-bootstrap";
 
 export function RestrictedAreaSecuin({component: Component, ...rest }) {

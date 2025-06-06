@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Navbar, Container, Button, Image } from "react-bootstrap";
 import { FaSignOutAlt } from "react-icons/fa";
 import PdiLogo from "../assets/imagenes/pdilogo.png"; // Ajusta la ruta si es necesario
-import { useAuth } from "../AuthContext";
+import { useAuth } from "./contexts/AuthContext.jsx";
 
 export default function PdiHeader() {
     const { user, logout } = useAuth();

@@ -1,4 +1,4 @@
-import {useAuth} from "../AuthContext.jsx";
+import {useAuth} from "./contexts/AuthContext.jsx";
 import {Navigate, useLocation} from "react-router-dom";
 
 const AuthGuard = ({children}) => {

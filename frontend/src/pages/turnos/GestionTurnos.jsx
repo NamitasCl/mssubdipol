@@ -88,6 +88,7 @@ function GestionTurnos({ setModo }) {
 
     // Guarda la lista de plantillas seleccionadas desde el modal
     const handleAgregarPlantillas = (plantillas) => {
+        console.log("Plantillas: ", plantillas)
         setPlantillasSeleccionadas(plantillas);
         setShowAgregarPlantillas(false);
     };
@@ -161,23 +162,30 @@ function GestionTurnos({ setModo }) {
             maxWidth: "100%",
             margin: "0 auto"
         }}>
-            <Button variant={"secondary"} size={"sm"} style={{ width: "auto", marginBottom: 10 }} onClick={() => setModo(null)}>
-                <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
-                Volver
-            </Button>
-            <h2
-                className="fw-bold mb-4"
-                style={{
-                    color: azulPDI,
-                    letterSpacing: ".09em",
-                    textTransform: "uppercase",
-                    fontSize: "1.35rem",
-                    borderLeft: `5px solid ${doradoPDI}`,
-                    paddingLeft: "1rem"
-                }}
-            >
-                Gestión de Turnos Mensuales
-            </h2>
+            <div className="d-flex align-items-baseline gap-5">
+                <div>
+                    <Button variant={"secondary"} size={"sm"} style={{ width: "auto", marginBottom: 10 }} onClick={() => setModo(null)}>
+                        <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
+                        Volver
+                    </Button>
+                    <h2
+                        className="fw-bold mb-4"
+                        style={{
+                            color: azulPDI,
+                            letterSpacing: ".09em",
+                            textTransform: "uppercase",
+                            fontSize: "1.35rem",
+                            borderLeft: `5px solid ${doradoPDI}`,
+                            paddingLeft: "1rem"
+                        }}
+                    >
+                        Gestión de Turnos Mensuales
+                    </h2>
+                </div>
+                <div>
+                    Hola
+                </div>
+            </div>
             {showInfo && (
                 <Row>
                     <Col xs={12}>

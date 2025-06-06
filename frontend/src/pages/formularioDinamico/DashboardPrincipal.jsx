@@ -3,7 +3,7 @@ import { Card, Row, Col, Container, Button, Image, Navbar, Nav } from "react-boo
 import { useNavigate } from "react-router-dom";
 import { FaUsers, FaShieldAlt, FaCalendarAlt, FaCogs, FaSignOutAlt } from "react-icons/fa";
 import PdiLogo from "../../assets/imagenes/pdilogo.png";
-import { useAuth } from "../../AuthContext.jsx";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 // Paleta institucional
 const azulPDI = "#17355A";

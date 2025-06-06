@@ -1,7 +1,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import axios from 'axios';
 import { Table, Spinner } from 'react-bootstrap';
-import {useAuth} from "../../AuthContext.jsx";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 const FormulariosDisponibles = forwardRef((props, ref) => {
     const {user} = useAuth();

@@ -5,7 +5,7 @@ import {Button, Container, Image as BImage, Navbar} from "react-bootstrap";
 import PdiLogo from "../../assets/imagenes/pdilogo.png";
 import {FaSignOutAlt, FaUserCircle} from "react-icons/fa";
 import React from "react";
-import {useAuth} from "../../AuthContext.jsx";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 import Layout from "../../Layout.jsx";
 import UnitAssignmentView from "./UnitAssignmentView.jsx";
 import GestionTurnos from "./GestionTurnos.jsx"; // si usas el contexto sugerido

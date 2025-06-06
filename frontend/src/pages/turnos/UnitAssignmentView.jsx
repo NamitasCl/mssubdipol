@@ -7,7 +7,7 @@ import axios from "axios";
 import debounce from "lodash.debounce";
 import "bootstrap/dist/css/bootstrap.min.css";
 import UnavailabilityModal from "../../components/UnavailabilityModal.jsx";
-import { useAuth } from "../../AuthContext.jsx";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import {FaArrowLeft} from "react-icons/fa";
 
 // Paleta institucional y pastel

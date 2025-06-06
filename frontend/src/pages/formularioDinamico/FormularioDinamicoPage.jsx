@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import FormularioDinamico from "./FormularioDinamico";
 import { Spinner, Alert, Button } from "react-bootstrap";
 import axios from "axios";
-import {useAuth} from "../../AuthContext.jsx";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 export default function FormularioDinamicoPage() {
     const {id} = useParams(); // Obtiene el ID desde la URL

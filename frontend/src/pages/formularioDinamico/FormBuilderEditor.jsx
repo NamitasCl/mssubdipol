@@ -5,7 +5,7 @@ import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/Asyn
 import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect.jsx";
 import AsyncRegionesPolicialesSelect from "../../components/ComponentesAsyncSelect/AsyncRegionesPolicialesSelect.jsx";
 import axios from "axios";
-import { useAuth } from "../../AuthContext.jsx";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 // Tipos de campos disponibles
 export const FIELD_TYPES = [
