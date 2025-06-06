@@ -40,7 +40,7 @@ export default function App() {
                     <Route path="formulario/:id" element={<FormularioDinamicoPage />} />
                     <Route path="verregistros" element={<VistaRegistrosFormulario />} />
                 </Route>
-                <Route path="/layout" element={<AuthGuard><PaginaTurnos /></AuthGuard>}>
+                <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
                     {/*<Route path="turnos" element={<RestrictedAreaSecuin component={GestionTurnos} />} />*/}
                     <Route path="turnos" element={<RestrictedAreaSecuin component={GestionTurnos} />} />

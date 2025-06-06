@@ -49,7 +49,7 @@ function GestionTurnos({ setModo }) {
         try {
             setLoading(true);
             // Busca si hay TurnoAsignacion para el mes/año
-            const resp = await axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/turnos`, {
+            const resp = await axios.get(`${import.meta.env.VITE_TURNOS_API_URL}`, {
                 params: { mes: selectedMonth + 1, anio: selectedYear }
             });
             const dto = resp.data;
@@ -93,7 +93,7 @@ function GestionTurnos({ setModo }) {
         setShowAgregarPlantillas(false);
     };
 
-    // Abrir mes (POST TurnoAsignacion)
+    // ABRIR mes con /open-close
     const handleOpenMonth = async () => {
         if (plantillasSeleccionadas.length === 0) {
             alert("Debes agregar al menos un servicio (plantilla) para abrir el mes.");
@@ -101,12 +101,17 @@ function GestionTurnos({ setModo }) {
         }
         try {
             setLoading(true);
-            const payload = {
-                mes: selectedMonth + 1,
-                anio: selectedYear,
-                plantillaIds: plantillasSeleccionadas.map(p => p.id)
-            };
-            await axios.post(`${import.meta.env.VITE_TURNOS_API_URL}/turnos`, payload);
+            // Suma la cantidad total de turnos (servicios x días), o ajusta según tu modelo
+            // Aquí dejo un ejemplo, debes calcularlo según tus plantillas
+            let totalTurnos = 0; // Calcula la cantidad real si es necesario
+            await axios.put(`${import.meta.env.VITE_TURNOS_API_URL}/open-close`, null, {
+                params: {
+                    mes: selectedMonth + 1,
+                    anio: selectedYear,
+                    open: true,
+                    turnos: totalTurnos
+                }
+            });
             setIsMonthOpen(true);
             alert("Mes abierto correctamente.");
         } catch (error) {
@@ -116,13 +121,18 @@ function GestionTurnos({ setModo }) {
         }
     };
 
+
     // Cerrar mes (puedes ajustar el endpoint si usas PUT o PATCH)
     const handleCloseMonth = async () => {
         try {
             setLoading(true);
-            await axios.put(`${import.meta.env.VITE_TURNOS_API_URL}/turnos/close`, {
-                mes: selectedMonth + 1,
-                anio: selectedYear
+            await axios.put(`${import.meta.env.VITE_TURNOS_API_URL}/open-close`, null, {
+                params: {
+                    mes: selectedMonth + 1,
+                    anio: selectedYear,
+                    open: false,
+                    turnos: 0  // o el valor adecuado
+                }
             });
             setIsMonthOpen(false);
             alert("Mes cerrado correctamente.");
@@ -132,6 +142,7 @@ function GestionTurnos({ setModo }) {
             setLoading(false);
         }
     };
+
 
     // Guarda unidades colaboradoras (puedes ajustar si tienes endpoint por mes/año)
     const handleSaveUnidadColaboradora = async () => {

@@ -114,7 +114,7 @@ export default function Dashboard() {
                     >
                         Panel principal de servicios
                     </h2>
-                    <Row className="g-4 flex-wrap">
+                    <Row className="g-4">
                         {visibleCards.map((mod, idx) => (
                             <Col key={idx}  xs={12} md={4} lg={3}>
                                 <Card
@@ -128,8 +128,6 @@ export default function Dashboard() {
                                         cursor: "pointer",
                                         minHeight: "218px",
                                         transition: "transform .16s, box-shadow .15s",
-                                        maxWidth: 320,
-                                        minWidth: 320,
                                     }}
                                     onClick={() => navigate(mod.route)}
                                     onMouseEnter={e => {
