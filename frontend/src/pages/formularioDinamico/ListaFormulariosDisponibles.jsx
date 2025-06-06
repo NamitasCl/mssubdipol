@@ -42,24 +42,19 @@ export default function ListaFormulariosDisponibles() {
             .finally(() => setLoading(false));
     }, [user, showDelegar]);
 
-    // Helper para encontrar cuota de un formulario
-    function buscarCuotaParaFormulario(formularioId) {
-        return cuotas.find(
-            c =>
-                String(c.formularioId) === String(formularioId) &&
-                (
-                    (c.idUnidad && user.idUnidad && String(c.idUnidad) === String(user.idUnidad))
-                    || (c.idFuncionario && String(c.idFuncionario) === String(user.idFuncionario))
-                )
-        );
-    }
-
-    // --- LÓGICA PARA EVITAR DUPLICADOS ---
+    // ---- Ayudantes ----
+    const buscarFormularioPorId = id => formularios.find(f => String(f.id) === String(id)) || {};
     const idsConCuota = new Set(cuotas.map(c => String(c.formularioId)));
+
+    // FORMULARIOS PÚBLICOS (todos ven, incluso si tienen cuota, pero solo pueden "Completar" si no tienen cuota)
     const formulariosPublicos = formularios.filter(f =>
         f.visibilidad?.some(v => v.tipoDestino === "publica")
     );
+
+    // FORMULARIOS PÚBLICOS sin cuota para el usuario
     const formulariosPublicosSinCuota = formulariosPublicos.filter(f => !idsConCuota.has(String(f.id)));
+
+    // FORMULARIOS PRIVADOS, sólo los asignados directamente al usuario o a su unidad
     const formulariosPrivados = formularios.filter(f =>
         f.visibilidad?.some(
             v =>
@@ -67,18 +62,21 @@ export default function ListaFormulariosDisponibles() {
                 (v.tipoDestino === "unidad" && v.valorDestino === user.siglasUnidad)
         )
     );
-    const idsPublicosSinCuota = new Set(formulariosPublicosSinCuota.map(f => f.id));
-    const soloPrivados = formulariosPrivados.filter(f =>
-        !idsConCuota.has(String(f.id)) && !idsPublicosSinCuota.has(f.id)
-    );
-    const formulariosMios = formularios.filter(f => String(f.idCreador) === String(user.idFuncionario));
-    const buscarFormularioPorId = id => formularios.find(f => String(f.id) === String(id)) || {};
+
+    // Sólo privados sin cuota ni públicos duplicados (evita mostrar formularios ya mostrados por cuota o público)
+    const idsFormulariosMostrados = new Set([
+        ...cuotas.map(c => String(c.formularioId)),
+        ...formulariosPublicos.map(f => String(f.id)),
+    ]);
+    const soloPrivados = formulariosPrivados.filter(f => !idsFormulariosMostrados.has(String(f.id)));
+
+    // Formulario soy creador
+    const esCreador = (f) => String(f.idCreador) === String(user.idFuncionario);
 
     const handleAbrirDelegar = (cuota) => {
         setCuotaADistribuir(cuota);
         setShowDelegar(true);
     };
-
     const handleCerrarDelegar = () => {
         setShowDelegar(false);
         setCuotaADistribuir(null);
@@ -111,11 +109,7 @@ export default function ListaFormulariosDisponibles() {
                     const avance = cuota.avance ?? 0;
                     const total = cuota.cuotaAsignada ?? 1;
                     const completada = avance >= total;
-
-                    // Identifica si es cuota padre (raíz) o hija (delegada)
                     const esCuotaPadre = !cuota.cuotaPadreId;
-
-                    // Para cuota hija, entrega los filtros
                     const idUnidad = cuota.idUnidad ?? null;
                     const idFuncionario = cuota.idFuncionario ?? null;
 
@@ -133,6 +127,11 @@ export default function ListaFormulariosDisponibles() {
                                         {completada && (
                                             <Badge bg="success" className="ms-2 align-middle" style={{ fontSize: "0.85em" }}>
                                                 <FaTasks className="me-1" /> ¡Completado!
+                                            </Badge>
+                                        )}
+                                        {esCreador(form) && (
+                                            <Badge bg="warning" className="ms-2 align-middle" style={{ fontSize: "0.85em", color: "#754c00" }}>
+                                                Creador
                                             </Badge>
                                         )}
                                     </Card.Title>
@@ -158,73 +157,66 @@ export default function ListaFormulariosDisponibles() {
                                             </Badge>
                                         </div>
                                         <div className="d-flex gap-2 flex-wrap">
-                                            {esCuotaPadre ? (
+                                            {/* Botón Completar para TODOS con cuota, salvo cuota padre (sólo distribuye) */}
+                                            {!esCuotaPadre && (
                                                 <Button
                                                     size="sm"
-                                                    variant="secondary"
-                                                    onClick={() =>
-                                                        navigate(`/servicios-especiales/verregistros`, {
-                                                            state: {
-                                                                formularioId: cuota.formularioId,
-                                                                cuotaId: cuota.id,
-                                                                esCuotaPadre: true
-                                                            }
-                                                        })
-                                                    }
-                                                >
-                                                    Ver registros
-                                                </Button>
-                                            ) : (
-                                                <>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline-primary"
-                                                        style={{
-                                                            borderRadius: 12,
-                                                            border: `1.5px solid ${azulSuave}`,
-                                                            fontWeight: 600,
-                                                            color: azulSuave,
-                                                            background: "#fff"
-                                                        }}
-                                                        disabled={completada}
-                                                        onClick={() => navigate(`/servicios-especiales/formulario/${cuota.formularioId}`)}
-                                                    >
-                                                        Completar
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() =>
-                                                            navigate(`/servicios-especiales/verregistros`, {
-                                                                state: {
-                                                                    formularioId: cuota.formularioId,
-                                                                    cuotaId: cuota.id,
-                                                                    esCuotaPadre: false,
-                                                                    idUnidad,
-                                                                    idFuncionario
-                                                                }
-                                                            })
+                                                    variant="outline-primary"
+                                                    style={{
+                                                        borderRadius: 12,
+                                                        border: `1.5px solid ${azulSuave}`,
+                                                        fontWeight: 600,
+                                                        color: azulSuave,
+                                                        background: "#fff"
+                                                    }}
+                                                    disabled={completada}
+                                                    onClick={() => navigate(`/servicios-especiales/formulario/${cuota.formularioId}`, {
+                                                        state: {
+                                                            cuotaId: cuota.id,
+                                                            idUnidad,
+                                                            idFuncionario
                                                         }
-                                                    >
-                                                        Ver registros
-                                                    </Button>
-                                                </>
+                                                    })}
+                                                >
+                                                    Completar
+                                                </Button>
                                             )}
+                                            {/* Ver registros: todos los que tienen cuota, incluidos creadores */}
                                             <Button
                                                 size="sm"
-                                                variant="outline-success"
-                                                style={{
-                                                    borderRadius: 12,
-                                                    border: `1.5px solid ${verdeMenta}`,
-                                                    fontWeight: 600,
-                                                    color: verdeMenta,
-                                                    background: "#fff"
-                                                }}
-                                                title="Distribuir/delegar cuota"
-                                                onClick={() => handleAbrirDelegar(cuota)}
+                                                variant="secondary"
+                                                onClick={() =>
+                                                    navigate(`/servicios-especiales/verregistros`, {
+                                                        state: {
+                                                            formularioId: cuota.formularioId,
+                                                            cuotaId: cuota.id,
+                                                            esCuotaPadre,
+                                                            idUnidad,
+                                                            idFuncionario
+                                                        }
+                                                    })
+                                                }
                                             >
-                                                <FaShare className="me-1" /> Distribuir cuota
+                                                Ver registros
                                             </Button>
+                                            {/* Distribuir: solo para cuota padre */}
+                                            {esCuotaPadre && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-success"
+                                                    style={{
+                                                        borderRadius: 12,
+                                                        border: `1.5px solid ${verdeMenta}`,
+                                                        fontWeight: 600,
+                                                        color: verdeMenta,
+                                                        background: "#fff"
+                                                    }}
+                                                    title="Distribuir/delegar cuota"
+                                                    onClick={() => handleAbrirDelegar(cuota)}
+                                                >
+                                                    <FaShare className="me-1" /> Distribuir cuota
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </Card.Body>
@@ -254,6 +246,11 @@ export default function ListaFormulariosDisponibles() {
                                     <Card.Body>
                                         <Card.Title style={{ color: textoPrincipal, fontWeight: 600, fontSize: "1.09rem" }}>
                                             <FaFolderOpen className="me-2" /> {f.nombre}
+                                            {esCreador(f) && (
+                                                <Badge bg="warning" className="ms-2 align-middle" style={{ fontSize: "0.85em", color: "#754c00" }}>
+                                                    Creador
+                                                </Badge>
+                                            )}
                                         </Card.Title>
                                         <Card.Text style={{ color: textoSecundario, fontSize: ".98rem" }}>
                                             {f.descripcion}
@@ -265,20 +262,38 @@ export default function ListaFormulariosDisponibles() {
                                                         : v.tipoDestino === "unidad" ? `Unidad ${v.valorDestinoSiglas || v.valorDestino}` : null
                                                 ).filter(Boolean).join(", ")}
                                             </Badge>
-                                            <Button
-                                                size="sm"
-                                                variant="outline-primary"
-                                                style={{
-                                                    borderRadius: 12,
-                                                    border: `1.5px solid ${azulSuave}`,
-                                                    fontWeight: 600,
-                                                    color: azulSuave,
-                                                    background: "#fff"
-                                                }}
-                                                onClick={() => navigate(`/servicios-especiales/formulario/${f.id}`)}
-                                            >
-                                                Completar
-                                            </Button>
+                                            <div className="d-flex gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-primary"
+                                                    style={{
+                                                        borderRadius: 12,
+                                                        border: `1.5px solid ${azulSuave}`,
+                                                        fontWeight: 600,
+                                                        color: azulSuave,
+                                                        background: "#fff"
+                                                    }}
+                                                    onClick={() => navigate(`/servicios-especiales/formulario/${f.id}`)}
+                                                >
+                                                    Completar
+                                                </Button>
+                                                {esCreador(f) && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() =>
+                                                            navigate(`/servicios-especiales/verregistros`, {
+                                                                state: {
+                                                                    formularioId: f.id,
+                                                                    esCuotaPadre: true
+                                                                }
+                                                            })
+                                                        }
+                                                    >
+                                                        Ver registros
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     </Card.Body>
                                 </Card>
@@ -308,6 +323,11 @@ export default function ListaFormulariosDisponibles() {
                                     <Card.Body>
                                         <Card.Title style={{ color: textoPrincipal, fontWeight: 600, fontSize: "1.09rem" }}>
                                             <FaFolderOpen className="me-2" /> {f.nombre}
+                                            {esCreador(f) && (
+                                                <Badge bg="warning" className="ms-2 align-middle" style={{ fontSize: "0.85em", color: "#754c00" }}>
+                                                    Creador
+                                                </Badge>
+                                            )}
                                         </Card.Title>
                                         <Card.Text style={{ color: textoSecundario, fontSize: ".98rem" }}>
                                             {f.descripcion}
@@ -317,20 +337,6 @@ export default function ListaFormulariosDisponibles() {
                                                 Pública
                                             </Badge>
                                             <div className="d-flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() =>
-                                                        navigate(`/servicios-especiales/verregistros`, {
-                                                            state: {
-                                                                formularioId: f.id,
-                                                                esCuotaPadre: true
-                                                            }
-                                                        })
-                                                    }
-                                                >
-                                                    Ver registros
-                                                </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="outline-success"
@@ -345,6 +351,22 @@ export default function ListaFormulariosDisponibles() {
                                                 >
                                                     Completar
                                                 </Button>
+                                                {esCreador(f) && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() =>
+                                                            navigate(`/servicios-especiales/verregistros`, {
+                                                                state: {
+                                                                    formularioId: f.id,
+                                                                    esCuotaPadre: true
+                                                                }
+                                                            })
+                                                        }
+                                                    >
+                                                        Ver registros
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                     </Card.Body>
