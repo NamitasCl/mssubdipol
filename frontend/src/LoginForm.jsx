@@ -41,7 +41,7 @@ const LoginForm = () => {
                     top: "10px",
                     right: "20px"
                 }}>
-                    <Button variant={"warning"} onClick={() => window.location.href="https://rac.investigaciones.cl"}>
+                    <Button variant={"warning"} onClick={() => window.location.href="https://rac.investigaciones.cl/opciones/"}>
                         Volver a RAC
                     </Button>
                 </div>
