@@ -21,7 +21,7 @@ const textoSecundario = "#4a5975";
 
 const modules = [
     {
-        title: "Turnos Cuartel Independencia",
+        title: "Turnos",
         text: "Gestión completa de turnos y servicios regulares.",
         icon: <FaShieldAlt size={36} />,
         route: "/layout",
@@ -35,8 +35,8 @@ const modules = [
         color: "#a67822" // Dorado oscuro institucional
     },
     {
-        title: "Calendario de Turnos",
-        text: "Visualiza los turnos asignados de manera clara y rápida.",
+        title: "Escolta y Enlaces",
+        text: "Gestión de escoltas y enlaces institucionales.",
         icon: <FaCalendarAlt size={36} />,
         route: "/enconstruccion",
         color: "#28618b" // Azul intermedio institucional
@@ -78,8 +78,9 @@ function Header() {
                             letterSpacing: ".02em",
                             textTransform: "uppercase"
                         }}>
-                        Sistema Integrado de Gestión de Formularios
+                        RAC - SIGES
                     </h1>
+                    <h5 style={{color: "white"}}>Sistema Integrado de Gestión</h5>
                 </div>
                 <div className="d-flex align-items-center gap-2">
                     <Button

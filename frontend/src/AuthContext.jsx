@@ -11,9 +11,9 @@ export const AuthProvider = ({ children }) => {
     const [isAuth, setIsAuth] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // Al iniciar, se revisa si hay datos en el localStorage
+    // Al iniciar, se revisa si hay datos en el sessionStorage
     useEffect(() => {
-        const storedToken = localStorage.getItem('token');
+        const storedToken = sessionStorage.getItem('token');
         if (storedToken) {
             try {
                 const decoded = jwtDecode(storedToken);
@@ -55,8 +55,8 @@ export const AuthProvider = ({ children }) => {
 
                 setUser(enrichedUser);
                 setIsAuth(true);
-                localStorage.setItem('user', JSON.stringify(enrichedUser));
-                localStorage.setItem('token', data.token);
+                sessionStorage.setItem('user', JSON.stringify(enrichedUser));
+                sessionStorage.setItem('token', data.token);
                 console.log('Usuario autenticado:', enrichedUser);
             } else {
                 // ⚠️ Manejo de errores sin asumir que hay JSON
@@ -83,8 +83,8 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         setIsAuth(false);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('token');
     };
 
     const value = { user, isAuth, login, logout, loading };
