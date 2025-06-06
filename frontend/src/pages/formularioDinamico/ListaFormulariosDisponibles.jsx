@@ -157,8 +157,7 @@ export default function ListaFormulariosDisponibles() {
                                             </Badge>
                                         </div>
                                         <div className="d-flex gap-2 flex-wrap">
-                                            {/* Botón Completar para TODOS con cuota, salvo cuota padre (sólo distribuye) */}
-                                            {!esCuotaPadre && (
+                                            {!completada && (
                                                 <Button
                                                     size="sm"
                                                     variant="outline-primary"
@@ -169,7 +168,6 @@ export default function ListaFormulariosDisponibles() {
                                                         color: azulSuave,
                                                         background: "#fff"
                                                     }}
-                                                    disabled={completada}
                                                     onClick={() => navigate(`/servicios-especiales/formulario/${cuota.formularioId}`, {
                                                         state: {
                                                             cuotaId: cuota.id,
@@ -181,7 +179,6 @@ export default function ListaFormulariosDisponibles() {
                                                     Completar
                                                 </Button>
                                             )}
-                                            {/* Ver registros: todos los que tienen cuota, incluidos creadores */}
                                             <Button
                                                 size="sm"
                                                 variant="secondary"
@@ -199,7 +196,6 @@ export default function ListaFormulariosDisponibles() {
                                             >
                                                 Ver registros
                                             </Button>
-                                            {/* Distribuir: solo para cuota padre */}
                                             {esCuotaPadre && (
                                                 <Button
                                                     size="sm"
