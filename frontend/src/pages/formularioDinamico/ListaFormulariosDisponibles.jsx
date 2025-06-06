@@ -347,22 +347,20 @@ export default function ListaFormulariosDisponibles() {
                                                 >
                                                     Completar
                                                 </Button>
-                                                {esCreador(f) && (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() =>
-                                                            navigate(`/servicios-especiales/verregistros`, {
-                                                                state: {
-                                                                    formularioId: f.id,
-                                                                    esCuotaPadre: true
-                                                                }
-                                                            })
-                                                        }
-                                                    >
-                                                        Ver registros
-                                                    </Button>
-                                                )}
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    onClick={() =>
+                                                        navigate(`/servicios-especiales/verregistros`, {
+                                                            state: {
+                                                                formularioId: f.id,
+                                                                esCuotaPadre: true
+                                                            }
+                                                        })
+                                                    }
+                                                >
+                                                    Ver registros
+                                                </Button>
                                             </div>
                                         </div>
                                     </Card.Body>
