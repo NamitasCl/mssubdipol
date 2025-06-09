@@ -1,7 +1,6 @@
 package cl.investigaciones.turnos.service;
 
 import cl.investigaciones.turnos.interfaces.ContextoRestriccion;
-import cl.investigaciones.turnos.model.AsignacionFuncionario;
 import cl.investigaciones.turnos.model.AsignacionFuncionarioTurno;
 import cl.investigaciones.turnos.model.FuncionarioDiasNoDisponible;
 

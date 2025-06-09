@@ -18,6 +18,7 @@ import UnitAssignmentView from "./UnitAssignmentView.jsx";
 import { FaArrowLeft } from "react-icons/fa";
 import PlantillasTurnoCrudModal from "./PlantillasTurnoCrudModal.jsx";
 import AgregarPlantillasMes from "./AgregarPlantillasMes.jsx";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -28,6 +29,7 @@ const grisClaro = "#eceff4";
 const textoSecundario = "#4a5975";
 
 function GestionTurnos({ setModo }) {
+    const {user} = useAuth();
     const today = new Date();
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
     const [selectedYear, setSelectedYear] = useState(today.getFullYear());
@@ -38,6 +40,7 @@ function GestionTurnos({ setModo }) {
     const [showPlantillas, setShowPlantillas] = useState(false);
     const [showAgregarPlantillas, setShowAgregarPlantillas] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [nombreTurnos, setNombreTurnos] = useState(null);
 
     // Carga estado de apertura y plantillas usadas en el mes (si existe TurnoAsignacion)
     useEffect(() => {
@@ -100,22 +103,24 @@ function GestionTurnos({ setModo }) {
             return;
         }
         try {
+            const ids = plantillasSeleccionadas.map(p => p.id)
+            console.log("Ids: ", ids)
             setLoading(true);
             // Suma la cantidad total de turnos (servicios x días), o ajusta según tu modelo
             // Aquí dejo un ejemplo, debes calcularlo según tus plantillas
-            let totalTurnos = 0; // Calcula la cantidad real si es necesario
-            await axios.put(`${import.meta.env.VITE_TURNOS_API_URL}/open-close`, null, {
-                params: {
-                    mes: selectedMonth + 1,
-                    anio: selectedYear,
-                    open: true,
-                    turnos: totalTurnos
-                }
+            await axios.post(`${import.meta.env.VITE_TURNOS_API_URL}/open-close`, {
+                nombreCalendario: nombreTurnos,
+                creador: user.idFuncionario,
+                mes: selectedMonth + 1,
+                anio: selectedYear,
+                open: true,
+                ids: ids
             });
             setIsMonthOpen(true);
             alert("Mes abierto correctamente.");
         } catch (error) {
             alert("Ocurrió un error al abrir el mes.");
+            console.log("Error: ", error)
         } finally {
             setLoading(false);
         }
@@ -163,6 +168,10 @@ function GestionTurnos({ setModo }) {
         }
     };
 
+    function getDiasDelMes(mes, anio) {
+        return new Date(anio, mes, 0).getDate(); // mes: 1=enero, 12=diciembre
+    }
+
     return (
         <div style={{
             background: blanco,
@@ -173,8 +182,8 @@ function GestionTurnos({ setModo }) {
             maxWidth: "100%",
             margin: "0 auto"
         }}>
-            <div className="d-flex align-items-baseline gap-5">
-                <div>
+            <div className="d-flex align-items-baseline mb-2 gap-3">
+                <div style={{minWidth: "500px"}}>
                     <Button variant={"secondary"} size={"sm"} style={{ width: "auto", marginBottom: 10 }} onClick={() => setModo(null)}>
                         <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
                         Volver
@@ -193,8 +202,84 @@ function GestionTurnos({ setModo }) {
                         Gestión de Turnos Mensuales
                     </h2>
                 </div>
-                <div>
-                    Hola
+                <div style={{width: "100%"}}>
+                    <div style={{ width: "100%" }}>
+                        {(() => {
+                            // Asume que tienes mes y anio en variables, por ejemplo:
+                            // const mes = 6; // Junio
+                            // const anio = 2025;
+                            const diasDelMes = getDiasDelMes(selectedMonth, selectedYear);
+
+                            // Suma todos los roles por día de cada plantilla (lo que tienes por día)
+                            const funcionariosPorDia = plantillasSeleccionadas.reduce((total, plantilla) => {
+                                return total + plantilla.roles.reduce((rolSum, rol) => rolSum + (rol.cantidad || 0), 0);
+                            }, 0);
+
+                            // El requeridos ahora es funcionarios por día * días del mes
+                            const requeridos = funcionariosPorDia * diasDelMes;
+
+                            const aportados = departments.reduce(
+                                (acum, dept) => acum + (parseInt(dept.totalPeople, 10) || 0),
+                                0
+                            );
+                            const progreso = requeridos > 0 ? Math.min((aportados / requeridos) * 100, 100) : 0;
+                            const faltan = Math.max(requeridos - aportados, 0);
+
+                            return (
+                                <div
+                                    style={{
+                                        background: "#fff",
+                                        borderRadius: 15,
+                                        boxShadow: "0 2px 12px #19374a10",
+                                        padding: "18px 22px",
+                                        minWidth: 240,
+                                        fontSize: 15,
+                                        color: "#23395d",
+                                    }}
+                                >
+                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                                        Progreso de funcionarios asignados
+                                    </div>
+                                    <div style={{ marginBottom: 7 }}>
+                                        {aportados} / {requeridos} cubiertos
+                                        {faltan > 0 ? (
+                                            <span
+                                                style={{
+                                                    color: "#c2354d",
+                                                    fontWeight: 500,
+                                                    marginLeft: 12,
+                                                }}
+                                            >
+                            Faltan {faltan}
+                        </span>
+                                        ) : (
+                                            requeridos > 0 && (
+                                                <span
+                                                    style={{
+                                                        color: "#229c55",
+                                                        fontWeight: 500,
+                                                        marginLeft: 12,
+                                                    }}
+                                                >
+                                ¡Completo!
+                            </span>
+                                            )
+                                        )}
+                                    </div>
+                                    <ProgressBar
+                                        now={progreso}
+                                        label={`${Math.round(progreso)}%`}
+                                        variant={faltan > 0 ? "info" : "success"}
+                                        style={{ height: 18, fontSize: 15, background: "#e6edf6" }}
+                                        animated
+                                    />
+                                </div>
+                            );
+                        })()}
+                    </div>
+
+
+
                 </div>
             </div>
             {showInfo && (
@@ -325,6 +410,14 @@ function GestionTurnos({ setModo }) {
                                         {loading && <Spinner size="sm" className="me-1" />}
                                         {isMonthOpen ? "Cerrar" : "Abrir"}
                                     </Button>
+                                </OverlayTrigger>
+                            </div>
+                            <div>
+                                <OverlayTrigger overlay={<Tooltip>Como va a nombrar estos turnos?</Tooltip>} placement={"auto"}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="fw-bold">Nombre del Servicio</Form.Label>
+                                        <Form.Control name="nombre" value={nombreTurnos} onChange={(v) => setNombreTurnos(v)} required autoFocus />
+                                    </Form.Group>
                                 </OverlayTrigger>
                             </div>
 

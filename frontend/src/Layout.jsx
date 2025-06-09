@@ -47,7 +47,7 @@ export default function Layout() {
         { to: "/layout/asignacionunidad", label: "Gestión por unidad", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
         { to: "/layout/modificaturnosunidad", label: "Modifica servicios", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
         { to: "/layout/calendario", label: "Calendario de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE] },
-        { to: "/layout/turnos", label: "Gestión de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
+        { to: "/layout/gestion", label: "Gestión de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
         { to: "/layout/disponibles", label: "Ver personal disponible", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
         { to: "/layout/jefe", label: "Restringido Jefes", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE] },
         { to: "/layout/admin", label: "Administración", allowedRoles: [ROLES.ADMINISTRADOR] },

@@ -1,4 +1,3 @@
-// PlantillaTurnoResponseDTO.java
 package cl.investigaciones.turnos.dto;
 
 import java.time.LocalTime;
@@ -12,8 +11,7 @@ public class PlantillaTurnoResponseDTO {
     public String tipoServicio;
     public LocalTime horaInicio;
     public LocalTime horaFin;
-    public int cantidadFuncionarios;
+    public List<RolPlantillaDTO> roles;
     public List<DayOfWeek> dias;
     public List<String> restricciones;
-    public List<String> gradosPermitidos;
 }

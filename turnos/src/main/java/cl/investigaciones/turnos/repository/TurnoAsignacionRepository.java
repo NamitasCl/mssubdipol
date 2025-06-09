@@ -1,5 +1,6 @@
 package cl.investigaciones.turnos.repository;
 
+import cl.investigaciones.turnos.dto.TurnoAsignacionDTO;
 import cl.investigaciones.turnos.model.TurnoAsignacion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,4 +32,5 @@ public interface TurnoAsignacionRepository extends JpaRepository<TurnoAsignacion
 
     Optional<TurnoAsignacion> findByMesAndAnioAndActivoTrue(int mes, int anio);
 
+    List<TurnoAsignacion> findAllByIdFuncionario(Integer idFuncionario);
 }

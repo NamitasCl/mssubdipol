@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -27,6 +28,10 @@ public class AsignacionFuncionario {
     private String unidad;
     private int mes;
     private int anio;
+
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
+    private LocalDate fechaCreacion;
 
     @OneToMany(mappedBy = "identificadorFuncionario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FuncionarioDiasNoDisponible> diasNoDisponibles;

@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -27,4 +29,8 @@ public class AsignacionFuncionarioTurno {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dia_asignacion_id")
     private DiaAsignacion diaAsignacion;
+
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
+    private LocalDate fechaCreacion;
 }

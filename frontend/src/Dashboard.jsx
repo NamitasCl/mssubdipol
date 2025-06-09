@@ -11,7 +11,7 @@ import {
     FaUserShield,
     FaListAlt
 } from "react-icons/fa";
-import { useAuth } from "../../components/contexts/AuthContext.jsx";
+import { useAuth } from "./components/contexts/AuthContext.jsx";
 
 // Paleta institucional y pastel
 const azulPDI = "#17355A";
@@ -47,7 +47,7 @@ const CARDS = [
         title: "Gestión de turnos",
         text: "Configure y distribuya turnos entre las unidades colaboradoras.",
         icon: <FaClipboardList size={34} />,
-        route: "/layout/turnos",
+        route: "/layout/gestion",
         color: "#28618b",
         roles: ["ROLE_SECUIN", "ROLE_ADMINISTRADOR"]
     },

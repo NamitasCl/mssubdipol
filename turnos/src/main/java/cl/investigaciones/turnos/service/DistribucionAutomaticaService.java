@@ -28,100 +28,133 @@ public class DistribucionAutomaticaService {
     @Autowired
     private FuncionarioDiasNoDisponibleRepository noDisponibleRepo;
     @Autowired
-    private ServicioDiarioRepository servicioDiarioRepo; // Nuevo repo
+    private ServicioDiarioRepository servicioDiarioRepo;
+
+    // Orden real de los grados de mayor a menor antigüedad (ajusta a tu institución)
+    private static final List<String> ORDEN_GRADOS = List.of(
+            "SBC", "COM", "SPF", "SOP", "CPL", "DTE"
+            // Agrega todos los grados en orden descendente
+    );
+
+    private static int obtenerOrdenGrado(String grado) {
+        int idx = ORDEN_GRADOS.indexOf(grado);
+        return idx == -1 ? ORDEN_GRADOS.size() : idx;
+    }
+
+    // Comparador de antigüedad: grado, OPP/no OPP, luego antigüedad numérica
+    public static int compararAntiguedad(AsignacionFuncionario a, AsignacionFuncionario b) {
+        String gradoA = a.getSiglasCargo();
+        String gradoB = b.getSiglasCargo();
+
+        String baseA = gradoA.replace(" (OPP)", "");
+        String baseB = gradoB.replace(" (OPP)", "");
+
+        int ordenA = obtenerOrdenGrado(baseA);
+        int ordenB = obtenerOrdenGrado(baseB);
+        if (ordenA != ordenB) {
+            return Integer.compare(ordenA, ordenB); // menor índice = más antiguo
+        }
+
+        boolean esOppA = gradoA.contains("OPP");
+        boolean esOppB = gradoB.contains("OPP");
+
+        if (esOppA != esOppB) {
+            // El que NO es OPP es más antiguo
+            return esOppA ? 1 : -1;
+        }
+
+        // Si grado y tipo OPP son iguales, manda la antigüedad numérica (mayor número = más antiguo)
+        return Integer.compare(b.getAntiguedad(), a.getAntiguedad());
+    }
 
     @Transactional
-    public void asignarTurnosDesdePlantillas(int mes, int anio, String unidad) {
+    public void asignacionAutomaticaPorPlantilla(int mes, int anio, String unidad) {
 
         TurnoAsignacion turnoAsignacion = turnoAsignacionRepo.findByMesAndAnioAndActivoTrue(mes, anio)
                 .orElseThrow(() -> new RuntimeException("Mes no encontrado"));
 
+        // Funcionarios de la unidad (puedes filtrar más si lo necesitas)
         List<AsignacionFuncionario> funcionarios = funcionarioRepo.findByMesAndAnioAndUnidad(mes, anio, unidad);
         if (funcionarios.isEmpty()) throw new RuntimeException("No hay funcionarios para la unidad");
 
-        // Carga días y servicios diarios del mes
-        List<DiaAsignacion> diasDelMes = diaAsignacionRepo.findByTurnoAsignacion(turnoAsignacion);
-        List<ServicioDiario> servicios = servicioDiarioRepo.findByTurnoAsignacion(turnoAsignacion);
+        // Ordena de más antiguo a menos antiguo
+        List<AsignacionFuncionario> funcionariosOrdenados = new ArrayList<>(funcionarios);
+        funcionariosOrdenados.sort(DistribucionAutomaticaService::compararAntiguedad);
 
+        // Carga todas las asignaciones previas (puedes filtrar por mes/unidad si lo prefieres)
         List<AsignacionFuncionarioTurno> asignacionesPrevias = asignacionTurnoRepo.findAll();
+
+        // Carga restricciones de días no disponibles
         List<FuncionarioDiasNoDisponible> noDisponibles = noDisponibleRepo.obtenerPorMesYAnio(mes, anio);
 
-        // Inicializa restricciones globales si corresponde
-        // (puedes customizar para que algunas restricciones sean por rol o plantilla)
+        // Balanceo: mapa de cantidad de turnos por funcionario
+        Map<Integer, Integer> turnosPorFuncionario = new HashMap<>();
+        funcionarios.forEach(f -> turnosPorFuncionario.put(f.getIdFuncionario(), 0));
+        for (AsignacionFuncionarioTurno a : asignacionesPrevias) {
+            int idFun = a.getFuncionario().getIdFuncionario();
+            turnosPorFuncionario.put(idFun, turnosPorFuncionario.getOrDefault(idFun, 0) + 1);
+        }
+
+        // Inicializa contexto de restricciones (si tienes más restricciones, agrégalas aquí)
         List<RestriccionTurno> restriccionesGlobales = List.of(
                 new RestriccionAsignacionDiasNoDisponible(),
                 new RestriccionRepeticionDiaFuncionario(),
                 new RestriccionDiasConsecutivos(2)
         );
-
         ContextoRestriccionAsignacion contexto = new ContextoRestriccionAsignacion(
                 asignacionesPrevias, noDisponibles, mes, anio
         );
 
-        // Para cada día y servicio, asignar turnos según la plantilla
+        // Carga días y servicios diarios del mes
+        List<DiaAsignacion> diasDelMes = diaAsignacionRepo.findByTurnoAsignacion(turnoAsignacion);
+        List<ServicioDiario> servicios = servicioDiarioRepo.findByTurnoAsignacion(turnoAsignacion);
+
+        // --- ASIGNACIÓN ---
         for (DiaAsignacion dia : diasDelMes) {
-            for (ServicioDiario servicio : servicios) {
-                if (servicio.getDiaAsignacion().getId() != dia.getId()) continue;
+            // Filtra servicios de ese día
+            List<ServicioDiario> serviciosEseDia = servicios.stream()
+                    .filter(s -> s.getDiaAsignacion().getId().equals(dia.getId()))
+                    .collect(Collectors.toList());
 
+            Set<Integer> funcionariosAsignadosHoy = new HashSet<>();
+            for (ServicioDiario servicio : serviciosEseDia) {
                 PlantillaTurno plantilla = servicio.getPlantillaTurno();
-                // Por ejemplo, supón que cada plantilla define roles a cubrir y cuántos de cada uno
-                List<String> roles = obtenerRolesDesdePlantilla(plantilla);
-                Map<String, Integer> cantidadPorRol = obtenerCantidadPorRol(plantilla);
+                if (plantilla.getRoles() == null || plantilla.getRoles().isEmpty()) continue;
 
-                for (String rol : roles) {
-                    int cantidad = cantidadPorRol.getOrDefault(rol, 1);
-                    Set<Grado> gradosPermitidos = obtenerGradosPermitidos(plantilla);
+                for (RolPlantilla rolPlantilla : plantilla.getRoles()) {
+                    for (int k = 0; k < rolPlantilla.getCantidad(); k++) {
+                        // Fisher-Yates para balanceo aleatorio dentro del grupo
+                        List<AsignacionFuncionario> candidatos = new ArrayList<>(funcionariosOrdenados);
+                        Collections.shuffle(candidatos);
 
-                    // Restricciones particulares de esta plantilla
-                    List<RestriccionTurno> restriccionesPlantilla = new ArrayList<>(restriccionesGlobales);
-                    // Puedes agregar aquí restricciones propias de la plantilla (desde plantilla.getRestricciones())
+                        // Filtra por grados, ya asignados ese día, restricciones globales y de rol
+                        candidatos = candidatos.stream()
+                                .filter(f -> !funcionariosAsignadosHoy.contains(f.getIdFuncionario()))
+                                .filter(f -> rolPlantilla.getGradosPermitidos() == null ||
+                                        rolPlantilla.getGradosPermitidos().contains(f.getSiglasCargo()))
+                                .filter(f -> restriccionesGlobales.stream()
+                                        .allMatch(r -> r.permiteAsignacion(f, dia.getDia(), rolPlantilla.getNombreRol(), contexto)))
+                                .sorted(Comparator.comparingInt(f -> turnosPorFuncionario.getOrDefault(f.getIdFuncionario(), 0)))
+                                .collect(Collectors.toList());
 
-                    for (int i = 0; i < cantidad; i++) {
-                        // Filtra funcionarios por grado permitido y restricciones
-                        Optional<AsignacionFuncionario> candidato = funcionarios.stream()
-                                .filter(f -> gradosPermitidos.contains(Grado.parseGrado(f.getSiglasCargo())))
-                                .filter(f -> restriccionesPlantilla.stream()
-                                        .allMatch(r -> r.permiteAsignacion(f, dia.getDia(), rol, contexto)))
-                                .findFirst();
+                        if (!candidatos.isEmpty()) {
+                            AsignacionFuncionario seleccionado = candidatos.get(0);
 
-                        if (candidato.isPresent()) {
                             AsignacionFuncionarioTurno turno = new AsignacionFuncionarioTurno();
                             turno.setDiaAsignacion(dia);
-                            turno.setFuncionario(candidato.get());
-                            turno.setNombreTurno(rol);
+                            turno.setFuncionario(seleccionado);
+                            turno.setNombreTurno(rolPlantilla.getNombreRol());
                             turno.setServicioDiario(servicio);
                             asignacionTurnoRepo.save(turno);
+
+                            funcionariosAsignadosHoy.add(seleccionado.getIdFuncionario());
+                            turnosPorFuncionario.put(seleccionado.getIdFuncionario(),
+                                    turnosPorFuncionario.getOrDefault(seleccionado.getIdFuncionario(), 0) + 1);
                         }
+                        // Si no hay candidatos, puedes loggear o reportar la ausencia
                     }
                 }
             }
         }
     }
-
-    // --- Métodos auxiliares para obtener información desde PlantillaTurno ---
-
-    // Devuelve lista de roles a cubrir según la plantilla
-    private List<String> obtenerRolesDesdePlantilla(PlantillaTurno plantilla) {
-        // Si tu plantilla guarda roles en alguna lista, retornala aquí
-        // Si sólo hay 1 rol, retorna List.of(plantilla.getNombre())
-        // Si tienes una subentidad RolPlantilla, mapea los nombres
-        // Ejemplo: plantilla.getRoles().stream().map(RolPlantilla::getNombre).toList()
-        return List.of(plantilla.getNombre()); // Cambia esto por tu implementación real
-    }
-
-    private Map<String, Integer> obtenerCantidadPorRol(PlantillaTurno plantilla) {
-        // Retorna Map<nombreRol, cantidad>
-        // Ejemplo si tienes List<RolPlantilla>: roles.forEach(r -> map.put(r.getNombre(), r.getCantidad()))
-        Map<String, Integer> map = new HashMap<>();
-        map.put(plantilla.getNombre(), plantilla.getCantidadFuncionarios());
-        return map;
-    }
-
-    private Set<Grado> obtenerGradosPermitidos(PlantillaTurno plantilla) {
-        if (plantilla.getGradosPermitidos() == null) return Set.of();
-        return plantilla.getGradosPermitidos().stream()
-                .map(Grado::parseGrado)
-                .collect(Collectors.toSet());
-    }
 }
-

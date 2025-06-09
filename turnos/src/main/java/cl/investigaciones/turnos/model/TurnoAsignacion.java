@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -23,14 +24,9 @@ public class TurnoAsignacion {
     // Flag para indicar si el mes está abierto o cerrado
     private boolean activo;
 
-    // Relación a las plantillas seleccionadas para este mes
-    @ManyToMany
-    @JoinTable(
-            name = "turno_asignacion_plantillas",
-            joinColumns = @JoinColumn(name = "turno_asignacion_id"),
-            inverseJoinColumns = @JoinColumn(name = "plantilla_turno_id")
-    )
-    private List<PlantillaTurno> plantillasMes;
+    private String nombreCalendario;
+    private int idFuncionario; // Creador del calendario de turnos.
+
 
     @OneToMany(mappedBy = "turnoAsignacion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DiaAsignacion> asignaciones;
@@ -45,5 +41,8 @@ public class TurnoAsignacion {
             inverseJoinColumns = @JoinColumn(name = "plantilla_turno_id")
     )
     private List<PlantillaTurno> plantillas;
+
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
 
 }

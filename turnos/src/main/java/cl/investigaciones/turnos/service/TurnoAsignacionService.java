@@ -1,20 +1,19 @@
 package cl.investigaciones.turnos.service;
 
-import cl.investigaciones.turnos.dto.DiaAsignacionDTO;
-import cl.investigaciones.turnos.dto.MesResumenDTO;
-import cl.investigaciones.turnos.dto.TurnoAsignacionDTO;
-import cl.investigaciones.turnos.dto.UnidadResumenDTO;
-import cl.investigaciones.turnos.model.DiaAsignacion;
-import cl.investigaciones.turnos.model.TurnoAsignacion;
-import cl.investigaciones.turnos.model.UnidadColaboradora;
+import cl.investigaciones.turnos.dto.*;
+import cl.investigaciones.turnos.mapper.TurnoAsignacionMapper;
+import cl.investigaciones.turnos.model.*;
+import cl.investigaciones.turnos.repository.PlantillaTurnoRepository;
 import cl.investigaciones.turnos.repository.TurnoAsignacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -22,6 +21,12 @@ public class TurnoAsignacionService {
 
     @Autowired
     private TurnoAsignacionRepository repository;
+
+    @Autowired
+    private PlantillaTurnoRepository plantillaRepo;
+
+    @Autowired
+    private TurnoAsignacionMapper turnoAsignacionMapper;
 
     /**
      * Crea o actualiza un TurnoAsignacion (registro mensual).
@@ -52,8 +57,6 @@ public class TurnoAsignacionService {
             DiaAsignacion dia = new DiaAsignacion();
             dia.setDia(diaDto.getDia());
             dia.setDiaSemana(diaDto.getDiaSemana());
-            dia.setUnidades(diaDto.getUnidades());
-            dia.setError(diaDto.getError());
             dia.setTurnoAsignacion(registro); // importante para relación bidireccional
 
             registro.getAsignaciones().add(dia); // aquí es donde evitamos el problema
@@ -72,24 +75,25 @@ public class TurnoAsignacionService {
     /**
      * Abre o cierra un mes. Al abrir un mes, verifica que el mes anterior esté cerrado.
      */
-    public void openOrCloseMonth(int mes, int anio, boolean open, int turnos) {
+    public void openOrCloseMonth(TurnoAsignacionOpenCloseDTO openCloseDTO) {
         // 1) Buscar o crear el registro del mes actual
-        TurnoAsignacion turnoAsignacion = repository.findByMesAndAnio(mes, anio)
+        TurnoAsignacion turnoAsignacion = repository.findByMesAndAnio(openCloseDTO.getMes(), openCloseDTO.getAnio())
                 .orElseGet(() -> {
                     // Si no existe, lo creamos (inactivo por defecto)
                     TurnoAsignacion nuevo = new TurnoAsignacion();
-                    nuevo.setMes(mes);
-                    nuevo.setAnio(anio);
+                    nuevo.setMes(openCloseDTO.getMes());
+                    nuevo.setAnio(openCloseDTO.getAnio());
                     nuevo.setActivo(false);
                     return nuevo;
                 });
 
         // 2) Cambiar estado activo según parámetro open
-        turnoAsignacion.setActivo(open);
+        turnoAsignacion.setActivo(openCloseDTO.isOpen());
 
         // 3) Solo crear los días si es la PRIMERA vez que se abre el mes (para evitar duplicados)
-        if ((turnoAsignacion.getAsignaciones() == null || turnoAsignacion.getAsignaciones().isEmpty()) && open) {
+        if ((turnoAsignacion.getAsignaciones() == null || turnoAsignacion.getAsignaciones().isEmpty()) && openCloseDTO.isOpen()) {
             int daysInMonth = YearMonth.of(turnoAsignacion.getAnio(), turnoAsignacion.getMes()).lengthOfMonth();
+            List<Long> idsPlantillas = openCloseDTO.getIds();
             List<DiaAsignacion> dias = new ArrayList<>(daysInMonth);
             for (int d = 1; d <= daysInMonth; d++) {
                 DiaAsignacion dia = new DiaAsignacion();
@@ -97,17 +101,38 @@ public class TurnoAsignacionService {
                 dia.setDiaSemana(
                         LocalDate.of(turnoAsignacion.getAnio(), turnoAsignacion.getMes(), d)
                                 .getDayOfWeek()
-                                .getDisplayName(TextStyle.SHORT, new Locale("es", "CL"))
+                                .getDisplayName(TextStyle.FULL, new Locale("es", "CL"))
                 );
-                dia.setUnidades(Collections.emptyList());
                 dia.setTurnoAsignacion(turnoAsignacion);
-                dias.add(dia);
+
+                // Crea la lista para los servicios de este día
+                List<ServicioDiario> servicios = new ArrayList<>();
+
+                for (Long idPlantilla : idsPlantillas) {
+                    System.out.println("Buscando plantilla " + idPlantilla);
+                    PlantillaTurno plantilla = plantillaRepo.findById(idPlantilla)
+                            .orElseThrow(() -> new RuntimeException("Plantilla no encontrada"));
+                    System.out.println("Plantilla encontrada: " + plantilla);
+
+                    ServicioDiario servicioDiario = new ServicioDiario();
+                    servicioDiario.setDiaAsignacion(dia);
+                    servicioDiario.setPlantillaTurno(plantilla);
+                    servicioDiario.setTurnoAsignacion(turnoAsignacion);
+
+                    servicios.add(servicioDiario); // <-- AGREGAS el servicio a la lista del día
+                }
+                dia.setServicios(servicios); // <-- ASOCIAS la lista de servicios al día
+
+                dias.add(dia); // Agregas el día a la lista de días del mes
             }
             turnoAsignacion.setAsignaciones(dias);
         }
 
         // 4) Guardar cambios
         repository.save(turnoAsignacion);
+
+
+
     }
 
 
@@ -152,6 +177,13 @@ public class TurnoAsignacionService {
         }
 
         return resumen;
+    }
+
+    public List<TurnoAsignacionDTO> findAllByIdFuncionario(Integer idFuncionario) {
+        return repository.findAllByIdFuncionario(idFuncionario)
+                .stream()
+                .map(turnoAsignacionMapper::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
 

@@ -2,7 +2,9 @@ package cl.investigaciones.turnos.service;
 
 import cl.investigaciones.turnos.dto.PlantillaTurnoRequestDTO;
 import cl.investigaciones.turnos.dto.PlantillaTurnoResponseDTO;
+import cl.investigaciones.turnos.dto.RolPlantillaDTO;
 import cl.investigaciones.turnos.model.PlantillaTurno;
+import cl.investigaciones.turnos.model.RolPlantilla;
 import cl.investigaciones.turnos.repository.PlantillaTurnoRepository;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +26,9 @@ public class PlantillaTurnoService {
         entity.setTipoServicio(dto.tipoServicio);
         entity.setHoraInicio(dto.horaInicio);
         entity.setHoraFin(dto.horaFin);
-        entity.setCantidadFuncionarios(dto.cantidadFuncionarios);
         entity.setDias(dto.dias);
         entity.setRestricciones(dto.restricciones);
-        entity.setGradosPermitidos(dto.gradosPermitidos);
+        entity.setRoles(dto.roles.stream().map(this::toEntityRol).collect(Collectors.toList()));
 
         entity = repo.save(entity);
 
@@ -45,10 +46,10 @@ public class PlantillaTurnoService {
         entity.setTipoServicio(dto.tipoServicio);
         entity.setHoraInicio(dto.horaInicio);
         entity.setHoraFin(dto.horaFin);
-        entity.setCantidadFuncionarios(dto.cantidadFuncionarios);
         entity.setDias(dto.dias);
         entity.setRestricciones(dto.restricciones);
-        entity.setGradosPermitidos(dto.gradosPermitidos);
+        entity.setRoles(dto.roles.stream().map(this::toEntityRol).collect(Collectors.toList()));
+
         return toDTO(repo.save(entity));
     }
 
@@ -64,10 +65,25 @@ public class PlantillaTurnoService {
         dto.tipoServicio = p.getTipoServicio();
         dto.horaInicio = p.getHoraInicio();
         dto.horaFin = p.getHoraFin();
-        dto.cantidadFuncionarios = p.getCantidadFuncionarios();
         dto.dias = p.getDias();
         dto.restricciones = p.getRestricciones();
-        dto.gradosPermitidos = p.getGradosPermitidos();
+        dto.roles = p.getRoles().stream().map(this::toDTORol).collect(Collectors.toList());
+        return dto;
+    }
+
+    private RolPlantilla toEntityRol(RolPlantillaDTO r) {
+        RolPlantilla rp = new RolPlantilla();
+        rp.setNombreRol(r.nombreRol);
+        rp.setCantidad(r.cantidad);
+        rp.setGradosPermitidos(r.gradosPermitidos);
+        return rp;
+    }
+
+    private RolPlantillaDTO toDTORol(RolPlantilla r) {
+        RolPlantillaDTO dto = new RolPlantillaDTO();
+        dto.nombreRol = r.getNombreRol();
+        dto.cantidad = r.getCantidad();
+        dto.gradosPermitidos = r.getGradosPermitidos();
         return dto;
     }
 }
