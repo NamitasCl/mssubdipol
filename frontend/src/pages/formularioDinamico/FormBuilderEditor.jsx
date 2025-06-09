@@ -191,7 +191,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                 `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`,
                 dto,
                 {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                    headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` }
                 }
             );
             setFormularioGuardado(response.data)
@@ -265,7 +265,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                         cuotaAsignada: cuota.cantidad,
                         cuotaPadreId: cuota.cuotaPadreId ?? null,
                     },
-                    { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+                    { headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } }
                 );
 
             }
