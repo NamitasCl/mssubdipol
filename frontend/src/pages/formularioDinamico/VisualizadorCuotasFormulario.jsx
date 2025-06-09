@@ -14,7 +14,7 @@ export default function VisualizadorCuotasFormulario({ formularioId }) {
         try {
             const { data } = await axios.get(
                 `${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/formulario/${formularioId}`,
-                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+                { headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } }
             );
             setCuotas(data);
         } catch (e) {
