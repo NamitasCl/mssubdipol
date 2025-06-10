@@ -14,11 +14,11 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TurnoAsignacionOpenCloseDTO {
     private String nombreCalendario;
-    private int idFuncionario;
+    private int creador;
     private int mes;
     private int anio;
     private boolean open;
     private List<Long> ids;
-    private LocalDate cretedAt;
+    private LocalDate createdAt;
     private LocalDate updatedAt;
 }

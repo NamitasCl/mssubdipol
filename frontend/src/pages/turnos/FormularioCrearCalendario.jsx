@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import { Button, Form, Spinner, Row, Col } from "react-bootstrap";
-import AgregarPlantillasMes from "./AgregarPlantillasMes";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import axios from "axios";
+import AgregarPlantillasMes from "./AgregarPlantillasMes.jsx";
 import PlantillasTurnoCrudModal from "./PlantillasTurnoCrudModal.jsx";
 
-export default function CrearCalendarioTurnos({ onCalendarioCreado }) {
+export default function FormularioCrearCalendario({ onCalendarioCreado }) {
     const { user } = useAuth();
     const today = new Date();
+
+    const [nombreCalendario, setNombreCalendario] = useState("");
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
     const [selectedYear, setSelectedYear] = useState(today.getFullYear());
     const [plantillasSeleccionadas, setPlantillasSeleccionadas] = useState([]);
-    const [nombreCalendario, setNombreCalendario] = useState("");
     const [showAgregarPlantillas, setShowAgregarPlantillas] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [showCrudPlantillas, setShowCrudPlantillas] = useState(false);
-
+    const [loading, setLoading] = useState(false);
 
     const handleAgregarPlantillas = (plantillas) => {
         setPlantillasSeleccionadas(plantillas);
@@ -31,9 +31,11 @@ export default function CrearCalendarioTurnos({ onCalendarioCreado }) {
             alert("Debes agregar al menos un servicio (plantilla) para crear el calendario.");
             return;
         }
+
         try {
             setLoading(true);
             const ids = plantillasSeleccionadas.map(p => p.id);
+
             await axios.post(`${import.meta.env.VITE_TURNOS_API_URL}/open-close`, {
                 nombreCalendario: nombreCalendario.trim(),
                 creador: user.idFuncionario,
@@ -44,8 +46,12 @@ export default function CrearCalendarioTurnos({ onCalendarioCreado }) {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             });
+
             alert("Calendario creado correctamente.");
             if (onCalendarioCreado) onCalendarioCreado();
+            // Opcional: limpiar formulario
+            setNombreCalendario("");
+            setPlantillasSeleccionadas([]);
         } catch (error) {
             if (error.response?.data?.includes("ya existe")) {
                 alert("Ya existe un calendario con ese nombre para ese mes/año.");
@@ -58,15 +64,16 @@ export default function CrearCalendarioTurnos({ onCalendarioCreado }) {
     };
 
     return (
-        <Form>
-            <h4>Crear nuevo calendario de turnos</h4>
-            <Row>
+        <Form className="border p-3 rounded shadow-sm bg-light">
+            <h5>Crear nuevo calendario de turnos</h5>
+            <Row className="mb-3">
                 <Col md={6}>
-                    <Form.Group className="mb-3">
+                    <Form.Group>
                         <Form.Label>Nombre del Calendario</Form.Label>
                         <Form.Control
                             value={nombreCalendario}
                             onChange={e => setNombreCalendario(e.target.value)}
+                            placeholder="Ej: Guardia Abril 2025"
                             required
                         />
                     </Form.Group>
@@ -91,57 +98,51 @@ export default function CrearCalendarioTurnos({ onCalendarioCreado }) {
                         <Form.Label>Año</Form.Label>
                         <Form.Control
                             type="number"
-                            value={selectedYear}
-                            onChange={e => setSelectedYear(Number(e.target.value))}
                             min={2023}
                             max={2100}
+                            value={selectedYear}
+                            onChange={e => setSelectedYear(Number(e.target.value))}
                         />
                     </Form.Group>
                 </Col>
             </Row>
 
-            <div className="mb-2 d-flex align-items-center gap-2">
-                <Button
-                    variant="primary"
-                    onClick={() => setShowAgregarPlantillas(true)}
-                >
+            <div className="mb-3 d-flex flex-wrap align-items-center gap-2">
+                <Button variant="primary" onClick={() => setShowAgregarPlantillas(true)}>
                     + Agregar Servicios del Mes
                 </Button>
-                <Button
-                    variant="outline-secondary"
-                    onClick={() => setShowCrudPlantillas(true)} // Nuevo estado
-                >
-                    Crear/Editar Plantilla
+                <Button variant="outline-secondary" onClick={() => setShowCrudPlantillas(true)}>
+                    Crear / Editar Plantillas
                 </Button>
-                <AgregarPlantillasMes
-                    show={showAgregarPlantillas}
-                    mes={selectedMonth + 1}
-                    anio={selectedYear}
-                    seleccionadas={plantillasSeleccionadas}
-                    onPlantillasGuardadas={handleAgregarPlantillas}
-                    onHide={() => setShowAgregarPlantillas(false)}
-                />
-                <PlantillasTurnoCrudModal
-                    show={showCrudPlantillas}
-                    onClose={() => setShowCrudPlantillas(false)}
-                />
             </div>
 
-            <div>
-                <b>Servicios agregados:</b>
-                <ul>
-                    {plantillasSeleccionadas.map(p => (
-                        <li key={p.id}>{p.nombre}</li>
-                    ))}
-                </ul>
-            </div>
-            <Button
-                className="mt-2"
-                variant="success"
-                onClick={handleCrearCalendario}
-                disabled={loading}
-            >
-                {loading ? <Spinner size="sm" /> : "Crear Calendario"}
+            <AgregarPlantillasMes
+                show={showAgregarPlantillas}
+                mes={selectedMonth + 1}
+                anio={selectedYear}
+                seleccionadas={plantillasSeleccionadas}
+                onPlantillasGuardadas={handleAgregarPlantillas}
+                onHide={() => setShowAgregarPlantillas(false)}
+            />
+
+            <PlantillasTurnoCrudModal
+                show={showCrudPlantillas}
+                onClose={() => setShowCrudPlantillas(false)}
+            />
+
+            {plantillasSeleccionadas.length > 0 && (
+                <div className="mb-3">
+                    <b>Servicios seleccionados:</b>
+                    <ul>
+                        {plantillasSeleccionadas.map(p => (
+                            <li key={p.id}>{p.nombre}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            <Button variant="success" onClick={handleCrearCalendario} disabled={loading}>
+                {loading ? <Spinner size="sm" animation="border" /> : "Crear Calendario"}
             </Button>
         </Form>
     );

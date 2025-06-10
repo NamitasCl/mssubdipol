@@ -16,5 +16,6 @@ public class UnidadColaboradoraDTO {
 
     private int mes;
     private int anio;
+    private Long idCalendario;
 
 }

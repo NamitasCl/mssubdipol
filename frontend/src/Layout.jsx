@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import {
     Container,
@@ -14,7 +14,7 @@ import { FaUserCircle, FaSignOutAlt, FaChevronRight } from "react-icons/fa";
 import PdiLogo from "./assets/imagenes/pdilogo.png";
 import { useAuth } from "./components/contexts/AuthContext.jsx";
 
-// PALETA
+// PALETA DE COLORES
 const azulBase = "#2a4d7c";
 const azulMedio = "#4f7eb9";
 const azulClaro = "#b1cfff";
@@ -22,9 +22,9 @@ const azulSidebar = "#eaf4fb";
 const blanco = "#fff";
 const grisClaro = "#f8fbfd";
 const textoPrincipal = "#22334a";
-const textoSecundario = "#4b6382";
 const doradoSuave = "#ffe8a3";
 
+// ROLES
 const ROLES = {
     ADMINISTRADOR: "ROLE_ADMINISTRADOR",
     SUBJEFE: "ROLE_SUBJEFE",
@@ -33,34 +33,70 @@ const ROLES = {
     FUNCIONARIO: "ROLE_FUNCIONARIO",
 };
 
+// MENÚ DE NAVEGACIÓN CON SUBMENÚS
+const navConfig = [
+    {
+        label: "Dashboard",
+        to: "/layout",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO],
+    },
+    {
+        label: "Gestión por Unidad",
+        to: "/layout/asignacionunidad",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE],
+    },
+    {
+        label: "Modificar turnos",
+        to: "/layout/modificaturnosunidad",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE],
+    },
+    {
+        label: "Gestión de Turnos",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN],
+        submenu: [
+            { label: "Crear Calendario", to: "/layout/gestion" },
+            { label: "Configurar unidad", to: "/layout/configuraunidades"},
+            { label: "Ver Calendarios", to: "/layout/calendario" },
+            { label: "Personal Disponible", to: "/layout/disponibles" }
+        ]
+    },
+    {
+        label: "Zona Jefes",
+        to: "/layout/jefe",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE],
+    },
+    {
+        label: "Administración",
+        to: "/layout/admin",
+        allowedRoles: [ROLES.ADMINISTRADOR],
+    },
+];
+
 export default function Layout() {
     const location = useLocation();
     const { user, logout } = useAuth();
+    const [openMenus, setOpenMenus] = useState({});
 
-    const handleClick = () => {
+    const handleClickLogout = () => {
         logout();
         window.location.href = "/turnos/login";
     };
 
-    const navConfig = [
-        { to: "/layout", label: "Dashboard", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO] },
-        { to: "/layout/asignacionunidad", label: "Gestión por unidad", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
-        { to: "/layout/modificaturnosunidad", label: "Modifica servicios", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE] },
-        { to: "/layout/calendario", label: "Calendario de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE] },
-        { to: "/layout/gestion", label: "Gestión de turnos", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
-        { to: "/layout/disponibles", label: "Ver personal disponible", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN] },
-        { to: "/layout/jefe", label: "Restringido Jefes", allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE] },
-        { to: "/layout/admin", label: "Administración", allowedRoles: [ROLES.ADMINISTRADOR] },
-    ];
-
-    const visibleNavItems = React.useMemo(() => {
+    const visibleNavItems = useMemo(() => {
         if (user && user.roles) {
             return navConfig.filter((item) =>
-                item.allowedRoles.includes(user.roles[0])
+                item.allowedRoles?.includes(user.roles[0])
             );
         }
         return [];
     }, [user]);
+
+    const toggleMenu = (label) => {
+        setOpenMenus((prev) => ({
+            ...prev,
+            [label]: !prev[label],
+        }));
+    };
 
     return (
         <div style={{ minHeight: "100vh", background: grisClaro }}>
@@ -83,18 +119,18 @@ export default function Layout() {
                                 Plataforma de gestión de turnos
                             </h4>
                             <span className="small" style={{ color: doradoSuave }}>
-                Subdirección de Investigación Policial y Criminalística
-              </span>
+                                Subdirección de Investigación Policial y Criminalística
+                            </span>
                         </div>
                     </div>
                     <div className="d-flex align-items-center gap-3">
                         <FaUserCircle size={26} color={blanco} />
                         <span style={{ color: blanco, fontWeight: 600, fontSize: 17 }}>
-              {user?.nombreUsuario || "Usuario"}
-            </span>
+                            {user?.nombreUsuario || "Usuario"}
+                        </span>
                         <Button
                             variant="light"
-                            onClick={handleClick}
+                            onClick={handleClickLogout}
                             className="rounded-pill px-3 d-flex align-items-center"
                             style={{
                                 borderColor: azulClaro,
@@ -136,18 +172,93 @@ export default function Layout() {
                     >
                         <Nav className="flex-column w-100">
                             {visibleNavItems.map((item) => {
+                                const isSubmenu = !!item.submenu;
                                 const isActive = location.pathname === item.to;
+                                const isAnySubActive = isSubmenu && item.submenu.some((sub) => location.pathname === sub.to);
+                                const isOpen = openMenus[item.label] || isAnySubActive;
+
+                                if (isSubmenu) {
+                                    return (
+                                        <div key={item.label} className="w-100">
+                                            {/* Título del submenú */}
+                                            <div
+                                                onClick={() => toggleMenu(item.label)}
+                                                className={`
+              my-1 py-2 px-3
+              rounded-pill
+              d-flex align-items-center gap-2
+              ${isAnySubActive ? "fw-bold shadow-sm" : ""}
+            `}
+                                                style={{
+                                                    background: isAnySubActive ? azulMedio : "transparent",
+                                                    color: isAnySubActive ? blanco : textoPrincipal,
+                                                    fontSize: 14,
+                                                    marginLeft: 10,
+                                                    marginRight: 8,
+                                                    cursor: "pointer",
+                                                    transition: "background 0.2s, color 0.2s",
+                                                }}
+                                            >
+                                                <FaChevronRight
+                                                    size={19}
+                                                    style={{
+                                                        transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
+                                                        transition: "transform 0.2s",
+                                                        opacity: isAnySubActive ? 1 : 0.6,
+                                                    }}
+                                                />
+                                                {item.label}
+                                            </div>
+
+                                            {/* Subitems */}
+                                            {isOpen && (
+                                                <div className="w-100">
+                                                    {item.submenu.map((subitem) => {
+                                                        const isActive = location.pathname === subitem.to;
+                                                        return (
+                                                            <Nav.Link
+                                                                as={Link}
+                                                                to={subitem.to}
+                                                                key={subitem.to}
+                                                                className={`
+                      my-1 py-2 px-4
+                      rounded-pill
+                      d-flex align-items-center gap-2
+                      ${isActive ? "fw-bold shadow-sm" : ""}
+                    `}
+                                                                style={{
+                                                                    background: isActive ? azulMedio : "transparent",
+                                                                    color: isActive ? blanco : textoPrincipal,
+                                                                    fontSize: 13.5,
+                                                                    marginLeft: 20,
+                                                                    marginRight: 8,
+                                                                    letterSpacing: 0.1,
+                                                                    transition: "background 0.2s, color 0.2s",
+                                                                }}
+                                                            >
+                                                                <FaChevronRight size={16} style={{ opacity: isActive ? 1 : 0.5 }} />
+                                                                {subitem.label}
+                                                            </Nav.Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+
+                                // Ítem sin submenú
                                 return (
                                     <Nav.Link
                                         as={Link}
                                         to={item.to}
                                         key={item.to}
                                         className={`
-                      my-1 py-2 px-3
-                      rounded-pill
-                      d-flex align-items-center gap-2
-                      ${isActive ? "fw-bold shadow-sm" : ""}
-                    `}
+          my-1 py-2 px-3
+          rounded-pill
+          d-flex align-items-center gap-2
+          ${isActive ? "fw-bold shadow-sm" : ""}
+        `}
                                         style={{
                                             background: isActive ? azulMedio : "transparent",
                                             color: isActive ? blanco : textoPrincipal,
@@ -165,8 +276,10 @@ export default function Layout() {
                                 );
                             })}
                         </Nav>
+
                     </Col>
-                    {/* Content */}
+
+                    {/* Main content */}
                     <Col
                         md={10}
                         style={{
@@ -189,10 +302,8 @@ export default function Layout() {
                                 minHeight: "79vh",
                                 overflow: "visible",
                                 maxWidth: "100%",
-
                                 fontSize: 16.3,
                             }}
-
                         >
                             <Card.Body className="p-2">
                                 <Outlet />

@@ -33,4 +33,6 @@ public interface TurnoAsignacionRepository extends JpaRepository<TurnoAsignacion
     Optional<TurnoAsignacion> findByMesAndAnioAndActivoTrue(int mes, int anio);
 
     List<TurnoAsignacion> findAllByIdFuncionario(Integer idFuncionario);
+
+    Optional<TurnoAsignacion> findByMesAndAnioAndNombreCalendario(int mes, int anio, String nombreCalendario);
 }

@@ -7,6 +7,7 @@ import cl.investigaciones.turnos.model.TurnoAsignacion;
 import cl.investigaciones.turnos.model.UnidadColaboradora;
 import cl.investigaciones.turnos.repository.TurnoAsignacionRepository;
 import cl.investigaciones.turnos.repository.UnidadColaboradoraRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -60,36 +61,25 @@ public class UnidadColaboradoraService {
     }
 
     public UnidadColaboradora saveOrUpdate(UnidadColaboradoraDTO dto) {
-        Optional<UnidadColaboradora> existente = unidadColaboradoraRepository
-                .findByNombreUnidadAndTurnoAsignacion_MesAndTurnoAsignacion_Anio(
-                        dto.getName(), dto.getMes(), dto.getAnio()
-                );
 
-        UnidadColaboradora entidad = existente.orElseGet(UnidadColaboradora::new);
+        Optional<TurnoAsignacion> turnoAsignacion = turnoAsignacionRepository
+                .findById(dto.getIdCalendario());
+
+        if (!turnoAsignacion.isPresent()) {
+            throw new RuntimeException("TurnoAsignacion no encontrado en unidades colaboradoras.");
+        }
+
+
+        UnidadColaboradora entidad = unidadColaboradoraRepository
+                .findByTurnoAsignacion(turnoAsignacion.get())
+                .orElseGet(UnidadColaboradora::new);
 
         entidad.setNombreUnidad(dto.getName());
         entidad.setCantFuncAporte(dto.getTotalPeople());
         entidad.setMaxTurnos(dto.getMaxShifts());
         entidad.setTrabajadoresPorDia(dto.getWorkersPerDay());
         entidad.setTrabajaFindesemana(dto.isNoWeekend());
-
-        // Buscar o crear TurnoAsignacion asociado
-        TurnoAsignacion turno = null;
-
-        if (existente.isPresent()) {
-            // Ya viene con su TurnoAsignacion asociada, no es necesario hacer nada
-            turno = existente.get().getTurnoAsignacion();
-        } else {
-            turno = turnoAsignacionRepository
-                    .findByMesAndAnio(dto.getMes(), dto.getAnio())
-                    .orElseGet(() -> {
-                        TurnoAsignacion nuevo = new TurnoAsignacion();
-                        nuevo.setMes(dto.getMes());
-                        nuevo.setAnio(dto.getAnio());
-                        return turnoAsignacionRepository.save(nuevo); // 🔑 persistir
-                    });
-            entidad.setTurnoAsignacion(turno);
-        }
+        entidad.setTurnoAsignacion(turnoAsignacion.get());
 
         return unidadColaboradoraRepository.save(entidad);
     }

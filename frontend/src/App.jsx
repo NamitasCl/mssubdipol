@@ -24,6 +24,8 @@ import FormBuilderApp from "./pages/formularioDinamico/FormBuilderApp.jsx";
 import FormularioDinamicoPage from "./pages/formularioDinamico/FormularioDinamicoPage.jsx";
 import VistaRegistrosFormulario from "./pages/formularioDinamico/VistaRegistrosFormulario.jsx";
 import GestionTurnosPage from "./pages/turnos/GestionTurnosPage.jsx";
+import {DepartmentManagement} from "./components/DepartmentManagement.jsx";
+import {UnitDepartmentManagement} from "./pages/turnos/UnitDepartmentManagement.jsx";
 
 
 export default function App() {
@@ -41,7 +43,7 @@ export default function App() {
                 </Route>
                 <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
-                    {/*<Route path="turnos" element={<RestrictedAreaSecuin component={GestionTurnos} />} />*/}
+                    <Route path="configuraunidades" element={<RestrictedAreaSecuin component={UnitDepartmentManagement} />} />
                     <Route path="gestion" element={<RestrictedAreaSecuin component={GestionTurnosPage} />} />
                     <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={UnitAssignmentView} />} />
                     <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />

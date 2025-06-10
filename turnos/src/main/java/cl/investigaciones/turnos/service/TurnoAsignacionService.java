@@ -27,6 +27,8 @@ public class TurnoAsignacionService {
 
     @Autowired
     private TurnoAsignacionMapper turnoAsignacionMapper;
+    @Autowired
+    private TurnoAsignacionRepository turnoAsignacionRepository;
 
     /**
      * Crea o actualiza un TurnoAsignacion (registro mensual).
@@ -77,12 +79,16 @@ public class TurnoAsignacionService {
      */
     public void openOrCloseMonth(TurnoAsignacionOpenCloseDTO openCloseDTO) {
         // 1) Buscar o crear el registro del mes actual
-        TurnoAsignacion turnoAsignacion = repository.findByMesAndAnio(openCloseDTO.getMes(), openCloseDTO.getAnio())
+        TurnoAsignacion turnoAsignacion = repository.findByMesAndAnioAndNombreCalendario(openCloseDTO.getMes(), openCloseDTO.getAnio(), openCloseDTO.getNombreCalendario())
                 .orElseGet(() -> {
                     // Si no existe, lo creamos (inactivo por defecto)
                     TurnoAsignacion nuevo = new TurnoAsignacion();
                     nuevo.setMes(openCloseDTO.getMes());
                     nuevo.setAnio(openCloseDTO.getAnio());
+                    nuevo.setNombreCalendario(openCloseDTO.getNombreCalendario());
+                    nuevo.setCreatedAt(openCloseDTO.getCreatedAt());
+                    nuevo.setUpdatedAt(openCloseDTO.getUpdatedAt());
+                    nuevo.setIdFuncionario(openCloseDTO.getCreador());
                     nuevo.setActivo(false);
                     return nuevo;
                 });
@@ -179,15 +185,20 @@ public class TurnoAsignacionService {
         return resumen;
     }
 
-    public List<TurnoAsignacionDTO> findAllByIdFuncionario(Integer idFuncionario) {
+    public List<MisCalendariosDTO> findAllByIdFuncionario(Integer idFuncionario) {
         return repository.findAllByIdFuncionario(idFuncionario)
                 .stream()
-                .map(turnoAsignacionMapper::mapToResponseDTO)
+                .map(calendario -> {
+                    MisCalendariosDTO dto = new MisCalendariosDTO();
+                    dto.setId(calendario.getId());
+                    dto.setNombreCalendario(calendario.getNombreCalendario());
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
 
-
-
-
+    public void deleteById(Long id) {
+        turnoAsignacionRepository.deleteById(id);
+    }
 }

@@ -1,5 +1,6 @@
 package cl.investigaciones.turnos.controller;
 
+import cl.investigaciones.turnos.dto.MisCalendariosDTO;
 import cl.investigaciones.turnos.dto.TurnoAsignacionDTO;
 import cl.investigaciones.turnos.dto.TurnoAsignacionOpenCloseDTO;
 import cl.investigaciones.turnos.mapper.TurnoAsignacionMapper;
@@ -76,8 +77,18 @@ public class TurnoAsignacionController {
     @GetMapping("/mis-calendarios")
     public ResponseEntity<?> getMiscalendarios(@RequestParam int userid) {
         try {
-            List<TurnoAsignacionDTO> calendariosEncontrados = turnoAsignacionService.findAllByIdFuncionario(userid);
+            List<MisCalendariosDTO> calendariosEncontrados = turnoAsignacionService.findAllByIdFuncionario(userid);
             return ResponseEntity.ok(calendariosEncontrados);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTurnos(@PathVariable Long id) {
+        try {
+            turnoAsignacionService.deleteById(id);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

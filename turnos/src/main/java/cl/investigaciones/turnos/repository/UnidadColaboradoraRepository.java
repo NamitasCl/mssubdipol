@@ -1,5 +1,6 @@
 package cl.investigaciones.turnos.repository;
 
+import cl.investigaciones.turnos.model.TurnoAsignacion;
 import cl.investigaciones.turnos.model.UnidadColaboradora;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,5 +15,7 @@ public interface UnidadColaboradoraRepository extends JpaRepository<UnidadColabo
 
     Optional<UnidadColaboradora> findByNombreUnidadAndTurnoAsignacion_MesAndTurnoAsignacion_Anio(
             String nombreUnidad, int mes, int anio);
+
+    Optional<UnidadColaboradora> findByTurnoAsignacion(TurnoAsignacion turnoAsignacion);
 
 }
