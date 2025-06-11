@@ -8,9 +8,9 @@ import debounce from "lodash.debounce";
 import "bootstrap/dist/css/bootstrap.min.css";
 import UnavailabilityModal from "../../components/UnavailabilityModal.jsx";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
-import {FaArrowLeft} from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 
-// Paleta institucional y pastel
+// Paleta de colores
 const azulPDI = "#17355A";
 const azulSuave = "#7fa6da";
 const azulOscuro = "#23395d";
@@ -21,95 +21,97 @@ const textoPrincipal = "#23395d";
 const textoSecundario = "#4a5975";
 const blanco = "#f7f8fc";
 
-function UnitAssignmentView({modoVista, anio, mes, setModo}) {
+export default function UnitAssignmentView({ modoVista, setModo }) {
     const { user } = useAuth();
     const isAdmin = user?.isAdmin || false;
     const unidadUsuario = user?.siglasUnidad || "";
+    const userId = user?.idFuncionario;
 
+    // Estado
     const [unidadActual, setUnidadActual] = useState(unidadUsuario);
+    const [calendarios, setCalendarios] = useState([]);
+    const [calendarioSeleccionado, setCalendarioSeleccionado] = useState(null);
     const [unitData, setUnitData] = useState(null);
+    const [unidadesDisponibles, setUnidadesDisponibles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
-    const [isMonthOpen, setIsMonthOpen] = useState(false);
-    const [mesesDisponibles, setMesesDisponibles] = useState([]);
-    const [selectedMes, setSelectedMes] = useState(null);
-    const [unidadesDisponibles, setUnidadesDisponibles] = useState([]);
-    const [showInfo, setShowInfo] = useState(true);
-
     const [showUnavailabilityModal, setShowUnavailabilityModal] = useState(false);
     const [editingEmployeeIndex, setEditingEmployeeIndex] = useState(null);
+    const [showInfo, setShowInfo] = useState(true);
 
+    // Cargar calendarios
     useEffect(() => {
-        const currentYear = new Date().getFullYear();
-        const allMonths = Array.from({ length: 12 }, (_, i) => ({ mes: i + 1, anio: currentYear }));
-        setMesesDisponibles(allMonths);
-        if(mes) {
-            setSelectedMes({mes: mes + 1, anio})
-        }
-    }, [mes, anio]);
+        if (!userId) return;
+        axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/mis-calendarios`, { params: { userid: userId } })
+            .then(res => setCalendarios(res.data))
+            .catch(() => setCalendarios([]));
+    }, [userId]);
 
+    // Cargar datos al seleccionar calendario
     useEffect(() => {
-        if (!selectedMes) return;
+        if (!calendarioSeleccionado) return;
+        console.log("Calendario seleccionado: ", calendarioSeleccionado)
 
-        const { mes, anio } = selectedMes;
-        if (!isAdmin) setUnidadActual(unidadUsuario);
-
+        const { mes, anio, nombreCalendario, id } = calendarioSeleccionado;
         setLoading(true);
         setError(null);
 
-        axios
-            .get(`${import.meta.env.VITE_TURNOS_API_URL}/status`, { params: { mes, anio } })
-            .then((resp) => setIsMonthOpen(resp.data.activo))
-            .catch(() => setIsMonthOpen(false));
-
-        Promise.all([
-            axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/asignaciones/consultar`, {
-                params: { mes, anio, unidad: unidadActual },
-            }),
-            axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/mesesactivos2`)
-        ])
-            .then(([asignadosResp, mesesResp]) => {
-                const funcionariosAsignados = Array.isArray(asignadosResp.data)
-                    ? asignadosResp.data.map((f) => ({
-                        id: f.id,
-                        nombreCompleto: f.nombreCompleto,
-                        siglasCargo: f.siglasCargo,
-                        antiguedad: f.antiguedad,
-                        unavailabilities: f.diasNoDisponibles?.map((d) => ({
-                            ...d,
-                            fecha: d.fecha ?? null,
-                            fechaInicio: d.fechaInicio ?? null,
-                            fechaFin: d.fechaFin ?? null
-                        })) || []
-                    }))
-                    : [];
-
-                const datosMes = mesesResp.data.find((m) => m.mes === mes && m.anio === anio);
-                const unidadesMes = datosMes?.unidades?.map((u) => u.unidad) || [];
+        axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/mesesactivos2`)
+            .then(({ data }) => {
+                // Unidades colaboradoras de este calendario/mes
+                console.log(data)
+                const datosMes = data.find(m => m.mes === mes && m.anio === anio && m.nombreCalendario === nombreCalendario);
+                console.log("datosMes: ", datosMes)
+                const unidadesMes = datosMes?.unidades?.map(u => u.unidad) || [];
                 setUnidadesDisponibles(unidadesMes);
 
-                const datosUnidad = datosMes?.unidades?.find(
-                    (u) =>
-                        u.unidad.replace(/\s/g, "").toUpperCase() ===
-                        unidadActual.replace(/\s/g, "").toUpperCase()
-                );
+                // Si eres admin puedes elegir unidad, si no es la del usuario
+                if (!isAdmin) setUnidadActual(unidadUsuario);
+                else if (unidadesMes.length > 0 && !unidadesMes.includes(unidadActual)) setUnidadActual(unidadesMes[0]);
 
-                if (!datosUnidad) setError("No hay configuración de plazas para esta unidad en el mes seleccionado.");
-                const required = datosUnidad?.cantidadPersonasNecesarias ?? 0;
-
-                setUnitData({
-                    id: 1,
-                    unitName: unidadActual,
-                    required,
-                    assigned: funcionariosAsignados,
+                // Trae asignados de la unidad actual
+                axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/asignaciones/consultar`, {
+                    params: { mes, anio, unidad: isAdmin ? unidadActual : unidadUsuario }
+                })
+                    .then(resp => {
+                        const asig = Array.isArray(resp.data) ? resp.data : [];
+                        setUnitData({
+                            id: id,
+                            unitName: isAdmin ? unidadActual : unidadUsuario,
+                            required: (datosMes?.unidades?.find(u => u.unidad === (isAdmin ? unidadActual : unidadUsuario))?.cantidadPersonasNecesarias) || 0,
+                            assigned: asig.map(f => ({
+                                id: f.id,
+                                idFuncionario: f.idFuncionario,
+                                nombreCompleto: f.nombreCompleto,
+                                siglasCargo: f.siglasCargo,
+                                antiguedad: f.antiguedad,
+                                unavailabilities: f.diasNoDisponibles || []
+                            })),
+                            isMonthOpen: datosMes?.activo ?? true // Asumimos que activo viene en datosMes o por lógica del calendario
+                        });
+                        setLoading(false);
+                    }).catch(() => {
+                    setUnitData(null);
+                    setLoading(false);
+                    setError("Error al cargar funcionarios asignados.");
                 });
-
-                setLoading(false);
             })
-            .catch(() => setLoading(false));
-    }, [selectedMes, unidadActual]);
+            .catch(() => {
+                setLoading(false);
+                setError("Error al cargar calendario.");
+            });
 
+    }, [calendarioSeleccionado, unidadActual, isAdmin, unidadUsuario]);
+
+    // Select de calendarios
+    const handleCalendarioSelect = (val) => {
+        const cal = calendarios.find(c => String(c.id) === val);
+        setCalendarioSeleccionado(cal || null);
+        setUnitData(null);
+    };
+
+    // AsyncSelect para funcionarios
     const loadOptions = (inputValue, callback) => {
         if (inputValue.length < 3) return callback([]);
         axios
@@ -124,18 +126,19 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
             })
             .catch(() => callback([]));
     };
-
     const debouncedLoadOptions = debounce(loadOptions, 300);
 
+    // Guardar asignaciones
     const handleSaveAssignment = () => {
         if (!unitData) return;
 
         const payload = {
-            unidad: unidadActual,
-            mes: selectedMes.mes,
-            anio: selectedMes.anio,
-            funcionarios: unitData.assigned.map((emp) => ({
+            unidad: unitData.unitName,
+            mes: calendarioSeleccionado.mes,
+            anio: calendarioSeleccionado.anio,
+            funcionarios: unitData.assigned.map(emp => ({
                 id: emp.id,
+                idFuncionario: emp.idFuncionario,
                 nombreCompleto: emp.nombreCompleto,
                 siglasCargo: emp.siglasCargo,
                 antiguedad: emp.antiguedad,
@@ -144,7 +147,6 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
         };
 
         setLoading(true);
-        setError(null);
         axios
             .post(`${import.meta.env.VITE_TURNOS_API_URL}/asignaciones`, payload)
             .then(() => {
@@ -157,15 +159,12 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
             });
     };
 
-    const updateAssignedEmployees = (newList) => {
-        setUnitData((prev) => ({ ...prev, assigned: newList }));
-    };
-
+    // Resto de helpers
+    const updateAssignedEmployees = (newList) => setUnitData(prev => ({ ...prev, assigned: newList }));
     const handleOpenUnavailabilityModal = (index) => {
         setEditingEmployeeIndex(index);
         setShowUnavailabilityModal(true);
     };
-
     const handleSaveUnavailability = (newUnavailability) => {
         setUnitData((prev) => {
             const newAssigned = [...prev.assigned];
@@ -178,17 +177,11 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
         });
         setShowUnavailabilityModal(false);
     };
-
     const remaining = unitData ? unitData.required - unitData.assigned.length : 0;
-
     const formatMes = (mes, anio) => {
         const date = new Date(anio, mes - 1);
         return date.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
     };
-
-    const handleVolver = () => {
-        setModo(null)
-    }
 
     return (
         <Container style={{
@@ -200,164 +193,39 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
             boxShadow: "0 8px 48px #7fa6da22",
             maxWidth: 1920,
         }}>
-            {modoVista !== "UNIDAD" &&
-                (
-                    <>
-                        <h2 className="fw-bold mb-2"
-                            style={{
-                                color: azulOscuro,
-                                letterSpacing: ".03em",
-                                fontSize: "2rem",
-                                textShadow: "0 1px 2px #d6e2f840",
-                            }}
-                        >
-                            Asignación de Turnos
-                        </h2>
-                        <div className="d-flex gap-4">
-                            <div className={"w-25"}>
-                                <Form.Group className="mb-4" style={{ maxWidth: 420, margin: "0 auto" }}>
-                                    <Form.Label className="fw-semibold" style={{ color: azulPDI }}>Seleccionar Mes</Form.Label>
-                                    <Form.Select
-                                        value={selectedMes ? `${selectedMes.mes}-${selectedMes.anio}` : ""}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            if (!value) {
-                                                setSelectedMes(null);
-                                                setUnitData(null);
-                                                return;
-                                            }
-                                            const [mes, anio] = value.split("-").map(Number);
-                                            setSelectedMes({ mes, anio });
-                                        }}
-                                        style={{
-                                            borderRadius: 13,
-                                            fontSize: 16.2,
-                                            padding: "0.7rem"
-                                        }}
-                                    >
-                                        <option value="">Seleccione mes a consultar</option>
-                                        {mesesDisponibles.map((m) => (
-                                            <option key={`${m.mes}-${m.anio}`} value={`${m.mes}-${m.anio}`}>
-                                                {formatMes(m.mes, m.anio)}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
-                                </Form.Group>
+            <Form.Group className="mb-4">
+                <Form.Label className="fw-semibold" style={{ color: azulPDI }}>Seleccionar calendario</Form.Label>
+                <Form.Select
+                    value={calendarioSeleccionado ? String(calendarioSeleccionado.id) : ""}
+                    onChange={e => handleCalendarioSelect(e.target.value)}
+                    style={{ borderRadius: 13, fontSize: 16.2, padding: "0.7rem" }}
+                >
+                    <option value="">Seleccione un calendario</option>
+                    {calendarios.map(c => (
+                        <option key={c.id} value={c.id}>
+                            {c.nombreCalendario}
+                        </option>
+                    ))}
+                </Form.Select>
+            </Form.Group>
 
-                                {isAdmin && selectedMes && (
-                                    <Form.Group className="mb-3" style={{ maxWidth: 380, margin: "0 auto" }}>
-                                        <Form.Label className="fw-semibold" style={{ color: azulPDI }}>Ver como unidad</Form.Label>
-                                        <Form.Select
-                                            value={unidadActual}
-                                            onChange={(e) => setUnidadActual(e.target.value)}
-                                            style={{ borderRadius: 13, fontSize: 15.8, padding: "0.6rem" }}
-                                        >
-                                            {unidadesDisponibles.map((u, i) => (
-                                                <option key={i} value={u}>{u}</option>
-                                            ))}
-                                        </Form.Select>
-                                    </Form.Group>
-                                )}
-                            </div>
-                            <div className="w-100">
-                                {showInfo && (
-                                    <Card
-                                        style={{
-                                            background: azulSuave + "15",
-                                            color: textoPrincipal,
-                                            border: "1px solid",
-                                            borderColor: "#575757",
-                                            borderRadius: 17,
-                                            boxShadow: "0 2px 10px #aecbf855",
-                                            fontSize: 16.2,
-                                            marginBottom: 20,
-                                            position: "relative",
-                                            maxWidth: 800,
-                                            margin: "0 auto 24px auto"
-                                        }}
-                                    >
-                                        <Button
-                                            variant="link"
-                                            style={{
-                                                position: "absolute",
-                                                top: 11,
-                                                right: 18,
-                                                fontSize: 23,
-                                                color: azulOscuro,
-                                                textDecoration: "none",
-                                                fontWeight: 700,
-                                                opacity: 0.77,
-                                                zIndex: 10
-                                            }}
-                                            onClick={() => setShowInfo(false)}
-                                            aria-label="Cerrar caja informativa"
-                                        >
-                                            ×
-                                        </Button>
-                                        <Card.Body style={{ padding: "26px 32px" }}>
-                                            <div style={{ display: "flex", alignItems: "flex-start", gap: 18 }}>
-                                                <div style={{
-                                                    background: "#fff",
-                                                    color: azulOscuro,
-                                                    borderRadius: "50%",
-                                                    fontWeight: 800,
-                                                    fontSize: 22,
-                                                    width: 40,
-                                                    height: 40,
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    boxShadow: "0 2px 9px #99bbf82a"
-                                                }}>
-                                                    i
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontWeight: 700, fontSize: 18.2, marginBottom: 3 }}>
-                                                        ¿Cómo disponibilizar funcionarios para los turnos?
-                                                    </div>
-                                                    <ol style={{ marginLeft: 22, marginBottom: 0, paddingLeft: 0, fontSize: 15.7 }}>
-                                                        <li><b>Selecciona el mes y año</b> para desplegar opciones de agregar funcionarios.</li>
-                                                        <li>Escriba el nombre del funcionario y pulse <Badge bg="info">Agregar</Badge>.</li>
-                                                        <li>Agregue todos los funcionarios requeridos para activar el botón <Badge bg="info">Guardar asignación</Badge>.</li>
-                                                        <li>Las modificaciones son posibles solo mientras el mes esté abierto.</li>
-                                                    </ol>
-                                                    <div style={{
-                                                        fontSize: 15,
-                                                        color: "#16675b",
-                                                        background: "#d9f7ec",
-                                                        borderRadius: 9,
-                                                        padding: "7px 16px",
-                                                        marginTop: 9
-                                                    }}>
-                                                        <b>Recuerda:</b> Al agregar un funcionario puedes especificar sus días no disponibles.<br />
-                                                        Esto ayuda a optimizar la asignación de servicios.
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                )}
-                            </div>
-                        </div>
-                    </>
-                )
-            }
+            {/* Si eres admin, opción de unidad */}
+            {calendarioSeleccionado && isAdmin && unidadesDisponibles.length > 0 && (
+                <Form.Group className="mb-3" style={{ maxWidth: 380 }}>
+                    <Form.Label className="fw-semibold" style={{ color: azulPDI }}>Ver como unidad</Form.Label>
+                    <Form.Select
+                        value={unidadActual}
+                        onChange={(e) => setUnidadActual(e.target.value)}
+                        style={{ borderRadius: 13, fontSize: 15.8, padding: "0.6rem" }}
+                    >
+                        {unidadesDisponibles.map((u, i) => (
+                            <option key={i} value={u}>{u}</option>
+                        ))}
+                    </Form.Select>
+                </Form.Group>
+            )}
 
-            {
-                modoVista === "UNIDAD" && (
-                    <Row style={{marginBottom: 10}}>
-                        <Col md={4}>
-                            <Button variant={"warning"} style={{width: 100}}
-                                onClick={() => handleVolver()}
-                            >
-                                <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
-                                Volver
-                            </Button>
-                        </Col>
-                    </Row>
-                )
-            }
-
+            {/* Información, loading, error */}
             {loading && (
                 <div className="text-center py-5">
                     <Spinner animation="border" variant="primary" />
@@ -366,9 +234,11 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
             {error && (
                 <div className="text-danger text-center mb-4" style={{ fontWeight: 500 }}>{error}</div>
             )}
-            {!selectedMes && <div className="text-center text-muted py-4">Seleccione un mes para comenzar.</div>}
+            {!calendarioSeleccionado && !loading && (
+                <div className="text-center text-muted py-4">Seleccione un calendario para comenzar.</div>
+            )}
 
-            {selectedMes && unitData && (
+            {calendarioSeleccionado && unitData && (
                 <Card className="shadow mb-4"
                       style={{ borderRadius: 19, border: "none", background: blanco }}>
                     <Card.Header
@@ -383,8 +253,8 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
                             border: "none"
                         }}>
                         <span>{unitData.unitName}</span>
-                        <Badge bg={isMonthOpen ? "success" : "secondary"} style={{ fontSize: 15, letterSpacing: 0.1 }}>
-                            {isMonthOpen ? "Mes Abierto" : "Mes Cerrado (Lectura)"}
+                        <Badge bg={unitData.isMonthOpen ? "success" : "secondary"} style={{ fontSize: 15, letterSpacing: 0.1 }}>
+                            {unitData.isMonthOpen ? "Mes Abierto" : "Mes Cerrado (Lectura)"}
                         </Badge>
                     </Card.Header>
                     <Card.Body>
@@ -397,7 +267,7 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
                                         loadOptions={debouncedLoadOptions}
                                         value={selectedEmployee}
                                         onChange={(option) => setSelectedEmployee(option)}
-                                        isDisabled={remaining <= 0 || !isMonthOpen}
+                                        isDisabled={remaining <= 0 || !unitData.isMonthOpen}
                                         placeholder="Buscar funcionario..."
                                         styles={{
                                             control: (base) => ({
@@ -421,12 +291,13 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
                                         boxShadow: "0 2px 10px #a6e3cf44"
                                     }}
                                     onClick={() => {
-                                        if (selectedEmployee && remaining > 0 && isMonthOpen) {
+                                        if (selectedEmployee && remaining > 0 && unitData.isMonthOpen) {
                                             const { funcionario } = selectedEmployee;
                                             updateAssignedEmployees([
                                                 ...unitData.assigned,
                                                 {
                                                     id: funcionario.id,
+                                                    idFuncionario: funcionario.id,
                                                     nombreCompleto: funcionario.nombreCompleto,
                                                     siglasCargo: funcionario.siglasCargo,
                                                     antiguedad: funcionario.antiguedad,
@@ -436,7 +307,7 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
                                             setSelectedEmployee(null);
                                         }
                                     }}
-                                    disabled={remaining <= 0 || !selectedEmployee || !isMonthOpen}
+                                    disabled={remaining <= 0 || !selectedEmployee || !unitData.isMonthOpen}
                                 >
                                     Agregar
                                 </Button>
@@ -482,7 +353,7 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
                                                                 </span>
                                                             </div>
                                                             <div>
-                                                                {isMonthOpen && (
+                                                                {unitData.isMonthOpen && (
                                                                     <>
                                                                         <OverlayTrigger placement="top" overlay={<Tooltip>Agregar días no disponibles</Tooltip>}>
                                                                             <Button
@@ -578,7 +449,7 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
                                 ¡Todas las plazas han sido cubiertas para el mes!
                             </div>
                         )}
-                        {isMonthOpen && (
+                        {unitData.isMonthOpen && (
                             <div className="d-flex justify-content-center mt-4">
                                 <Button
                                     style={{
@@ -616,5 +487,3 @@ function UnitAssignmentView({modoVista, anio, mes, setModo}) {
         </Container>
     );
 }
-
-export default UnitAssignmentView;

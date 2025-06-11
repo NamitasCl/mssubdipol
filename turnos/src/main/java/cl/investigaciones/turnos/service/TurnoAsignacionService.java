@@ -178,6 +178,8 @@ public class TurnoAsignacionService {
             dto.setMes(mes.getMes());
             dto.setAnio(mes.getAnio());
             dto.setUnidades(unidades);
+            dto.setNombreCalendario(mes.getNombreCalendario());
+            dto.setIdFuncionario(mes.getIdFuncionario());
 
             resumen.add(dto);
         }
