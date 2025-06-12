@@ -9,25 +9,21 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+// AsignacionFuncionarioRepository.java
 public interface AsignacionFuncionarioRepository extends JpaRepository<AsignacionFuncionario, Long> {
-    List<AsignacionFuncionario> findByMesAndAnioAndUnidad(int mes, int anio, String unidad);
+    // Buscar todos los asignados para un calendario
+    List<AsignacionFuncionario> findByTurnoAsignacion_Id(Long turnoAsignacionId);
+
+    // Buscar asignaciones por calendario y unidad (para admins)
+    List<AsignacionFuncionario> findByTurnoAsignacion_IdAndUnidad(Long turnoAsignacionId, String unidad);
+
+    // Único: un funcionario por unidad en un calendario
+    Optional<AsignacionFuncionario> findByTurnoAsignacion_IdAndUnidadAndIdFuncionario(Long turnoAsignacionId, String unidad, int idFuncionario);
+
+    List<AsignacionFuncionario> findByUnidad(String unidad);
+
     Optional<AsignacionFuncionario> findById(Long id);
-
-    @Query("""
-    SELECT new cl.investigaciones.turnos.dto.FuncionariosDisponiblesResponseDTO(
-        af.id, af.idFuncionario, af.nombreCompleto, af.siglasCargo, af.antiguedad, af.unidad
-    )
-    FROM AsignacionFuncionario af
-    WHERE af.mes = :mes AND af.anio = :anio
-    """)
-    List<FuncionariosDisponiblesResponseDTO> findFuncionariosDisponibles(@Param("mes") int mes, @Param("anio") int anio);
-
-    Optional<AsignacionFuncionario> findByIdFuncionarioAndMesAndAnioAndUnidad(
-            int idFuncionario, int mes, int anio, String unidad);
-
-
-    Optional<AsignacionFuncionario> findByIdFuncionarioAndMesAndAnio(int idFuncionario, int mes, int anio);
-    Optional<AsignacionFuncionario> findByIdAndMesAndAnio(Long id, int mes, int anio);
 
     Optional<AsignacionFuncionario> findByIdFuncionario(int idFuncionario);
 }
+

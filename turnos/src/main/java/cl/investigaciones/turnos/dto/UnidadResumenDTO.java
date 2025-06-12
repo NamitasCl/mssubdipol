@@ -8,22 +8,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UnidadResumenDTO {
 
-    private String unidad;
+    private String siglasUnidad;
     private int cantidadPersonasNecesarias;
 
-    public String getUnidad() {
-        return unidad;
-    }
-
-    public void setUnidad(String unidad) {
-        this.unidad = unidad;
-    }
-
-    public int getCantidadPersonasNecesarias() {
-        return cantidadPersonasNecesarias;
-    }
-
-    public void setCantidadPersonasNecesarias(int cantidadPersonasNecesarias) {
-        this.cantidadPersonasNecesarias = cantidadPersonasNecesarias;
-    }
 }

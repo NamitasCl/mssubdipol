@@ -13,6 +13,7 @@ public class UnidadColaboradoraDTO {
     private int maxShifts;
     private int workersPerDay;
     private boolean noWeekend;
+    private String siglasUnidad;
 
     private int mes;
     private int anio;

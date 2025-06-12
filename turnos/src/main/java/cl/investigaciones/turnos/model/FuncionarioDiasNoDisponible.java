@@ -8,23 +8,18 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity(name = "func_dias_no_disponible")
-@Getter
-@Setter
+@Getter @Setter
 public class FuncionarioDiasNoDisponible {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private LocalDate fecha;
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
-
     private String motivo;
     private String detalle;
 
-    @ManyToOne
-    @JoinColumn(name = "id_funcionario", referencedColumnName = "id", nullable = false)
-    private AsignacionFuncionario identificadorFuncionario;
-
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "asignacion_funcionario_id", nullable = false)
+    private AsignacionFuncionario asignacionFuncionario;
 }

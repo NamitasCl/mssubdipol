@@ -11,11 +11,7 @@ import java.util.Optional;
 @Repository
 public interface UnidadColaboradoraRepository extends JpaRepository<UnidadColaboradora, Long> {
 
-    List<UnidadColaboradora> findByTurnoAsignacion_MesAndTurnoAsignacion_Anio(int mes, int anio);
-
-    Optional<UnidadColaboradora> findByNombreUnidadAndTurnoAsignacion_MesAndTurnoAsignacion_Anio(
-            String nombreUnidad, int mes, int anio);
-
     Optional<UnidadColaboradora> findByTurnoAsignacion(TurnoAsignacion turnoAsignacion);
 
+    List<UnidadColaboradora> findByTurnoAsignacionId(Long turnoAsignacion);
 }

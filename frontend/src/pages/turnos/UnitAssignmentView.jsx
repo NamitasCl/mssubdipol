@@ -5,29 +5,25 @@ import {
 import AsyncSelect from "react-select/async";
 import axios from "axios";
 import debounce from "lodash.debounce";
-import "bootstrap/dist/css/bootstrap.min.css";
 import UnavailabilityModal from "../../components/UnavailabilityModal.jsx";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
-import { FaArrowLeft } from "react-icons/fa";
 
-// Paleta de colores
 const azulPDI = "#17355A";
 const azulSuave = "#7fa6da";
 const azulOscuro = "#23395d";
 const grisClaro = "#eceff4";
 const verdeMenta = "#a6e3cf";
-const doradoPDI = "#FFC700";
 const textoPrincipal = "#23395d";
 const textoSecundario = "#4a5975";
 const blanco = "#f7f8fc";
 
-export default function UnitAssignmentView({ modoVista, setModo }) {
+export default function UnitAssignmentView() {
     const { user } = useAuth();
     const isAdmin = user?.isAdmin || false;
     const unidadUsuario = user?.siglasUnidad || "";
     const userId = user?.idFuncionario;
 
-    // Estado
+    // Estados principales
     const [unidadActual, setUnidadActual] = useState(unidadUsuario);
     const [calendarios, setCalendarios] = useState([]);
     const [calendarioSeleccionado, setCalendarioSeleccionado] = useState(null);
@@ -38,9 +34,8 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [showUnavailabilityModal, setShowUnavailabilityModal] = useState(false);
     const [editingEmployeeIndex, setEditingEmployeeIndex] = useState(null);
-    const [showInfo, setShowInfo] = useState(true);
 
-    // Cargar calendarios
+    // 1. Cargar los calendarios disponibles del usuario
     useEffect(() => {
         if (!userId) return;
         axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/mis-calendarios`, { params: { userid: userId } })
@@ -48,38 +43,42 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
             .catch(() => setCalendarios([]));
     }, [userId]);
 
-    // Cargar datos al seleccionar calendario
+    // 2. Al seleccionar un calendario, cargar unidades colaboradoras
     useEffect(() => {
         if (!calendarioSeleccionado) return;
-        console.log("Calendario seleccionado: ", calendarioSeleccionado)
-
-        const { mes, anio, nombreCalendario, id } = calendarioSeleccionado;
         setLoading(true);
         setError(null);
 
-        axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/mesesactivos2`)
-            .then(({ data }) => {
-                // Unidades colaboradoras de este calendario/mes
-                console.log(data)
-                const datosMes = data.find(m => m.mes === mes && m.anio === anio && m.nombreCalendario === nombreCalendario);
-                console.log("datosMes: ", datosMes)
-                const unidadesMes = datosMes?.unidades?.map(u => u.unidad) || [];
-                setUnidadesDisponibles(unidadesMes);
+        axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/unidades-colaboradoras`, {
+            params: { turnoAsignacion: calendarioSeleccionado.id }
+        })
+            .then(({ data: unidadesColaboradoras }) => {
+                setUnidadesDisponibles(unidadesColaboradoras.map(u => u.nombreUnidad));
 
-                // Si eres admin puedes elegir unidad, si no es la del usuario
-                if (!isAdmin) setUnidadActual(unidadUsuario);
-                else if (unidadesMes.length > 0 && !unidadesMes.includes(unidadActual)) setUnidadActual(unidadesMes[0]);
+                // Admin puede seleccionar unidad, sino por defecto la del usuario
+                let unidadSel = isAdmin
+                    ? (unidadActual || unidadesColaboradoras[0]?.nombreUnidad)
+                    : unidadUsuario;
 
-                // Trae asignados de la unidad actual
-                axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/asignaciones/consultar`, {
-                    params: { mes, anio, unidad: isAdmin ? unidadActual : unidadUsuario }
-                })
+                // Si admin y aún no hay unidad definida, setear la primera
+                if (isAdmin && !unidadActual && unidadesColaboradoras.length > 0) {
+                    setUnidadActual(unidadesColaboradoras[0].nombreUnidad);
+                    unidadSel = unidadesColaboradoras[0].nombreUnidad;
+                }
+
+                // Busca la unidad y obtiene el número requerido de funcionarios
+                const aporteUnidad = unidadesColaboradoras.find(uc => uc.nombreUnidad === unidadSel);
+                const required = aporteUnidad?.cantFuncAporte || 0;
+
+                // 3. Cargar los funcionarios asignados para este calendario+unidad
+                axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/asignaciones/${calendarioSeleccionado.id}/${unidadSel}`)
                     .then(resp => {
-                        const asig = Array.isArray(resp.data) ? resp.data : [];
+                        let asig = [];
+                        if (Array.isArray(resp.data)) asig = resp.data;
                         setUnitData({
-                            id: id,
-                            unitName: isAdmin ? unidadActual : unidadUsuario,
-                            required: (datosMes?.unidades?.find(u => u.unidad === (isAdmin ? unidadActual : unidadUsuario))?.cantidadPersonasNecesarias) || 0,
+                            id: calendarioSeleccionado.id,
+                            unitName: unidadSel,
+                            required,
                             assigned: asig.map(f => ({
                                 id: f.id,
                                 idFuncionario: f.idFuncionario,
@@ -88,30 +87,44 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
                                 antiguedad: f.antiguedad,
                                 unavailabilities: f.diasNoDisponibles || []
                             })),
-                            isMonthOpen: datosMes?.activo ?? true // Asumimos que activo viene en datosMes o por lógica del calendario
+                            isMonthOpen: true, // Puedes ajustar si necesitas info extra
+                            nombreCalendario: calendarioSeleccionado.nombreCalendario
                         });
                         setLoading(false);
-                    }).catch(() => {
-                    setUnitData(null);
-                    setLoading(false);
-                    setError("Error al cargar funcionarios asignados.");
-                });
+                    })
+                    .catch(() => {
+                        setUnitData({
+                            id: calendarioSeleccionado.id,
+                            unitName: unidadSel,
+                            required,
+                            assigned: [],
+                            isMonthOpen: true,
+                            nombreCalendario: calendarioSeleccionado.nombreCalendario
+                        });
+                        setLoading(false);
+                    });
             })
             .catch(() => {
                 setLoading(false);
-                setError("Error al cargar calendario.");
+                setError("Error al cargar las unidades colaboradoras.");
             });
-
+        // eslint-disable-next-line
     }, [calendarioSeleccionado, unidadActual, isAdmin, unidadUsuario]);
 
-    // Select de calendarios
-    const handleCalendarioSelect = (val) => {
+    // Al cambiar de unidad (admin), limpiar unitData para forzar recarga
+    useEffect(() => {
+        if (!isAdmin || !calendarioSeleccionado) return;
+        setUnitData(null);
+    }, [unidadActual]);
+
+    // Selección de calendario
+    const handleCalendarioSelect = val => {
         const cal = calendarios.find(c => String(c.id) === val);
         setCalendarioSeleccionado(cal || null);
         setUnitData(null);
     };
 
-    // AsyncSelect para funcionarios
+    // Async select para buscar funcionarios
     const loadOptions = (inputValue, callback) => {
         if (inputValue.length < 3) return callback([]);
         axios
@@ -131,36 +144,33 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
     // Guardar asignaciones
     const handleSaveAssignment = () => {
         if (!unitData) return;
-
-        const payload = {
-            unidad: unitData.unitName,
-            mes: calendarioSeleccionado.mes,
-            anio: calendarioSeleccionado.anio,
-            funcionarios: unitData.assigned.map(emp => ({
-                id: emp.id,
-                idFuncionario: emp.idFuncionario,
-                nombreCompleto: emp.nombreCompleto,
-                siglasCargo: emp.siglasCargo,
-                antiguedad: emp.antiguedad,
-                diasNoDisponibles: emp.unavailabilities,
-            })),
-        };
-
         setLoading(true);
         axios
-            .post(`${import.meta.env.VITE_TURNOS_API_URL}/asignaciones`, payload)
+            .post(
+                `${import.meta.env.VITE_TURNOS_API_URL}/asignaciones/${unitData.id}/${unitData.unitName}`,
+                unitData.assigned.map(emp => ({
+                    id: emp.id,
+                    idFuncionario: emp.idFuncionario,
+                    nombreCompleto: emp.nombreCompleto,
+                    siglasCargo: emp.siglasCargo,
+                    antiguedad: emp.antiguedad,
+                    diasNoDisponibles: emp.unavailabilities,
+                }))
+            )
             .then(() => {
                 alert("Asignación guardada exitosamente.");
                 setLoading(false);
             })
-            .catch(() => {
+            .catch((e) => {
                 setError("Error al guardar la asignación");
                 setLoading(false);
             });
     };
 
-    // Resto de helpers
-    const updateAssignedEmployees = (newList) => setUnitData(prev => ({ ...prev, assigned: newList }));
+    // Helpers
+    const updateAssignedEmployees = (newList) =>
+        setUnitData(prev => ({ ...prev, assigned: newList }));
+
     const handleOpenUnavailabilityModal = (index) => {
         setEditingEmployeeIndex(index);
         setShowUnavailabilityModal(true);
@@ -178,10 +188,6 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
         setShowUnavailabilityModal(false);
     };
     const remaining = unitData ? unitData.required - unitData.assigned.length : 0;
-    const formatMes = (mes, anio) => {
-        const date = new Date(anio, mes - 1);
-        return date.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
-    };
 
     return (
         <Container style={{
@@ -193,8 +199,11 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
             boxShadow: "0 8px 48px #7fa6da22",
             maxWidth: 1920,
         }}>
+            {/* Selección de calendario */}
             <Form.Group className="mb-4">
-                <Form.Label className="fw-semibold" style={{ color: azulPDI }}>Seleccionar calendario</Form.Label>
+                <Form.Label className="fw-semibold" style={{ color: azulPDI }}>
+                    Seleccione calendario
+                </Form.Label>
                 <Form.Select
                     value={calendarioSeleccionado ? String(calendarioSeleccionado.id) : ""}
                     onChange={e => handleCalendarioSelect(e.target.value)}
@@ -209,10 +218,20 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
                 </Form.Select>
             </Form.Group>
 
-            {/* Si eres admin, opción de unidad */}
+            {calendarioSeleccionado && (
+                <div className="mb-4 text-center">
+                    <span className="fw-semibold text-uppercase" style={{ color: azulOscuro, fontSize: 18 }}>
+                        {calendarioSeleccionado.nombreCalendario}
+                    </span>
+                </div>
+            )}
+
+            {/* Admin: opción de unidad */}
             {calendarioSeleccionado && isAdmin && unidadesDisponibles.length > 0 && (
                 <Form.Group className="mb-3" style={{ maxWidth: 380 }}>
-                    <Form.Label className="fw-semibold" style={{ color: azulPDI }}>Ver como unidad</Form.Label>
+                    <Form.Label className="fw-semibold" style={{ color: azulPDI }}>
+                        Ver como unidad
+                    </Form.Label>
                     <Form.Select
                         value={unidadActual}
                         onChange={(e) => setUnidadActual(e.target.value)}
@@ -225,7 +244,6 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
                 </Form.Group>
             )}
 
-            {/* Información, loading, error */}
             {loading && (
                 <div className="text-center py-5">
                     <Spinner animation="border" variant="primary" />
@@ -245,7 +263,7 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
                         className="d-flex justify-content-between align-items-center"
                         style={{
                             background: azulSuave,
-                            color: azulOscuro,
+                            color: blanco,
                             fontWeight: 700,
                             fontSize: "1.13rem",
                             borderTopLeftRadius: 19,
@@ -293,6 +311,11 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
                                     onClick={() => {
                                         if (selectedEmployee && remaining > 0 && unitData.isMonthOpen) {
                                             const { funcionario } = selectedEmployee;
+                                            // Evitar duplicados
+                                            if (unitData.assigned.some(emp => emp.idFuncionario === funcionario.id)) {
+                                                setSelectedEmployee(null);
+                                                return;
+                                            }
                                             updateAssignedEmployees([
                                                 ...unitData.assigned,
                                                 {
@@ -312,7 +335,6 @@ export default function UnitAssignmentView({ modoVista, setModo }) {
                                     Agregar
                                 </Button>
                             </Col>
-
                             <Col md={7}>
                                 <Card className="h-100 border-0" style={{ borderRadius: 14, background: grisClaro }}>
                                     <Card.Header className="bg-white border-0" style={{

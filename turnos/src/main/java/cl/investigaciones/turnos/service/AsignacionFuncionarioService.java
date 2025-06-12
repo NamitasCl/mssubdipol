@@ -5,8 +5,10 @@ import cl.investigaciones.turnos.dto.FuncionarioDiasNoDisponibleDTO;
 import cl.investigaciones.turnos.dto.FuncionariosDisponiblesResponseDTO;
 import cl.investigaciones.turnos.model.AsignacionFuncionario;
 import cl.investigaciones.turnos.model.FuncionarioDiasNoDisponible;
+import cl.investigaciones.turnos.model.TurnoAsignacion;
 import cl.investigaciones.turnos.repository.AsignacionFuncionarioRepository;
 import cl.investigaciones.turnos.repository.FuncionarioDiasNoDisponibleRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,87 +19,48 @@ import java.util.Optional;
 public class AsignacionFuncionarioService {
 
     private final AsignacionFuncionarioRepository asignacionFuncionarioRepository;
-    private final FuncionarioDiasNoDisponibleRepository funcionarioDiasNoDisponibleRepository;
 
-    public AsignacionFuncionarioService(AsignacionFuncionarioRepository asignacionFuncionarioRepository,
-                                         FuncionarioDiasNoDisponibleRepository funcionarioDiasNoDisponibleRepository) {
-        this.asignacionFuncionarioRepository = asignacionFuncionarioRepository;
-        this.funcionarioDiasNoDisponibleRepository = funcionarioDiasNoDisponibleRepository;
+    public AsignacionFuncionarioService(AsignacionFuncionarioRepository repo) {
+        this.asignacionFuncionarioRepository = repo;
     }
 
-    public void save(AsignacionFuncionario asignacionFuncionario) {
-        try {
-            asignacionFuncionarioRepository.save(asignacionFuncionario);
-        } catch (Exception e) {
-            System.out.println("Error al guardar asignación de funcionario: " + e.getMessage());
-        }
-    }
-
-    public List<FuncionarioAsignadoDTO> getAsignacionesConDiasNoDisponibles(int mes, int anio, String unidad) {
-        List<AsignacionFuncionario> asignados = asignacionFuncionarioRepository.findByMesAndAnioAndUnidad(mes, anio, unidad);
-
-        if (asignados == null || asignados.isEmpty()) return List.of();
-
-        LocalDate inicioMes = LocalDate.of(anio, mes, 1);
-        LocalDate finMes = inicioMes.withDayOfMonth(inicioMes.lengthOfMonth());
-
-        return asignados.stream().map(func -> {
-            FuncionarioAsignadoDTO dto = new FuncionarioAsignadoDTO();
-            dto.setId(func.getId());
-            dto.setIdFuncionario(func.getIdFuncionario());
-            dto.setNombreCompleto(func.getNombreCompleto());
-            dto.setSiglasCargo(func.getSiglasCargo());
-            dto.setAntiguedad(func.getAntiguedad());
-
-            List<FuncionarioDiasNoDisponible> dias = funcionarioDiasNoDisponibleRepository
-                    .findDiasNoDisponiblesPorFuncionarioYMesAnio(
-                            func.getIdFuncionario(), mes, anio, inicioMes, finMes
-                    );
-
-            List<FuncionarioDiasNoDisponibleDTO> diasDto = dias.stream().map(d -> {
-                FuncionarioDiasNoDisponibleDTO dDto = new FuncionarioDiasNoDisponibleDTO();
-                dDto.setFecha(d.getFecha());
-                dDto.setFechaInicio(d.getFechaInicio());
-                dDto.setFechaFin(d.getFechaFin());
-                dDto.setMotivo(d.getMotivo());
-                dDto.setDetalle(d.getDetalle());
-                return dDto;
-            }).toList();
-
-            dto.setDiasNoDisponibles(diasDto);
-            return dto;
-        }).toList();
-    }
-
-
-
-    public List<FuncionariosDisponiblesResponseDTO> findFuncionariosDisponibles(int mes, int anio) {
-        try {
-            return asignacionFuncionarioRepository.findFuncionariosDisponibles(mes, anio);
-        } catch (Exception e) {
-            System.out.println("Error al consultar funcionarios disponibles: " + e.getMessage());
-            return null;
-        }
-    }
-
-    public AsignacionFuncionario saveOrUpdate(AsignacionFuncionario nueva) {
+    // Guardar o actualizar (por idCalendario/unidad/funcionario)
+    @Transactional
+    public AsignacionFuncionario saveOrUpdate(AsignacionFuncionario nueva, Long turnoAsignacionId, String unidad) {
         Optional<AsignacionFuncionario> existente = asignacionFuncionarioRepository
-                .findByIdFuncionarioAndMesAndAnioAndUnidad(
-                        nueva.getIdFuncionario(),
-                        nueva.getMes(),
-                        nueva.getAnio(),
-                        nueva.getUnidad()
-                );
+                .findByTurnoAsignacion_IdAndUnidadAndIdFuncionario(turnoAsignacionId, unidad, nueva.getIdFuncionario());
+
+        // Setea relación padre (turnoAsignacion) y en hijos
+        nueva.setTurnoAsignacion(new TurnoAsignacion());
+        nueva.getTurnoAsignacion().setId(turnoAsignacionId);
+        nueva.setUnidad(unidad);
+
+        if (nueva.getDiasNoDisponibles() != null) {
+            nueva.getDiasNoDisponibles().forEach(d -> d.setAsignacionFuncionario(nueva));
+        }
 
         if (existente.isPresent()) {
             AsignacionFuncionario actual = existente.get();
             actual.setNombreCompleto(nueva.getNombreCompleto());
             actual.setSiglasCargo(nueva.getSiglasCargo());
             actual.setAntiguedad(nueva.getAntiguedad());
+            actual.setUnidad(unidad);
+            // Borra y reemplaza días no disponibles
+            actual.getDiasNoDisponibles().clear();
+            if (nueva.getDiasNoDisponibles() != null) {
+                nueva.getDiasNoDisponibles().forEach(d -> {
+                    d.setAsignacionFuncionario(actual);
+                    actual.getDiasNoDisponibles().add(d);
+                });
+            }
             return asignacionFuncionarioRepository.save(actual);
         } else {
             return asignacionFuncionarioRepository.save(nueva);
         }
     }
 
+    // Obtener todos los asignados de una unidad para un calendario
+    public List<AsignacionFuncionario> getAsignacionesPorCalendarioYUnidad(Long turnoAsignacionId, String unidad) {
+        return asignacionFuncionarioRepository.findByTurnoAsignacion_IdAndUnidad(turnoAsignacionId, unidad);
+    }
 }

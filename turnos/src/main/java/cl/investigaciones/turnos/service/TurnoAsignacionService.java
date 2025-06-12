@@ -169,7 +169,7 @@ public class TurnoAsignacionService {
 
             for (UnidadColaboradora unidadColab : mes.getUnidadesColaboradoras()) {
                 UnidadResumenDTO unidad = new UnidadResumenDTO();
-                unidad.setUnidad(unidadColab.getNombreUnidad());
+                unidad.setSiglasUnidad(unidadColab.getSiglasUnidad());
                 unidad.setCantidadPersonasNecesarias(unidadColab.getCantFuncAporte()); // ✅ usa lo que el usuario definió
                 unidades.add(unidad);
             }
@@ -194,6 +194,8 @@ public class TurnoAsignacionService {
                     MisCalendariosDTO dto = new MisCalendariosDTO();
                     dto.setId(calendario.getId());
                     dto.setNombreCalendario(calendario.getNombreCalendario());
+                    dto.setMes(calendario.getMes());
+                    dto.setAnio(calendario.getAnio());
                     return dto;
                 })
                 .collect(Collectors.toList());

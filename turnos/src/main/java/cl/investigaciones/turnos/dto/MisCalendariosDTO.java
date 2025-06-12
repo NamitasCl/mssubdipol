@@ -10,4 +10,6 @@ import lombok.Setter;
 public class MisCalendariosDTO {
     private Long id;
     private String nombreCalendario;
+    private int mes;
+    private int anio;
 }

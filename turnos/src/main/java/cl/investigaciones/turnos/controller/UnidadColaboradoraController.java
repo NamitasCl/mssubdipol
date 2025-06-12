@@ -22,20 +22,18 @@ public class UnidadColaboradoraController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getUnidadesColaboradorasPorMesYAnio(
-            @RequestParam int mes,
-            @RequestParam int anio
+    public ResponseEntity<?> getUnidadesColaboradorasPorTurnoAsignacion(
+            @RequestParam Long turnoAsignacion
     ) {
-        System.out.println("Consultando unidades colaboradoras para mes: " + mes + ", año: " + anio);
         try {
             List<UnidadColaboradora> unidades = service
-                    .findByTurnoAsignacion_MesAndTurnoAsignacion_Anio(mes, anio);
+                    .findByTurnoAsignacion(turnoAsignacion);
 
             List<UnidadColaboradoraResponseDTO> response = unidades.stream()
                     .map(unidad -> {
                         UnidadColaboradoraResponseDTO dto = new UnidadColaboradoraResponseDTO();
                         dto.setId(unidad.getId());
-                        dto.setNombreUnidad(unidad.getNombreUnidad());
+                        dto.setSiglasUnidad(unidad.getSiglasUnidad());
                         dto.setCantFuncAporte(unidad.getCantFuncAporte());
                         dto.setMaxTurnos(unidad.getMaxTurnos());
                         dto.setTrabajadoresPorDia(unidad.getTrabajadoresPorDia());

@@ -38,7 +38,7 @@ public class ContextoRestriccionAsignacion implements ContextoRestriccion {
         }
 
         for (FuncionarioDiasNoDisponible f : noDisponibles) {
-            int idFun = f.getIdentificadorFuncionario().getIdFuncionario();
+            int idFun = f.getAsignacionFuncionario().getIdFuncionario();
             List<Integer> dias = new ArrayList<>();
             if (f.getFecha() != null && f.getFecha().getMonthValue() == mes && f.getFecha().getYear() == anio) {
                 dias.add(f.getFecha().getDayOfMonth());

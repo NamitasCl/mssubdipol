@@ -33,7 +33,7 @@ public class UnidadColaboradoraService {
                         "No existe registro para el mes " + request.getMes() + " y año " + request.getAnio()));
 
         UnidadColaboradora entidad = new UnidadColaboradora();
-        entidad.setNombreUnidad(request.getName());
+        entidad.setSiglasUnidad(request.getSiglasUnidad());
         entidad.setCantFuncAporte(request.getTotalPeople());
         entidad.setMaxTurnos(request.getMaxShifts());
         entidad.setTrabajadoresPorDia(request.getWorkersPerDay());
@@ -47,7 +47,7 @@ public class UnidadColaboradoraService {
 
         UnidadColaboradoraResponseDTO response = new UnidadColaboradoraResponseDTO();
         response.setId(savedEntity.getId());
-        response.setNombreUnidad(savedEntity.getNombreUnidad());
+        response.setSiglasUnidad(savedEntity.getSiglasUnidad());
         response.setCantFuncAporte(savedEntity.getCantFuncAporte());
         response.setMaxTurnos(savedEntity.getMaxTurnos());
         response.setTrabajadoresPorDia(savedEntity.getTrabajadoresPorDia());
@@ -56,8 +56,8 @@ public class UnidadColaboradoraService {
         return response;
     }
 
-    public List<UnidadColaboradora> findByTurnoAsignacion_MesAndTurnoAsignacion_Anio(int mes, int anio) {
-        return unidadColaboradoraRepository.findByTurnoAsignacion_MesAndTurnoAsignacion_Anio(mes, anio);
+    public List<UnidadColaboradora> findByTurnoAsignacion(Long turnoAsignacion) {
+        return unidadColaboradoraRepository.findByTurnoAsignacionId(turnoAsignacion);
     }
 
     public UnidadColaboradora saveOrUpdate(UnidadColaboradoraDTO dto) {
@@ -74,7 +74,7 @@ public class UnidadColaboradoraService {
                 .findByTurnoAsignacion(turnoAsignacion.get())
                 .orElseGet(UnidadColaboradora::new);
 
-        entidad.setNombreUnidad(dto.getName());
+        entidad.setSiglasUnidad(dto.getSiglasUnidad());
         entidad.setCantFuncAporte(dto.getTotalPeople());
         entidad.setMaxTurnos(dto.getMaxShifts());
         entidad.setTrabajadoresPorDia(dto.getWorkersPerDay());

@@ -23,7 +23,7 @@ public class DiasNoDisponiblesService {
         Map<Integer, List<String>> resultado = new HashMap<>();
 
         for (var dia : lista) {
-            Integer idFun = dia.getIdentificadorFuncionario().getIdFuncionario();
+            Integer idFun = dia.getAsignacionFuncionario().getIdFuncionario();
 
             List<LocalDate> fechas = new ArrayList<>();
 

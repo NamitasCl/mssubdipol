@@ -11,19 +11,13 @@ import { useAuth } from "../../components/contexts/AuthContext.jsx";
 // Paleta institucional
 const azulPDI = "#17355A";
 const textoSecundario = "#4a5975";
-const meses = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-];
 
 export function UnitDepartmentManagement() {
     const { user } = useAuth();
-    const userId = user?.idFuncionario; // o user.idFuncionario
+    const userId = user?.idFuncionario;
 
     // Estado global de selección
-    const [selectedCalendar, setSelectedCalendar] = useState("");
-    const [selectedMonth, setSelectedMonth] = useState("");
-    const [selectedYear, setSelectedYear] = useState("");
+    const [selectedCalendar, setSelectedCalendar] = useState(null);
     const [calendars, setCalendars] = useState([]);
     const [loadingCalendars, setLoadingCalendars] = useState(false);
 
@@ -31,10 +25,6 @@ export function UnitDepartmentManagement() {
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const yearOptions = useMemo(() => {
-        const y = new Date().getFullYear();
-        return Array.from({ length: 5 }, (_, i) => y - 1 + i);
-    }, []);
 
     // Cargar calendarios del backend
     useEffect(() => {
@@ -47,11 +37,11 @@ export function UnitDepartmentManagement() {
             .finally(() => setLoadingCalendars(false));
     }, [userId]);
 
-    // Cuando cambia calendario/mes/año, reiniciar departamentos
+    // Cuando cambia calendario, reiniciar departamentos
     useEffect(() => {
         setDepartments([]);
         setError("");
-    }, [selectedCalendar, selectedMonth, selectedYear]);
+    }, [selectedCalendar]);
 
     return (
         <Card style={{ borderRadius: 18, boxShadow: "0 5px 18px #b0c5e820", marginBottom: 24 }}>
@@ -67,61 +57,36 @@ export function UnitDepartmentManagement() {
                         ) : (
                             <Form.Select
                                 style={{ minWidth: 220, fontWeight: 600 }}
-                                value={selectedCalendar}
-                                onChange={e => setSelectedCalendar(e.target.value)}
+                                value={selectedCalendar ? String(selectedCalendar.id) : ""}
+                                onChange={e => {
+                                    const cal = calendars.find(c => String(c.id) === e.target.value);
+                                    setSelectedCalendar(cal || null);
+                                }}
                             >
                                 <option value="">Seleccione calendario...</option>
                                 {calendars.map(c => (
-                                    <option key={c.id} value={c.id}>{c.nombreCalendario}</option>
+                                    <option key={c.id} value={String(c.id)}>
+                                        {c.nombreCalendario} &mdash; {c.mes}/{c.anio}
+                                    </option>
                                 ))}
                             </Form.Select>
                         )}
                     </Form.Group>
-                    <Form.Group>
-                        <Form.Label className="fw-bold">Mes</Form.Label>
-                        <Form.Select
-                            style={{ minWidth: 120, fontWeight: 600 }}
-                            value={selectedMonth}
-                            onChange={e => setSelectedMonth(e.target.value)}
-                            disabled={!selectedCalendar}
-                        >
-                            <option value="">Mes</option>
-                            {meses.map((m, idx) => (
-                                <option key={m} value={idx + 1}>{m}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label className="fw-bold">Año</Form.Label>
-                        <Form.Select
-                            style={{ minWidth: 100, fontWeight: 600 }}
-                            value={selectedYear}
-                            onChange={e => setSelectedYear(e.target.value)}
-                            disabled={!selectedCalendar}
-                        >
-                            <option value="">Año</option>
-                            {yearOptions.map(y => (
-                                <option key={y} value={y}>{y}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
                 </div>
                 {/* Mensajes de error/carga */}
                 {error && <Alert variant="danger">{error}</Alert>}
-                {selectedCalendar && selectedMonth && selectedYear ? (
+                {selectedCalendar ? (
                     <DepartmentManagement
                         departments={departments}
                         setDepartments={setDepartments}
-                        mes={Number(selectedMonth)}
-                        anio={Number(selectedYear)}
-                        idCalendario={selectedCalendar}
+                        calendario={selectedCalendar}
                         loading={loading}
                         setLoading={setLoading}
                         setError={setError}
                     />
                 ) : (
                     <div className="text-muted" style={{ color: textoSecundario }}>
-                        Selecciona un calendario, mes y año para gestionar las unidades colaboradoras.
+                        Selecciona un calendario para gestionar las unidades colaboradoras.
                     </div>
                 )}
             </Card.Body>
@@ -133,13 +98,17 @@ export function UnitDepartmentManagement() {
 // ---- COMPONENTE HIJO ----
 
 function DepartmentManagement({
-                                  departments, setDepartments, mes, anio, idCalendario, loading, setLoading, setError
+                                  departments, setDepartments, calendario, loading, setLoading, setError
                               }) {
+    // Extraemos mes, año y el id de calendario del objeto calendario
+    const mes = calendario?.mes;
+    const anio = calendario?.anio;
+    const idCalendario = calendario?.id;
 
     const [showModal, setShowModal] = useState(false);
     const [editDept, setEditDept] = useState(null);
     const [selectedUnit, setSelectedUnit] = useState(null);
-    const {control, register, handleSubmit, reset} = useForm();
+    const { control, register, handleSubmit, reset } = useForm();
     const [saving, setSaving] = useState(false);
 
     // Autocompletar nombre de unidad
@@ -147,13 +116,14 @@ function DepartmentManagement({
         if (!inputValue || inputValue.length < 3) return callback([]);
         axios
             .get(`${import.meta.env.VITE_COMMON_SERVICES_API_URL}/unidades/buscar`, {
-                params: {nombre: inputValue}
+                params: { nombre: inputValue }
             })
             .then(response => {
                 const options = response.data.map(u => ({
-                    value: u.nombreUnidad,
+                    value: u.siglasUnidad,
                     label: u.nombreUnidad
                 }));
+                console.log("Options: ", options)
                 callback(options);
             })
             .catch(() => callback([]));
@@ -162,14 +132,14 @@ function DepartmentManagement({
 
     // --- CARGA INICIAL DEPARTAMENTOS DESDE EL BACKEND ---
     useEffect(() => {
-        if (!mes || !anio) return;
+        if (!idCalendario) return;
         setLoading(true);
         axios
             .get(`${import.meta.env.VITE_TURNOS_API_URL}/unidades-colaboradoras`, {
-                params: { mes, anio }
+                params: { turnoAsignacion: idCalendario }
             })
             .then((res) => {
-                // Normaliza el formato para ser compatible con el resto del código
+                console.log("Respuesta unidades-colaboradoras: ", res.data)
                 if (Array.isArray(res.data)) {
                     setDepartments(res.data);
                 } else {
@@ -178,7 +148,7 @@ function DepartmentManagement({
             })
             .catch(() => setDepartments([]))
             .finally(() => setLoading(false));
-    }, [mes, anio, setDepartments]);
+    }, [idCalendario, setDepartments]);
 
     // Agregar o editar
     const openAddModal = () => {
@@ -231,7 +201,6 @@ function DepartmentManagement({
         setSaving(true);
         setLoading(true);
         setError("");
-        console.log("Departamentos: ", departments)
         try {
             await axios.post(`${import.meta.env.VITE_TURNOS_API_URL}/unidades-colaboradoras/lote`, departments);
             setError("");
@@ -260,7 +229,7 @@ function DepartmentManagement({
             <Card.Body>
                 <div className="d-flex justify-content-between align-items-center mb-2" style={{ marginTop: -10 }}>
                     <h4 className="fw-bold" style={{ color: azulPDI, fontSize: 19, marginBottom: 0 }}>
-                        Unidades agregadas para este mes/año
+                        Unidades agregadas para: <span style={{ color: "#2565c7" }}>{calendario?.nombreCalendario} ({mes}/{anio})</span>
                     </h4>
                     <Button
                         variant="success"
@@ -281,7 +250,7 @@ function DepartmentManagement({
 
                 {departments.length === 0 ? (
                     <div className="text-center my-4" style={{ color: textoSecundario }}>
-                        No hay unidades agregadas para este mes/año.
+                        No hay unidades agregadas para este calendario.
                     </div>
                 ) : (
                     <div
@@ -408,6 +377,7 @@ function DepartmentManagement({
                                         value={selectedUnit}
                                         onChange={(option) => {
                                             setSelectedUnit(option);
+                                            console.log("Value: ", option.value)
                                             field.onChange(option.value);
                                         }}
                                         placeholder="Nombre de la unidad"

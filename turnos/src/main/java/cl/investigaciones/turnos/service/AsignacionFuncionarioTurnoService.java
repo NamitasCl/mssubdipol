@@ -60,7 +60,7 @@ public class AsignacionFuncionarioTurnoService {
         for (AsignacionTurnoRequestDTO.FuncionarioTurnoDTO ft : dto.getAsignaciones()) {
             System.out.println("Funcionario: " + ft.getId() + ", Turno: " + ft.getNombreTurno());
             AsignacionFuncionario funcionario = funcionarioRepo
-                    .findByIdAndMesAndAnio(ft.getId(), dto.getMes(), dto.getAnio())
+                    .findById(ft.getId())
                     .orElseThrow(() -> new RuntimeException("Funcionario no encontrado"));
 
             AsignacionFuncionarioTurno asignacion = new AsignacionFuncionarioTurno();

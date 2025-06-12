@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -33,6 +34,9 @@ public class TurnoAsignacion {
 
     @OneToMany(mappedBy = "turnoAsignacion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UnidadColaboradora> unidadesColaboradoras;
+
+    @OneToMany(mappedBy = "turnoAsignacion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AsignacionFuncionario> asignacionFuncionarios;
 
     @ManyToMany
     @JoinTable(

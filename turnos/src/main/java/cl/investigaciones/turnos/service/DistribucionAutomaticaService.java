@@ -74,7 +74,7 @@ public class DistribucionAutomaticaService {
                 .orElseThrow(() -> new RuntimeException("Mes no encontrado"));
 
         // Funcionarios de la unidad (puedes filtrar más si lo necesitas)
-        List<AsignacionFuncionario> funcionarios = funcionarioRepo.findByMesAndAnioAndUnidad(mes, anio, unidad);
+        List<AsignacionFuncionario> funcionarios = funcionarioRepo.findByUnidad(unidad);
         if (funcionarios.isEmpty()) throw new RuntimeException("No hay funcionarios para la unidad");
 
         // Ordena de más antiguo a menos antiguo

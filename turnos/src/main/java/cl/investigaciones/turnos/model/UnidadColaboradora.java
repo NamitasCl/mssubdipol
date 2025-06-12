@@ -15,7 +15,7 @@ public class UnidadColaboradora {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nombreUnidad;
+    private String siglasUnidad;
     private int cantFuncAporte;
     private int maxTurnos;
     private int trabajadoresPorDia;
