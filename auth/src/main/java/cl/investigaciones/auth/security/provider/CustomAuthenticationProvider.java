@@ -128,7 +128,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         Map<String, String> tokenBodyRequest = new HashMap<>();
 
         tokenBodyRequest.put("usuarioAD", "eramirezs");
-        tokenBodyRequest.put("contraseñaFun", "Mhb2015.@");
+    tokenBodyRequest.put("contraseñaFun", "Mhb2015.@");
         tokenBodyRequest.put("keySistema", "UNE1KBATI6BNVLQF8Z9O");
 
         RestTemplate restTemplate = new RestTemplate();

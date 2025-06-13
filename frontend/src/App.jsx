@@ -26,6 +26,7 @@ import VistaRegistrosFormulario from "./pages/formularioDinamico/VistaRegistrosF
 import GestionTurnosPage from "./pages/turnos/GestionTurnosPage.jsx";
 import {DepartmentManagement} from "./components/DepartmentManagement.jsx";
 import {UnitDepartmentManagement} from "./pages/turnos/UnitDepartmentManagement.jsx";
+import CalendariosRouter from "./CalendariosRouter.jsx";
 
 
 export default function App() {
@@ -48,6 +49,7 @@ export default function App() {
                     <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={UnitAssignmentView} />} />
                     <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
                     <Route path="calendario" element={<VistaCalendarioTurnosFiltros />} />
+                    <Route path="calendarios/*" element={<CalendariosRouter />} />
                     <Route path="disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual} />} />
                     <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
                     <Route path="admin" element={<RestrictedAreaAdmin component={Admin} />} />
