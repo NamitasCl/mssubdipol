@@ -16,7 +16,6 @@ import ModificarAsignacionesUnidad from "./pages/turnos/ModificarAsignacionesUni
 import PaginaEnConstruccion from "./pages/PaginaEnConstruccion.jsx";
 import VistaCalendarioTurnosFiltros from "./pages/turnos/VistaCalendarioTurnosFiltros.jsx";
 import DashboardPrincipal from "./pages/formularioDinamico/DashboardPrincipal.jsx";
-
 import ServiciosEspecialesLayout from "./pages/formularioDinamico/ServiciosEspecialesLayout.jsx";
 import './assets/App.css';
 import ListaFormulariosDisponibles from "./pages/formularioDinamico/ListaFormulariosDisponibles.jsx";
@@ -24,9 +23,9 @@ import FormBuilderApp from "./pages/formularioDinamico/FormBuilderApp.jsx";
 import FormularioDinamicoPage from "./pages/formularioDinamico/FormularioDinamicoPage.jsx";
 import VistaRegistrosFormulario from "./pages/formularioDinamico/VistaRegistrosFormulario.jsx";
 import GestionTurnosPage from "./pages/turnos/GestionTurnosPage.jsx";
-import {DepartmentManagement} from "./components/DepartmentManagement.jsx";
 import {UnitDepartmentManagement} from "./pages/turnos/UnitDepartmentManagement.jsx";
-import CalendariosRouter from "./CalendariosRouter.jsx";
+import CalendarioPage from "./pages/calendarios/CalendarioPage.jsx";
+
 
 
 export default function App() {
@@ -49,7 +48,7 @@ export default function App() {
                     <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={UnitAssignmentView} />} />
                     <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
                     <Route path="calendario" element={<VistaCalendarioTurnosFiltros />} />
-                    <Route path="calendarios/*" element={<CalendariosRouter />} />
+                    <Route path="calendarios" element={<CalendarioPage />} />
                     <Route path="disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual} />} />
                     <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
                     <Route path="admin" element={<RestrictedAreaAdmin component={Admin} />} />

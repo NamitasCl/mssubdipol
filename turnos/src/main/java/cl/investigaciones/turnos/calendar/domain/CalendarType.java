@@ -1,6 +1,6 @@
 package cl.investigaciones.turnos.calendar.domain;
 
 public enum CalendarType {
-    UNIT,   // Calendario para una sola unidad
-    COMPLEX // Calendario que agrupa varias unidades
+    UNIDAD,   // Calendario para una sola unidad
+    COMPLEJO // Calendario que agrupa varias unidades
 }
