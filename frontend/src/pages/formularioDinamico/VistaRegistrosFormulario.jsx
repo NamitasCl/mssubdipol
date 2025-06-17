@@ -71,9 +71,13 @@ export default function VistaRegistrosFormulario() {
     },[formularioId,idUnidad,idFuncionarioParam,esCuotaPadre,user.token]);
 
     // ╭──────────────────────── Filtro propio ──────────────────────────────
+    // — Registros visibles para este usuario —
+//   • Si viene desde una "cuota padre" → ve todo (permiso especial)
+//   • En cualquier otro caso         → SOLO los que él ingresó
+    const myId = String(user.idFuncionario ?? "");
     const misRegistros = esCuotaPadre
-        ? registros                              // cuota‑padre ve todo
-        : registros.filter(r=>r.idFuncionario === user.idFuncionario); // resto solo sus propios
+        ? registros
+        : registros.filter(r => String(r.idFuncionario) === myId); // resto solo sus propios
 
     // ╭──────────────────────── Exportar Excel ─────────────────────────────
     const toPlain = (v)=>{
