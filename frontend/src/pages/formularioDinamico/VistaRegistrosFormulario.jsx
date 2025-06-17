@@ -101,20 +101,44 @@ export default function VistaRegistrosFormulario() {
             return;
         }
 
+        // ── función utilitaria que “limpia” cada valor ────────────────
+        const toPlain = (v) => {
+            if (v === null || v === undefined) return "";
+            // label/value
+            if (typeof v === "object" && !Array.isArray(v) && "label" in v) {
+                return v.label;
+            }
+            // array → concatenar labels si existen
+            if (Array.isArray(v)) {
+                return v
+                    .map((item) =>
+                        typeof item === "object" && "label" in item
+                            ? item.label
+                            : JSON.stringify(item)
+                    )
+                    .join("; ");
+            }
+            // objeto genérico
+            if (typeof v === "object") return JSON.stringify(v);
+            return v;
+        };
+
+        // ── armar filas plano → label únicamente ─────────────────────
         const rows = misRegistros.map((r, i) => {
             const fila = { "#": i + 1 };
             campos.forEach((c) => {
-                const v = r.datos?.[c.nombre];
-                fila[c.etiqueta || c.nombre] =
-                    typeof v === "object" ? JSON.stringify(v) : v ?? "";
+                fila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
             });
             fila.Funcionario =
-                r.nombreFuncionario ? `${r.nombreFuncionario} (${r.idFuncionario})` : r.idFuncionario;
+                r.nombreFuncionario
+                    ? `${r.nombreFuncionario} (${r.idFuncionario})`
+                    : r.idFuncionario;
             fila.Fecha = r.fechaRespuesta
                 ? new Date(r.fechaRespuesta).toLocaleString()
                 : "";
             return fila;
         });
+
 
         const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
