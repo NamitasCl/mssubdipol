@@ -1,299 +1,153 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Table, Button, Spinner, Alert, Modal, Form, Badge } from "react-bootstrap";
-import { useAuth } from "../../components/contexts/AuthContext.jsx";
+import {
+    Table,
+    Button,
+    Spinner,
+    Alert,
+    Modal,
+    Form,
+    Badge,
+} from "react-bootstrap";
+import { useAuth } from "../../AuthContext";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
-// Paleta institucional
+// Colores institucionales
 const doradoPDI = "#FFC700";
-const azulPDI = "#17355A";
-const grisOscuro = "#222938";
+const azulPDI   = "#17355A";
 
 export default function VistaRegistrosFormulario() {
-    const { state } = useLocation();
-    const navigate = useNavigate();
-    const { user } = useAuth();
+    const { state }   = useLocation();
+    const navigate    = useNavigate();
+    const { user }    = useAuth();
 
-    // Leer los datos desde el state recibido (navegación)
-    const formularioId = state?.formularioId;
-    const cuotaId = state?.cuotaId;
-    const esCuotaPadre = !!state?.esCuotaPadre;
-    const idUnidad = state?.idUnidad;
-    const idFuncionario = state?.idFuncionario;
+    // ─── parámetros recibidos por navegación ──────────────────────────────
+    const formularioId       = state?.formularioId;
+    const esCuotaPadre       = !!state?.esCuotaPadre;
+    const idUnidad           = state?.idUnidad;
+    const idFuncionarioParam = state?.idFuncionario;
 
-    const [registros, setRegistros] = useState([]);
-    const [campos, setCampos] = useState([]);
+    // ─── estados globales ─────────────────────────────────────────────────
     const [formulario, setFormulario] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [campos,      setCampos]      = useState([]);
+    const [registros,   setRegistros]   = useState([]);
+    const [loading,     setLoading]     = useState(true);
+    const [error,       setError]       = useState(null);
 
-    // Modal de edición
-    const [showEdit, setShowEdit] = useState(false);
-    const [registroEdit, setRegistroEdit] = useState(null);
-    const [valoresEdit, setValoresEdit] = useState({});
-    const [saving, setSaving] = useState(false);
-
-    // Modal de detalle de subformulario
+    // sub‑formulario modal
     const [showSubform, setShowSubform] = useState(false);
     const [subformData, setSubformData] = useState([]);
-    const [subformField, setSubformField] = useState(""); // nombre del campo
 
-    // Cargar definición de formulario
+    // ╭──────────────────────── Definición de formulario ───────────────────
     useEffect(() => {
         if (!formularioId) return;
-        setLoading(true);
-        setError(null);
-        fetch(
-            `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formularioId}`,
-            { headers: { Authorization: `Bearer ${user.token}` } }
-        )
-            .then(res => res.json())
-            .then(data => {
-                setFormulario(data);
-                setCampos(data.campos || []);
-            })
-            .catch(() => setError("No se pudo cargar la definición del formulario"))
-            .finally(() => setLoading(false));
-    }, [formularioId, user.token]);
+        setLoading(true); setError(null);
+        fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formularioId}`,
+            { headers:{ Authorization:`Bearer ${user.token}` } })
+            .then(r=>r.json())
+            .then(def=>{ setFormulario(def); setCampos(def.campos||[]); })
+            .catch(()=>setError("No se pudo cargar la definición"))
+            .finally(()=>setLoading(false));
+    },[formularioId,user.token]);
 
-    // Traer los registros
+    // ╭──────────────────────── Carga de registros ─────────────────────────
     useEffect(() => {
         if (!formularioId) return;
-        setLoading(true);
-        setError(null);
-
-        let url = `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formularioId}`;
-
-        fetch(url, { headers: { Authorization: `Bearer ${user.token}` } })
-            .then(res => res.json())
-            .then(data => {
-                let filtrar = data;
-                if (!esCuotaPadre) {
-                    if (idUnidad) filtrar = filtrar.filter(r => r.idUnidad === idUnidad);
-                    if (idFuncionario) filtrar = filtrar.filter(r => r.idFuncionario === idFuncionario);
+        setLoading(true); setError(null);
+        fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formularioId}`,
+            { headers:{ Authorization:`Bearer ${user.token}` } })
+            .then(r=>r.json())
+            .then(data=>{
+                let lista=Array.isArray(data)?data:[];
+                if(!esCuotaPadre){
+                    if(idUnidad)           lista = lista.filter(r=>r.idUnidad===idUnidad);
+                    if(idFuncionarioParam) lista = lista.filter(r=>r.idFuncionario===idFuncionarioParam);
                 }
-                setRegistros(Array.isArray(filtrar) ? filtrar : []);
+                setRegistros(lista);
             })
-            .catch(() => setError("No se pudieron cargar los registros"))
-            .finally(() => setLoading(false));
-    }, [formularioId, idUnidad, idFuncionario, esCuotaPadre, user.token, showEdit]);
+            .catch(()=>setError("No se pudieron cargar los registros"))
+            .finally(()=>setLoading(false));
+    },[formularioId,idUnidad,idFuncionarioParam,esCuotaPadre,user.token]);
 
-    if (!state || !state.formularioId) {
-        return (
-            <div className="container py-4">
-                <Alert variant="warning">
-                    No se proporcionaron los datos del formulario.
-                    <Button size="sm" className="ms-3" onClick={() => navigate(-1)}>
-                        Volver
-                    </Button>
-                </Alert>
-            </div>
-        );
-    }
+    // ╭──────────────────────── Filtro propio ──────────────────────────────
+    // — Registros visibles para este usuario —
+//   • Si viene desde una "cuota padre" → ve todo (permiso especial)
+//   • En cualquier otro caso         → SOLO los que él ingresó
+    const myId = String(user.idFuncionario ?? "");
+    const misRegistros = esCuotaPadre
+        ? registros
+        : registros.filter(r => String(r.idFuncionario) === myId); // resto solo sus propios
 
-    // ---- Modal de edición ----
-    const handleShowEdit = (registro) => {
-        setRegistroEdit(registro);
-        setValoresEdit({ ...registro.datos });
-        setShowEdit(true);
+    // ╭──────────────────────── Exportar Excel ─────────────────────────────
+    const toPlain = (v)=>{
+        if(v===null||v===undefined) return "";
+        if(typeof v==="object" && !Array.isArray(v) && "label" in v) return v.label;
+        if(Array.isArray(v)) return v.map(it=>typeof it==="object"&&"label" in it?it.label:JSON.stringify(it)).join("; ");
+        if(typeof v==="object") return JSON.stringify(v);
+        return v;
     };
 
-    const handleCloseEdit = () => {
-        setShowEdit(false);
-        setRegistroEdit(null);
-        setValoresEdit({});
+    const exportarExcel=()=>{
+        if(!misRegistros.length){alert("No hay datos para exportar");return;}
+        const rows = misRegistros.map((r,i)=>{
+            const fila={"#":i+1};
+            campos.forEach(c=>{fila[c.etiqueta||c.nombre]=toPlain(r.datos?.[c.nombre]);});
+            fila.Funcionario = r.nombreFuncionario?`${r.nombreFuncionario} (${r.idFuncionario})`:r.idFuncionario;
+            fila.Fecha = r.fechaRespuesta?new Date(r.fechaRespuesta).toLocaleString():"";
+            return fila;
+        });
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,ws,"Registros");
+        const wbout = XLSX.write(wb,{type:"array",bookType:"xlsx"});
+        saveAs(new Blob([wbout],{type:"application/octet-stream"}),`registros_form${formularioId}.xlsx`);
     };
 
-    const handleEditChange = (campo, valor) => {
-        setValoresEdit(v => ({ ...v, [campo]: valor }));
+    // ╭──────────────────────── Render celda ───────────────────────────────
+    const renderCell = (v)=>{
+        if(v===null||v===undefined) return "";
+        if(typeof v==="object" && v && "label" in v) return v.label;
+        if(typeof v==="boolean") return v?"Sí":"No";
+        if(Array.isArray(v)) return <Button size="sm" variant="info" onClick={()=>{setSubformData(v);setShowSubform(true);}}>Ver</Button>;
+        if(typeof v==="object") return <span title={JSON.stringify(v)}>[obj]</span>;
+        return v;
     };
 
-    const handleGuardarEdicion = async () => {
-        setSaving(true);
-        try {
-            const res = await fetch(
-                `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${registroEdit.id}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${user.token}`,
-                    },
-                    body: JSON.stringify({ valores: valoresEdit }),
-                }
-            );
-            if (!res.ok) throw new Error("Error al guardar");
-            setShowEdit(false);
-        } catch (e) {
-            alert("Error al guardar cambios");
-        } finally {
-            setSaving(false);
-        }
-    };
+    // ╭──────────────────────── Interfaz ───────────────────────────────────
+    if(!formularioId) return <div className="container py-4"><Alert variant="warning">Falta ID de formulario</Alert></div>;
 
-    // ---- Renderizador de celda inteligente ----
-    function renderCell(valor) {
-        if (valor === null || valor === undefined) return "";
-        // Si es label/value (select async o select normal)
-        if (
-            typeof valor === "object" &&
-            valor !== null &&
-            Object.keys(valor).includes("label")
-        ) {
-            return valor.label;
-        }
-        // Si es booleano
-        if (typeof valor === "boolean") {
-            return valor ? "Sí" : "No";
-        }
-        // Si es array de objetos: subformulario
-        if (Array.isArray(valor)) {
-            return (
-                <Button
-                    size="sm"
-                    variant="info"
-                    onClick={() => {
-                        setSubformData(valor);
-                        setShowSubform(true);
-                    }}
-                >
-                    Ver detalle
-                </Button>
-            );
-        }
-        // Si es objeto genérico (no label/value ni array), mostrar JSON corto
-        if (typeof valor === "object") {
-            return <span title={JSON.stringify(valor)}>[objeto]</span>;
-        }
-        // Normal (string/number)
-        return valor;
-    }
-
-    // ---- Render del modal de subformulario ----
-    function SubformModal() {
-        if (!subformData || !Array.isArray(subformData) || subformData.length === 0)
-            return null;
-        // Tomar todas las claves presentes en el subformulario
-        const allKeys = Array.from(
-            subformData.reduce((acc, item) => {
-                Object.keys(item).forEach((k) => acc.add(k));
-                return acc;
-            }, new Set())
-        );
-        return (
-            <Modal show={showSubform} onHide={() => setShowSubform(false)} size="lg" centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Detalle del subformulario</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Table bordered hover>
-                        <thead>
-                        <tr>
-                            {allKeys.map(k => (
-                                <th key={k}>{k}</th>
-                            ))}
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {subformData.map((row, i) => (
-                            <tr key={i}>
-                                {allKeys.map(k => (
-                                    <td key={k}>
-                                        {renderCell(row[k])}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                        </tbody>
-                    </Table>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowSubform(false)}>
-                        Cerrar
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        );
-    }
-
-    // ---- Render ----
-    // ...el resto del código igual...
     return (
         <div className="container py-4">
-            {/* Botón volver */}
-            <div className="d-flex justify-content-end mb-2">
-                <Button
-                    variant="outline-secondary"
-                    onClick={() => navigate("/servicios-especiales")}
-                >
-                    ← Volver a formularios
-                </Button>
+            {/* Barra superior */}
+            <div className="d-flex justify-content-end gap-2 mb-2">
+                <Button variant="outline-secondary" onClick={()=>navigate(-1)}>← Volver</Button>
+                <Button variant="success" onClick={exportarExcel} disabled={loading||misRegistros.length===0}>Exportar a Excel</Button>
             </div>
-            <h3 className="mb-3" style={{ color: azulPDI }}>
-                Registros: {formulario.nombre || "Formulario"}
-            </h3>
-            <div className="mb-2">
-                {!esCuotaPadre && (
-                    <>
-                        {idUnidad && <Badge bg="secondary">Unidad: {idUnidad}</Badge>}
-                        {idFuncionario && <Badge bg="info" className="ms-2">Funcionario: {idFuncionario}</Badge>}
-                    </>
-                )}
-            </div>
+
+            <h3 style={{color:azulPDI}}>Registros: {formulario.nombre || "Formulario"}</h3>
             {error && <Alert variant="danger">{error}</Alert>}
-            {loading ? (
-                <Spinner animation="border" />
-            ) : (
-                <Table bordered hover responsive>
+
+            {loading? <Spinner animation="border"/> : (
+                <Table bordered hover responsive size="sm">
                     <thead>
-                    <tr style={{ background: doradoPDI }}>
+                    <tr style={{background:doradoPDI}}>
                         <th>#</th>
-                        {campos.map((c) => (
-                            <th key={c.nombre}>{c.etiqueta || c.nombre}</th>
-                        ))}
+                        {campos.map(c=>(<th key={c.nombre}>{c.etiqueta||c.nombre}</th>))}
                         <th>Ingresado por</th>
                         <th>Fecha</th>
-                        <th>Acciones</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {registros.length === 0 ? (
-                        <tr>
-                            <td colSpan={campos.length + 4} className="text-center text-muted">
-                                No hay registros aún
-                            </td>
-                        </tr>
+                    {misRegistros.length===0 ? (
+                        <tr><td colSpan={campos.length+3} className="text-center text-muted">No hay registros propios</td></tr>
                     ) : (
-                        registros.map((r, i) => (
+                        misRegistros.map((r,i)=>(
                             <tr key={r.id}>
-                                <td>{i + 1}</td>
-                                {campos.map(c => (
-                                    <td key={c.nombre}>
-                                        {renderCell(r.datos?.[c.nombre])}
-                                    </td>
-                                ))}
-                                <td>
-                                    {r.nombreFuncionario
-                                        ? `${r.nombreFuncionario} (${r.idFuncionario})`
-                                        : r.idFuncionario}
-                                </td>
-                                <td>
-                                    {r.fechaRespuesta
-                                        ? new Date(r.fechaRespuesta).toLocaleString()
-                                        : "-"}
-                                </td>
-                                <td>
-                                    {user.idFuncionario &&
-                                        r.idFuncionario === user.idFuncionario && (
-                                            <Button
-                                                size="sm"
-                                                variant="warning"
-                                                onClick={() => handleShowEdit(r)}
-                                                disabled={true}
-                                            >
-                                                Editar
-                                            </Button>
-                                        )}
-                                </td>
+                                <td>{i+1}</td>
+                                {campos.map(c=>(<td key={c.nombre}>{renderCell(r.datos?.[c.nombre])}</td>))}
+                                <td>{r.nombreFuncionario?`${r.nombreFuncionario} (${r.idFuncionario})`:r.idFuncionario}</td>
+                                <td>{r.fechaRespuesta?new Date(r.fechaRespuesta).toLocaleString():"-"}</td>
                             </tr>
                         ))
                     )}
@@ -301,45 +155,32 @@ export default function VistaRegistrosFormulario() {
                 </Table>
             )}
 
-            {/* --- Modal de edición --- */}
-            <Modal show={showEdit} onHide={handleCloseEdit} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Editar registro</Modal.Title>
-                </Modal.Header>
+            {/* ── Modal Subformulario ───────────────────────────────────────────*/}
+            <Modal show={showSubform} onHide={()=>setShowSubform(false)} size="lg" centered>
+                <Modal.Header closeButton><Modal.Title>Detalle del subformulario</Modal.Title></Modal.Header>
                 <Modal.Body>
-                    <Form>
-                        {campos.map(campo => (
-                            <Form.Group key={campo.nombre} className="mb-3">
-                                <Form.Label>{campo.etiqueta || campo.nombre}</Form.Label>
-                                <Form.Control
-                                    type={campo.tipo === "number" ? "number" : "text"}
-                                    value={valoresEdit[campo.nombre] ?? ""}
-                                    disabled={saving}
-                                    onChange={e =>
-                                        handleEditChange(
-                                            campo.nombre,
-                                            campo.tipo === "number"
-                                                ? Number(e.target.value)
-                                                : e.target.value
-                                        )
-                                    }
-                                />
-                            </Form.Group>
-                        ))}
-                    </Form>
+                    {subformData && subformData.length > 0 && (() => {
+                        const keys = [...new Set(subformData.flatMap(o => Object.keys(o)))];
+                        return (
+                            <Table bordered hover size="sm">
+                                <thead>
+                                <tr>{keys.map(k => <th key={k}>{k}</th>)}</tr>
+                                </thead>
+                                <tbody>
+                                {subformData.map((row, i) => (
+                                    <tr key={i}>{keys.map(k => <td key={k}>{renderCell(row[k])}</td>)}</tr>
+                                ))}
+                                </tbody>
+                            </Table>
+                        );
+                    })()}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseEdit} disabled={saving}>
-                        Cancelar
-                    </Button>
-                    <Button variant="success" onClick={handleGuardarEdicion} disabled={saving}>
-                        {saving ? <Spinner size="sm" /> : "Guardar cambios"}
+                    <Button variant="secondary" onClick={() => setShowSubform(false)}>
+                        Cerrar
                     </Button>
                 </Modal.Footer>
             </Modal>
-
-            {/* --- Modal de subformulario --- */}
-            <SubformModal />
         </div>
     );
 }

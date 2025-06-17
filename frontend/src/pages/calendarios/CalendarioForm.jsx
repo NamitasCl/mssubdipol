@@ -116,6 +116,8 @@ export default function CalendarioForm({ show, onHide, onSuccess, calendarioEdit
             } else {
                 payload.nombreComplejo = "";
             }
+            console.log(payload)
+
             await (calendarioEditar && calendarioEditar.id
                     ? actualizarCalendario(calendarioEditar.id, payload, user.idFuncionario)
                     : crearCalendario(payload, user.idFuncionario)
@@ -130,6 +132,7 @@ export default function CalendarioForm({ show, onHide, onSuccess, calendarioEdit
                 nombreComplejo: "",
                 idPlantillasUsadas: [],
             });
+            
             setUnidadSeleccionada(null);
             setPlantillasAgregadas([]);
         } finally {

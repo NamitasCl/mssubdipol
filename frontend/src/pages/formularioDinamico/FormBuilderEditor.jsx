@@ -34,6 +34,17 @@ export const SUBFORMULARIOS_CATALOGO = [
             { id: 1003, name: "funcionario", label: "Jefe de máquina", type: "funcionario" },
             { id: 1004, name: "telefono", label: "Teléfono Jefe máquina", type: "text" },
         ]
+    },
+    {
+        value: "carrosConTripulacion",
+        label: "Carro y tripulacion",
+        fields: [
+            { id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text" },
+            { id: 1002, name: "corporativo", label: "Es vehículo corporativo", type: "checkbox" },
+            { id: 1003, name: "funcionario", label: "Jefe de máquina", type: "funcionario" },
+            { id: 1004, name: "funcionario", label: "Tripulante", type: "funcionario" },
+            { id: 1005, name: "funcionario", label: "Tripulante", type: "funcionario" },
+        ]
     }
 ];
 

@@ -252,12 +252,14 @@ export default function ListaFormulariosDisponibles() {
                                             {f.descripcion}
                                         </Card.Text>
                                         <div className="d-flex justify-content-between align-items-end">
+                                            {/*
                                             <Badge bg="secondary" style={{ background: grisClaro, color: textoSecundario, fontWeight: 500 }}>
                                                 {f.visibilidad?.map(v =>
                                                     v.tipoDestino === "usuario" ? "Asignado a ti"
                                                         : v.tipoDestino === "unidad" ? `Unidad ${v.valorDestinoSiglas || v.valorDestino}` : null
                                                 ).filter(Boolean).join(", ")}
                                             </Badge>
+                                            */}
                                             <div className="d-flex gap-2">
                                                 <Button
                                                     size="sm"
