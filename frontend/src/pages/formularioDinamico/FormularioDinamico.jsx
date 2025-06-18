@@ -26,20 +26,20 @@ function renderCampo(field, value, onChange, user) {
             {(field.type === "text" || field.tipo === "text") && (
                 <Form.Control
                     type="text"
-                    value={value || ""}
+                    value={value ?? ""}
                     onChange={e => onChange(key, e.target.value)}
                 />
             )}
             {(field.type === "number" || field.tipo === "number") && (
                 <Form.Control
                     type="number"
-                    value={value || ""}
+                    value={value ?? ""}
                     onChange={e => onChange(key, e.target.value)}
                 />
             )}
             {(field.type === "select" || field.tipo === "select") && (
                 <Form.Select
-                    value={value || ""}
+                    value={value ?? ""}
                     onChange={e => onChange(key, e.target.value)}
                 >
                     <option value="">Seleccione</option>
@@ -83,20 +83,20 @@ function renderCampo(field, value, onChange, user) {
             {(field.type === "date" || field.tipo === "date") && (
                 <Form.Control
                     type="date"
-                    value={value || ""}
+                    value={value ?? ""}
                     onChange={e => onChange(key, e.target.value)}
                 />
             )}
             {(field.type === "datetime-local" || field.tipo === "datetime-local") && (
                 <Form.Control
                     type="datetime-local"
-                    value={value || ""}
+                    value={value ?? ""}
                     onChange={e => onChange(key, e.target.value)}
                 />
             )}
             {(field.type === "funcionario" || field.tipo === "funcionario") && (
                 <AsyncFuncionarioSelect
-                    value={value || null}
+                    value={value ?? null}
                     onChange={val => onChange(key, val)}
                     user={user}
                     isClearable
@@ -104,7 +104,7 @@ function renderCampo(field, value, onChange, user) {
             )}
             {(field.type === "unidad" || field.tipo === "unidad") && (
                 <AsyncUnidadesSelect
-                    value={value || null}
+                    value={value ?? null}
                     onChange={val => onChange(key, val)}
                     user={user}
                     isClearable
@@ -112,7 +112,7 @@ function renderCampo(field, value, onChange, user) {
             )}
             {(field.type === "repol" || field.tipo === "repol") && (
                 <AsyncRegionesPolicialesSelect
-                    value={value || null}
+                    value={value ?? null}
                     onChange={val => onChange(key, val)}
                     user={user}
                     isClearable
@@ -122,93 +122,63 @@ function renderCampo(field, value, onChange, user) {
     );
 }
 
-export default function FormularioDinamico({
-                                               fields,
-                                               onSubmit,
-                                               initialValues = {},
-                                               initialGroups = {}
-                                           }) {
+export default function FormularioDinamico({ fields, initialValues = {}, onSubmit }) {
     const { user } = useAuth();
 
-    const [values, setValues] = useState(initialValues);
-    const [groups, setGroups] = useState(initialGroups);
-
-    // Actualiza valores al editar, o inicializa para crear
-    useEffect(() => {
-        if (!fields) return;
-
-        // Si recibes valores iniciales, úsalos
-        if (
-            Object.keys(initialValues).length > 0 ||
-            Object.keys(initialGroups).length > 0
-        ) {
-            setValues(initialValues);
-            setGroups(initialGroups);
-            return;
-        }
-
-        // Sino, inicializa como antes (nuevo registro)
-        const initialVals = {};
-        const initialGrps = {};
-        fields.forEach((field, idx) => {
+    // Estado inicial: mezcla los datos actuales con cualquier campo nuevo vacío
+    const initialAllValues = React.useMemo(() => {
+        const all = { ...initialValues };
+        (fields || []).forEach((field, idx) => {
             const key = field.nombre || field.name || field.etiqueta || `group_${idx}`;
-            if (field.tipo === "group" || field.type === "group") {
-                const subKey = field.subformulario || field.subFormulario || field.subForm || field.label || field.nombre || field.name;
-                const plantilla = SUBFORMULARIOS_CATALOGO.find(sf =>
-                    (sf.value || "").toLowerCase().trim() === (subKey || "").toLowerCase().trim()
-                );
-                initialGrps[key] = field.allowMultiple
-                    ? [makeEmptySubObj(plantilla)]
-                    : [makeEmptySubObj(plantilla)];
-            } else {
-                initialVals[key] = "";
+            if (!(key in all)) {
+                all[key] = (field.tipo === "group" || field.type === "group") ? [] : "";
             }
         });
-        setValues(initialVals);
-        setGroups(initialGrps);
-    }, [fields, initialValues, initialGroups]);
+        return all;
+    }, [fields, initialValues]);
+
+    const [values, setValues] = useState(initialAllValues);
+
+    useEffect(() => {
+        setValues(initialAllValues);
+    }, [initialAllValues]);
 
     // Cambios de campos simples
     const handleChange = (name, value) => {
         setValues(prev => ({ ...prev, [name]: value }));
     };
 
-    // Cambios dentro de grupos/subformularios
+    // Cambios dentro de grupos/subformularios (arrays de objetos)
     const handleGroupChange = (groupName, idx, subName, value) => {
-        setGroups(prev => {
-            const clone = { ...prev };
-            const entries = [...(clone[groupName] || [])];
-            const entry = { ...entries[idx] };
+        setValues(prev => {
+            const group = Array.isArray(prev[groupName]) ? [...prev[groupName]] : [];
+            const entry = { ...group[idx] };
             entry[subName] = value;
-            entries[idx] = entry;
-            clone[groupName] = entries;
-            return clone;
+            group[idx] = entry;
+            return { ...prev, [groupName]: group };
         });
     };
 
     // Handlers para agregar/quitar instancias de subformulario
     const handleAddGroup = (groupName, plantilla) => {
-        setGroups(prev => ({
+        setValues(prev => ({
             ...prev,
             [groupName]: [...(prev[groupName] || []), makeEmptySubObj(plantilla)]
         }));
     };
     const handleRemoveGroup = (groupName, idx) => {
-        setGroups(prev => ({
+        setValues(prev => ({
             ...prev,
-            [groupName]: prev[groupName].filter((_, i) => i !== idx)
+            [groupName]: (prev[groupName] || []).filter((_, i) => i !== idx)
         }));
     };
 
     // Envío de formulario
     const handleFormSubmit = (e) => {
         e.preventDefault();
-        const result = { ...values };
-        Object.entries(groups).forEach(([key, val]) => {
-            result[key] = val;
-        });
-        if (onSubmit) onSubmit(result);
-        else alert(JSON.stringify(result, null, 2));
+        // Envía todos los valores (editados o no)
+        if (onSubmit) onSubmit(values);
+        else alert(JSON.stringify(values, null, 2));
     };
 
     // Renderiza un subformulario
@@ -268,13 +238,16 @@ export default function FormularioDinamico({
             {(fields || []).map((field, idx) => {
                 const key = field.nombre || field.name || field.etiqueta || `group_${idx}`;
                 if (field.tipo === "group" || field.type === "group") {
+                    const groupVals = Array.isArray(values[key]) && values[key].length > 0
+                        ? values[key]
+                        : [makeEmptySubObj(
+                            SUBFORMULARIOS_CATALOGO.find(sf =>
+                                (sf.value || "").toLowerCase().trim() === ((field.subformulario || field.subFormulario || field.subForm || field.label || field.nombre || field.name) || "").toLowerCase().trim()
+                            )
+                        )];
                     return (
                         <div key={field.id || key || idx} className="mb-4">
-                            {renderSubform(field, groups[key] || [makeEmptySubObj(
-                                SUBFORMULARIOS_CATALOGO.find(sf =>
-                                    (sf.value || "").toLowerCase().trim() === ((field.subformulario || field.subFormulario || field.subForm || field.label || field.nombre || field.name) || "").toLowerCase().trim()
-                                )
-                            )], key)}
+                            {renderSubform(field, groupVals, key)}
                         </div>
                     );
                 }

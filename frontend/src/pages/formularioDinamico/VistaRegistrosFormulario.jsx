@@ -14,32 +14,8 @@ import { saveAs } from "file-saver";
 import axios from "axios";
 import FormularioDinamico from "./FormularioDinamico"; // Ajusta el path si es necesario
 
-// Colores institucionales
 const doradoPDI = "#FFC700";
 const azulPDI   = "#17355A";
-
-// ---- Helpers para inicializar formulario ----
-function getInitialValues(datos, campos) {
-    const vals = {};
-    (campos || []).forEach(field => {
-        const key = field.nombre || field.name || field.etiqueta;
-        if (field.tipo !== "group" && field.type !== "group") {
-            vals[key] = datos?.[key] ?? "";
-        }
-    });
-    return vals;
-}
-
-function getInitialGroups(datos, campos) {
-    const groups = {};
-    (campos || []).forEach(field => {
-        const key = field.nombre || field.name || field.etiqueta;
-        if (field.tipo === "group" || field.type === "group") {
-            groups[key] = datos?.[key] ?? [];
-        }
-    });
-    return groups;
-}
 
 export default function VistaRegistrosFormulario() {
     const { state }   = useLocation();
@@ -73,7 +49,8 @@ export default function VistaRegistrosFormulario() {
             .finally(()=>setLoading(false));
     },[formularioId,user.token]);
 
-    useEffect(() => {
+    // Cargar registros
+    const cargarRegistros = () => {
         if (!formularioId) return;
         setLoading(true); setError(null);
         fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formularioId}`,
@@ -89,25 +66,12 @@ export default function VistaRegistrosFormulario() {
             })
             .catch(()=>setError("No se pudieron cargar los registros"))
             .finally(()=>setLoading(false));
-    },[formularioId,idUnidad,idFuncionarioParam,esCuotaPadre,user.token]);
-
-    // Refresca la lista luego de editar
-    const reloadRegistros = () => {
-        setLoading(true);
-        fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formularioId}`,
-            { headers:{ Authorization:`Bearer ${user.token}` } })
-            .then(r=>r.json())
-            .then(data=>{
-                let lista=Array.isArray(data)?data:[];
-                if(!esCuotaPadre){
-                    if(idUnidad)           lista = lista.filter(r=>r.idUnidad===idUnidad);
-                    if(idFuncionarioParam) lista = lista.filter(r=>r.idFuncionario===idFuncionarioParam);
-                }
-                setRegistros(lista);
-            })
-            .catch(()=>setError("No se pudieron cargar los registros"))
-            .finally(()=>setLoading(false));
     };
+
+    useEffect(() => {
+        cargarRegistros();
+        // eslint-disable-next-line
+    },[formularioId,idUnidad,idFuncionarioParam,esCuotaPadre,user.token]);
 
     const myId = String(user.idFuncionario ?? "");
     const misRegistros = esCuotaPadre
@@ -176,12 +140,13 @@ export default function VistaRegistrosFormulario() {
         try {
             await axios.put(
                 `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${registroEdit.id}`,
-                datosActualizados,
+                // ENVÍA EL OBJETO CON LA ESTRUCTURA CORRECTA (tu backend espera { datos: { ... } })
+                { datos: datosActualizados },
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
             setShowEditModal(false);
             setRegistroEdit(null);
-            reloadRegistros();
+            cargarRegistros();
         } catch (e) {
             alert("Error actualizando registro: " + (e.response?.data?.message || e.message));
         }
@@ -272,7 +237,7 @@ export default function VistaRegistrosFormulario() {
             </Modal>
 
             {/* Modal edición */}
-            <Modal show={showEditModal} onHide={()=>setShowEditModal(false)} size="lg" centered>
+            <Modal show={showEditModal} onHide={()=>setShowEditModal(false)} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Editar Registro</Modal.Title>
                 </Modal.Header>
@@ -280,8 +245,7 @@ export default function VistaRegistrosFormulario() {
                     {registroEdit ? (
                         <FormularioDinamico
                             fields={campos}
-                            initialValues={getInitialValues(registroEdit.datos, campos)}
-                            initialGroups={getInitialGroups(registroEdit.datos, campos)}
+                            initialValues={registroEdit.datos}
                             onSubmit={handleActualizarRegistro}
                         />
                     ) : (
