@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../../AuthContext";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import axios from "axios";
 
 // Colores institucionales
 const doradoPDI = "#FFC700";
