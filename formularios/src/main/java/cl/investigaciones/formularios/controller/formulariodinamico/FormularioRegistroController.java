@@ -74,5 +74,15 @@ public class FormularioRegistroController {
         return ResponseEntity.ok(service.obtenerAvance(formularioId, userId, siglasUnidad));
     }
 
+    @DeleteMapping("/{registroId}")
+    public ResponseEntity<Void> eliminarRegistro(
+            @PathVariable Long registroId,
+            @AuthenticationPrincipal JwtUserPrincipal principal) {
+        Integer usuarioId = principal.getIdFuncionario();
+        service.eliminarRegistroPropio(registroId, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
+
+
 
 }
