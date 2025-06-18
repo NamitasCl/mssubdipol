@@ -17,5 +17,5 @@ public interface FormularioRegistroRepository extends JpaRepository<FormularioRe
 
     Collection<Object> findByFormularioIdAndIdUnidad(Long formularioId, Integer idUnidad);
 
-    Optional<FormularioRegistro> findByIdAndCreadorId(Long registroId, Integer usuarioId);
+    Optional<FormularioRegistro> findByIdAndIdFuncionario(Long registroId, Integer usuarioId);
 }

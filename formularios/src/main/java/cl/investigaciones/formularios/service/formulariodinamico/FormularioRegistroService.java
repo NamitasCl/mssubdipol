@@ -202,7 +202,7 @@ public class FormularioRegistroService {
 
     public FormularioRegistroResponseDTO obtenerRegistroPropio(Long registroId,
                                                                Integer usuarioId) {
-        FormularioRegistro registro = registroRepo.findByIdAndCreadorId(registroId, usuarioId)
+        FormularioRegistro registro = registroRepo.findByIdAndIdFuncionario(registroId, usuarioId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Registro no encontrado"));
 
