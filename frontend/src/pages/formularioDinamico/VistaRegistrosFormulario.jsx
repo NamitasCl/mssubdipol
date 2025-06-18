@@ -22,24 +22,22 @@ export default function VistaRegistrosFormulario() {
     const navigate    = useNavigate();
     const { user }    = useAuth();
 
-    // ─── parámetros recibidos por navegación ──────────────────────────────
     const formularioId       = state?.formularioId;
     const esCuotaPadre       = !!state?.esCuotaPadre;
     const idUnidad           = state?.idUnidad;
     const idFuncionarioParam = state?.idFuncionario;
 
-    // ─── estados globales ─────────────────────────────────────────────────
     const [formulario, setFormulario] = useState({});
     const [campos,      setCampos]      = useState([]);
     const [registros,   setRegistros]   = useState([]);
     const [loading,     setLoading]     = useState(true);
     const [error,       setError]       = useState(null);
 
-    // sub‑formulario modal
     const [showSubform, setShowSubform] = useState(false);
     const [subformData, setSubformData] = useState([]);
+    const [registroEdit, setRegistroEdit] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
 
-    // ╭──────────────────────── Definición de formulario ───────────────────
     useEffect(() => {
         if (!formularioId) return;
         setLoading(true); setError(null);
@@ -51,7 +49,6 @@ export default function VistaRegistrosFormulario() {
             .finally(()=>setLoading(false));
     },[formularioId,user.token]);
 
-    // ╭──────────────────────── Carga de registros ─────────────────────────
     useEffect(() => {
         if (!formularioId) return;
         setLoading(true); setError(null);
@@ -70,16 +67,11 @@ export default function VistaRegistrosFormulario() {
             .finally(()=>setLoading(false));
     },[formularioId,idUnidad,idFuncionarioParam,esCuotaPadre,user.token]);
 
-    // ╭──────────────────────── Filtro propio ──────────────────────────────
-    // — Registros visibles para este usuario —
-//   • Si viene desde una "cuota padre" → ve todo (permiso especial)
-//   • En cualquier otro caso         → SOLO los que él ingresó
     const myId = String(user.idFuncionario ?? "");
     const misRegistros = esCuotaPadre
         ? registros
-        : registros.filter(r => String(r.idFuncionario) === myId); // resto solo sus propios
+        : registros.filter(r => String(r.idFuncionario) === myId);
 
-    // ╭──────────────────────── Exportar Excel ─────────────────────────────
     const toPlain = (v)=>{
         if(v===null||v===undefined) return "";
         if(typeof v==="object" && !Array.isArray(v) && "label" in v) return v.label;
@@ -104,7 +96,6 @@ export default function VistaRegistrosFormulario() {
         saveAs(new Blob([wbout],{type:"application/octet-stream"}),`registros_form${formularioId}.xlsx`);
     };
 
-    // ╭──────────────────────── Render celda ───────────────────────────────
     const renderCell = (v)=>{
         if(v===null||v===undefined) return "";
         if(typeof v==="object" && v && "label" in v) return v.label;
@@ -114,12 +105,33 @@ export default function VistaRegistrosFormulario() {
         return v;
     };
 
-    // ╭──────────────────────── Interfaz ───────────────────────────────────
+    const handleEditar = (registro) => {
+        setRegistroEdit(registro);
+        setShowEditModal(true);
+    };
+
+    function eliminarRegistroFormulario(registroId, token) {
+        return axios.delete(
+            `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${registroId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+    }
+
+    const handleEliminar = (registro) => {
+        if (!window.confirm("¿Estás seguro de eliminar este registro?")) return;
+        eliminarRegistroFormulario(registro.id, user.token)
+            .then(() => {
+                setRegistros((regs) => regs.filter(r => r.id !== registro.id));
+            })
+            .catch(() => {
+                alert("No se pudo eliminar el registro. Intenta nuevamente.");
+            });
+    };
+
     if(!formularioId) return <div className="container py-4"><Alert variant="warning">Falta ID de formulario</Alert></div>;
 
     return (
         <div className="container py-4">
-            {/* Barra superior */}
             <div className="d-flex justify-content-end gap-2 mb-2">
                 <Button variant="outline-secondary" onClick={()=>navigate(-1)}>← Volver</Button>
                 <Button variant="success" onClick={exportarExcel} disabled={loading||misRegistros.length===0}>Exportar a Excel</Button>
@@ -136,11 +148,12 @@ export default function VistaRegistrosFormulario() {
                         {campos.map(c=>(<th key={c.nombre}>{c.etiqueta||c.nombre}</th>))}
                         <th>Ingresado por</th>
                         <th>Fecha</th>
+                        <th>Acciones</th>
                     </tr>
                     </thead>
                     <tbody>
                     {misRegistros.length===0 ? (
-                        <tr><td colSpan={campos.length+3} className="text-center text-muted">No hay registros propios</td></tr>
+                        <tr><td colSpan={campos.length+4} className="text-center text-muted">No hay registros propios</td></tr>
                     ) : (
                         misRegistros.map((r,i)=>(
                             <tr key={r.id}>
@@ -148,6 +161,16 @@ export default function VistaRegistrosFormulario() {
                                 {campos.map(c=>(<td key={c.nombre}>{renderCell(r.datos?.[c.nombre])}</td>))}
                                 <td>{r.nombreFuncionario?`${r.nombreFuncionario} (${r.idFuncionario})`:r.idFuncionario}</td>
                                 <td>{r.fechaRespuesta?new Date(r.fechaRespuesta).toLocaleString():"-"}</td>
+                                <td>{r.idFuncionario === user.idFuncionario && (
+                                    /*
+                                    <Button size="sm" variant="warning" onClick={() => handleEditar(r)}>
+                                        Editar
+                                    </Button>
+                                    */
+                                    <Button size="sm" variant="danger" onClick={() => handleEliminar(r)}>
+                                        Eliminar
+                                    </Button>
+                                )}</td>
                             </tr>
                         ))
                     )}
@@ -155,7 +178,6 @@ export default function VistaRegistrosFormulario() {
                 </Table>
             )}
 
-            {/* ── Modal Subformulario ───────────────────────────────────────────*/}
             <Modal show={showSubform} onHide={()=>setShowSubform(false)} size="lg" centered>
                 <Modal.Header closeButton><Modal.Title>Detalle del subformulario</Modal.Title></Modal.Header>
                 <Modal.Body>
@@ -179,6 +201,22 @@ export default function VistaRegistrosFormulario() {
                     <Button variant="secondary" onClick={() => setShowSubform(false)}>
                         Cerrar
                     </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal show={showEditModal} onHide={()=>setShowEditModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Editar Registro</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {registroEdit ? (
+                        <pre>{JSON.stringify(registroEdit, null, 2)}</pre>
+                    ) : (
+                        <p>No hay registro seleccionado.</p>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>Cerrar</Button>
                 </Modal.Footer>
             </Modal>
         </div>
