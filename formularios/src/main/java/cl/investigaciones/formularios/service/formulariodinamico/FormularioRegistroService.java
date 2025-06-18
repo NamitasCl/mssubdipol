@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -199,4 +200,21 @@ public class FormularioRegistroService {
         registroRepo.delete(registro);
     }
 
+    public FormularioRegistroResponseDTO obtenerRegistroPropio(Long registroId,
+                                                               Integer usuarioId) {
+        FormularioRegistro registro = registroRepo.findByIdAndCreadorId(registroId, usuarioId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Registro no encontrado"));
+
+        FormularioRegistroResponseDTO res = new FormularioRegistroResponseDTO();
+        res.setId(registro.getId());
+        res.setFormularioId(registro.getFormulario().getId());
+        res.setIdFuncionario(registro.getIdFuncionario());
+        res.setFechaRespuesta(LocalDateTime.now());
+        res.setDatos(registro.getDatos());
+        res.setIdUnidad(registro.getIdUnidad());
+
+
+        return res;
+    }
 }

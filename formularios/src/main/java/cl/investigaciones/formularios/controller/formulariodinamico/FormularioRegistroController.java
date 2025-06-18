@@ -83,6 +83,14 @@ public class FormularioRegistroController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/registro/{registroId}")
+    public ResponseEntity<FormularioRegistroResponseDTO> obtenerUno(
+            @PathVariable Long registroId,
+            @AuthenticationPrincipal JwtUserPrincipal principal) {
+
+        Integer usuarioId = principal.getIdFuncionario();
+        return ResponseEntity.ok(service.obtenerRegistroPropio(registroId, usuarioId));
+    }
 
 
 }
