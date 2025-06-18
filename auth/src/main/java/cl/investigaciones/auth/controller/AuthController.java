@@ -76,8 +76,8 @@ public class AuthController {
 
         Map<String, String> tokenBodyRequest = new HashMap<>();
         tokenBodyRequest.put("usuarioAD", "lcarrascol");
-        tokenBodyRequest.put("contraseñaFun", "Clqlw87e");
-        tokenBodyRequest.put("keySistema", "EA3IYWJX24VMYUT28PFI");
+        tokenBodyRequest.put("contraseñaFun", "Pdi2024++++");
+        tokenBodyRequest.put("keySistema", "UNE1KBATI6BNVLQF8Z9O");
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

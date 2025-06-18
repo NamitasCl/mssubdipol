@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface FormularioRegistroRepository extends JpaRepository<FormularioRegistro, Long> {
 
@@ -15,4 +16,6 @@ public interface FormularioRegistroRepository extends JpaRepository<FormularioRe
     List<FormularioRegistro> findByFormularioIdAndIdFuncionario(Long formularioId, Integer idFuncionario);
 
     Collection<Object> findByFormularioIdAndIdUnidad(Long formularioId, Integer idUnidad);
+
+    Optional<FormularioRegistro> findByIdAndIdFuncionario(Long registroId, Integer usuarioId);
 }

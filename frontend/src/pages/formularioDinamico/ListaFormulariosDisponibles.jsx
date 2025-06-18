@@ -196,23 +196,23 @@ export default function ListaFormulariosDisponibles() {
                                             >
                                                 Ver registros
                                             </Button>
-                                            {esCuotaPadre && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline-success"
-                                                    style={{
-                                                        borderRadius: 12,
-                                                        border: `1.5px solid ${verdeMenta}`,
-                                                        fontWeight: 600,
-                                                        color: verdeMenta,
-                                                        background: "#fff"
-                                                    }}
-                                                    title="Distribuir/delegar cuota"
-                                                    onClick={() => handleAbrirDelegar(cuota)}
-                                                >
-                                                    <FaShare className="me-1" /> Distribuir cuota
-                                                </Button>
-                                            )}
+
+                                            <Button
+                                                size="sm"
+                                                variant="outline-success"
+                                                style={{
+                                                    borderRadius: 12,
+                                                    border: `1.5px solid ${verdeMenta}`,
+                                                    fontWeight: 600,
+                                                    color: verdeMenta,
+                                                    background: "#fff"
+                                                }}
+                                                title="Distribuir/delegar cuota"
+                                                onClick={() => handleAbrirDelegar(cuota)}
+                                            >
+                                                <FaShare className="me-1" /> Distribuir cuota
+                                            </Button>
+
                                         </div>
                                     </div>
                                 </Card.Body>
