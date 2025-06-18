@@ -66,8 +66,8 @@ export default function FormularioDinamicoPage() {
     /* ---------- submit ---------- */
     const guardar = (values, regId) => {
         const url = regId
-            ? `${import.meta.env.VITE_FORMS_API_URL}/dinamico/registros/${regId}`
-            : `${import.meta.env.VITE_FORMS_API_URL}/dinamico/registros`;
+            ? `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${regId}`
+            : `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros`;
 
         const metodo = regId ? "put" : "post";
 
