@@ -122,34 +122,51 @@ function renderCampo(field, value, onChange, user) {
     );
 }
 
-export default function FormularioDinamico({ fields, onSubmit }) {
+export default function FormularioDinamico({
+                                               fields,
+                                               onSubmit,
+                                               initialValues = {},
+                                               initialGroups = {}
+                                           }) {
     const { user } = useAuth();
-    const [values, setValues] = useState({});
-    const [groups, setGroups] = useState({});
 
-    // Inicializa campos y grupos
+    const [values, setValues] = useState(initialValues);
+    const [groups, setGroups] = useState(initialGroups);
+
+    // Actualiza valores al editar, o inicializa para crear
     useEffect(() => {
         if (!fields) return;
-        const initialValues = {};
-        const initialGroups = {};
+
+        // Si recibes valores iniciales, úsalos
+        if (
+            Object.keys(initialValues).length > 0 ||
+            Object.keys(initialGroups).length > 0
+        ) {
+            setValues(initialValues);
+            setGroups(initialGroups);
+            return;
+        }
+
+        // Sino, inicializa como antes (nuevo registro)
+        const initialVals = {};
+        const initialGrps = {};
         fields.forEach((field, idx) => {
             const key = field.nombre || field.name || field.etiqueta || `group_${idx}`;
             if (field.tipo === "group" || field.type === "group") {
-                // Busca plantilla de subformulario
                 const subKey = field.subformulario || field.subFormulario || field.subForm || field.label || field.nombre || field.name;
                 const plantilla = SUBFORMULARIOS_CATALOGO.find(sf =>
                     (sf.value || "").toLowerCase().trim() === (subKey || "").toLowerCase().trim()
                 );
-                initialGroups[key] = field.allowMultiple
+                initialGrps[key] = field.allowMultiple
                     ? [makeEmptySubObj(plantilla)]
                     : [makeEmptySubObj(plantilla)];
             } else {
-                initialValues[key] = "";
+                initialVals[key] = "";
             }
         });
-        setValues(initialValues);
-        setGroups(initialGroups);
-    }, [fields]);
+        setValues(initialVals);
+        setGroups(initialGrps);
+    }, [fields, initialValues, initialGroups]);
 
     // Cambios de campos simples
     const handleChange = (name, value) => {
@@ -221,8 +238,6 @@ export default function FormularioDinamico({ fields, onSubmit }) {
                                 )}
                             </div>
                             {(plantilla.fields || []).map((subf, subIdx) => {
-                                console.log("Subf: ", subf);
-                                console.log("SubIdx: ", subIdx)
                                 const subFieldKey = subf.nombre || subf.name || subf.etiqueta || subf.label || `campo_${subIdx}`;
                                 return (
                                     <Form.Group key={subf.id || subFieldKey || `${groupName}-subf-${subIdx}`} className="mb-2">

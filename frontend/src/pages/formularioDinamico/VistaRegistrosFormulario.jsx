@@ -6,17 +6,40 @@ import {
     Spinner,
     Alert,
     Modal,
-    Form,
     Badge,
 } from "react-bootstrap";
 import { useAuth } from "../../AuthContext";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import axios from "axios";
+import FormularioDinamico from "./FormularioDinamico"; // Ajusta el path si es necesario
 
 // Colores institucionales
 const doradoPDI = "#FFC700";
 const azulPDI   = "#17355A";
+
+// ---- Helpers para inicializar formulario ----
+function getInitialValues(datos, campos) {
+    const vals = {};
+    (campos || []).forEach(field => {
+        const key = field.nombre || field.name || field.etiqueta;
+        if (field.tipo !== "group" && field.type !== "group") {
+            vals[key] = datos?.[key] ?? "";
+        }
+    });
+    return vals;
+}
+
+function getInitialGroups(datos, campos) {
+    const groups = {};
+    (campos || []).forEach(field => {
+        const key = field.nombre || field.name || field.etiqueta;
+        if (field.tipo === "group" || field.type === "group") {
+            groups[key] = datos?.[key] ?? [];
+        }
+    });
+    return groups;
+}
 
 export default function VistaRegistrosFormulario() {
     const { state }   = useLocation();
@@ -67,6 +90,24 @@ export default function VistaRegistrosFormulario() {
             .catch(()=>setError("No se pudieron cargar los registros"))
             .finally(()=>setLoading(false));
     },[formularioId,idUnidad,idFuncionarioParam,esCuotaPadre,user.token]);
+
+    // Refresca la lista luego de editar
+    const reloadRegistros = () => {
+        setLoading(true);
+        fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formularioId}`,
+            { headers:{ Authorization:`Bearer ${user.token}` } })
+            .then(r=>r.json())
+            .then(data=>{
+                let lista=Array.isArray(data)?data:[];
+                if(!esCuotaPadre){
+                    if(idUnidad)           lista = lista.filter(r=>r.idUnidad===idUnidad);
+                    if(idFuncionarioParam) lista = lista.filter(r=>r.idFuncionario===idFuncionarioParam);
+                }
+                setRegistros(lista);
+            })
+            .catch(()=>setError("No se pudieron cargar los registros"))
+            .finally(()=>setLoading(false));
+    };
 
     const myId = String(user.idFuncionario ?? "");
     const misRegistros = esCuotaPadre
@@ -129,6 +170,23 @@ export default function VistaRegistrosFormulario() {
             });
     };
 
+    // --- Actualizar registro ---
+    const handleActualizarRegistro = async (datosActualizados) => {
+        if (!registroEdit) return;
+        try {
+            await axios.put(
+                `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${registroEdit.id}`,
+                datosActualizados,
+                { headers: { Authorization: `Bearer ${user.token}` } }
+            );
+            setShowEditModal(false);
+            setRegistroEdit(null);
+            reloadRegistros();
+        } catch (e) {
+            alert("Error actualizando registro: " + (e.response?.data?.message || e.message));
+        }
+    };
+
     if(!formularioId) return <div className="container py-4"><Alert variant="warning">Falta ID de formulario</Alert></div>;
 
     return (
@@ -162,16 +220,23 @@ export default function VistaRegistrosFormulario() {
                                 {campos.map(c=>(<td key={c.nombre}>{renderCell(r.datos?.[c.nombre])}</td>))}
                                 <td>{r.nombreFuncionario?`${r.nombreFuncionario} (${r.idFuncionario})`:r.idFuncionario}</td>
                                 <td>{r.fechaRespuesta?new Date(r.fechaRespuesta).toLocaleString():"-"}</td>
-                                <td>{r.idFuncionario === user.idFuncionario && (
-                                    /*
-                                    <Button size="sm" variant="warning" onClick={() => handleEditar(r)}>
-                                        Editar
-                                    </Button>
-                                    */
-                                    <Button size="sm" variant="danger" onClick={() => handleEliminar(r)}>
-                                        Eliminar
-                                    </Button>
-                                )}</td>
+                                <td>
+                                    {r.idFuncionario === user.idFuncionario && (
+                                        <>
+                                            <Button
+                                                size="sm"
+                                                variant="warning"
+                                                className="me-2"
+                                                onClick={() => handleEditar(r)}
+                                            >
+                                                Editar
+                                            </Button>
+                                            <Button size="sm" variant="danger" onClick={() => handleEliminar(r)}>
+                                                Eliminar
+                                            </Button>
+                                        </>
+                                    )}
+                                </td>
                             </tr>
                         ))
                     )}
@@ -179,6 +244,7 @@ export default function VistaRegistrosFormulario() {
                 </Table>
             )}
 
+            {/* Modal subformulario */}
             <Modal show={showSubform} onHide={()=>setShowSubform(false)} size="lg" centered>
                 <Modal.Header closeButton><Modal.Title>Detalle del subformulario</Modal.Title></Modal.Header>
                 <Modal.Body>
@@ -205,13 +271,19 @@ export default function VistaRegistrosFormulario() {
                 </Modal.Footer>
             </Modal>
 
-            <Modal show={showEditModal} onHide={()=>setShowEditModal(false)} centered>
+            {/* Modal edición */}
+            <Modal show={showEditModal} onHide={()=>setShowEditModal(false)} size="lg" centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Editar Registro</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {registroEdit ? (
-                        <pre>{JSON.stringify(registroEdit, null, 2)}</pre>
+                        <FormularioDinamico
+                            fields={campos}
+                            initialValues={getInitialValues(registroEdit.datos, campos)}
+                            initialGroups={getInitialGroups(registroEdit.datos, campos)}
+                            onSubmit={handleActualizarRegistro}
+                        />
                     ) : (
                         <p>No hay registro seleccionado.</p>
                     )}
