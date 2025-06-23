@@ -17,7 +17,8 @@ export default function AsyncUnidadesSelect({ value, onChange, user }) {
                 callback(
                     resp.data.map(f => ({
                         value: f.idUnidad ?? f.id, // ajusta el campo segun el dto
-                        label: f.nombreUnidad ?? f.nombre
+                        label: f.nombreUnidad ?? f.nombre,
+                        siglasUnidad: f.siglasUnidad
                     }))
                 );
             })

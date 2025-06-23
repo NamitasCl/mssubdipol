@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { buscarCalendario } from "../../api/calendarApi";
 import { Button, Spinner, Card } from "react-bootstrap";
+import ConfigurarUnidadesAportantesModal from "./ConfigurarUnidadesAportantesModal"; // importa tu modal
 
 export default function CalendarioDetalle({ id, onVolver }) {
     const [cal, setCal] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showAportes, setShowAportes] = useState(false); // ← NUEVO
 
     useEffect(() => {
         buscarCalendario(id)
@@ -29,7 +31,25 @@ export default function CalendarioDetalle({ id, onVolver }) {
                 <div><b>Tipo:</b> {cal.tipo}</div>
                 <div><b>Unidad:</b> {cal.siglasUnidad ?? cal.idUnidad}</div>
                 <div><b>Estado:</b> {cal.estado}</div>
-                {/* Muestra más detalles si necesitas */}
+
+                {/* SOLO si es COMPLEJO muestra el botón */}
+                {cal.tipo === "COMPLEJO" && (
+                    <>
+                        <Button
+                            variant="primary"
+                            className="mt-3"
+                            onClick={() => setShowAportes(true)}
+                        >
+                            Configurar unidades colaboradoras
+                        </Button>
+                        {/* Aquí va el modal */}
+                        <ConfigurarUnidadesAportantesModal
+                            show={showAportes}
+                            onHide={() => setShowAportes(false)}
+                            idCalendario={cal.id}
+                        />
+                    </>
+                )}
             </Card.Body>
         </Card>
     );

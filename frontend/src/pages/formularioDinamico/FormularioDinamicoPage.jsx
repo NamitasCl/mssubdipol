@@ -11,7 +11,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import FormularioDinamico from "./FormularioDinamico";
-import { useAuth } from "../../AuthContext.jsx";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 export default function FormularioDinamicoPage() {
     const { id: formularioId } = useParams();

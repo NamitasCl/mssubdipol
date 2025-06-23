@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 public abstract class Auditable {
     private int creadoPor;
     private LocalDateTime fechaCreacion;
-    private String modificadoPor;
+    private int modificadoPor;
     private LocalDateTime fechaModificacion;
-
 }

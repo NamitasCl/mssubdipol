@@ -5,6 +5,7 @@ import cl.investigaciones.turnos.calendar.dto.*;
 import cl.investigaciones.turnos.calendar.mapper.CalendarioMapper;
 import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,13 +14,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @Transactional
 public class CalendarioServiceImpl implements CalendarioService {
 
     private final CalendarioRepository repo;
+    private final SlotGeneratorService slotService;
 
-    public CalendarioServiceImpl(CalendarioRepository repo) {
+    public CalendarioServiceImpl(CalendarioRepository repo,  SlotGeneratorService slotService) {
+
         this.repo = repo;
+        this.slotService = slotService;
     }
 
     @Override
@@ -29,7 +34,18 @@ public class CalendarioServiceImpl implements CalendarioService {
         entity.setFechaCreacion(LocalDateTime.now());
         entity.setEstado(CalendarState.ABIERTO);
         System.out.println("Creando calendario: " + entity);
-        return CalendarioMapper.toDto(repo.save(entity));
+
+        Calendario savedEntity = repo.save(entity);
+        try {
+            slotService.generarSlotsParaCalendario(savedEntity.getId());
+        } catch (Exception e) {
+            // Opcional: revertir creación si falla slots, o dejar el calendario "incompleto"
+            log.error("Error generando slots para calendario " + savedEntity.getId(), e);
+            throw new RuntimeException("No se pudieron generar los slots del calendario.");
+        }
+
+
+        return CalendarioMapper.toDto(savedEntity);
     }
 
     public List<CalendarioResponseDTO> listarCalendarios() {

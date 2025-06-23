@@ -15,7 +15,8 @@ export default function AsyncFuncionarioSelect({ value, onChange, user }) {
                 callback(
                     resp.data.map(f => ({
                         value: f.idFun,
-                        label: f.nombreCompleto
+                        label: f.nombreCompleto,
+                        f
                     }))
                 );
             });

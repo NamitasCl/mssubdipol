@@ -56,9 +56,15 @@ export default function CalendarioList({ onSeleccionar }) {
                         </td>
                         <td>{cal.estado}</td>
                         <td>
-                            <Button variant="info" size="sm" onClick={() => onSeleccionar(cal.id)}>
-                                Ver
-                            </Button>{" "}
+                            {
+                                cal.tipo === "COMPLEJO" &&
+                                (
+                                    <Button variant="info" size="sm" onClick={() => onSeleccionar(cal.id)}>
+                                        Configurar unidades
+                                    </Button>
+                                )
+                            }
+                            {" "}
                             <Button variant="danger" size="sm" onClick={() => setEliminarId(cal.id)}>
                                 Eliminar
                             </Button>{" "}
@@ -69,6 +75,7 @@ export default function CalendarioList({ onSeleccionar }) {
                             >
                                 Editar
                             </Button>
+
                         </td>
                     </tr>
                 ))}
