@@ -105,6 +105,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             usuarioBD.setRut(usuarioAD.getRunFun());
             usuarioBD.setDv(usuarioAD.getDvFun());
             usuarioBD.setSiglasUnidad(usuarioAD.getSiglasUnidad());
+            usuarioBD.setIdUnidad(usuarioAD.getIdUnidad());
             usuarioBD.setNombreCargo(usuarioAD.getNombreCargo());
             usuarioBD.setEmail(usuarioAD.getEmailFun());
             usuarioBD.setAntiguedad(usuarioAD.getAntiguedad());

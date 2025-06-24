@@ -50,6 +50,7 @@ public class AuthController {
                 usuarioDetails.getNombreCompleto(),
                 usuarioDetails.getNombreCargo(),
                 usuarioDetails.getSiglasUnidad(),
+                usuarioDetails.getIdUnidad(),
                 usuarioDetails.isAdmin(),
                 usuarioDetails.getId(),
                 usuarioDetails.getPermisos()

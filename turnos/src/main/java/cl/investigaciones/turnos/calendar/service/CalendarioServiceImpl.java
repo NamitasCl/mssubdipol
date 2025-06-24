@@ -2,13 +2,16 @@ package cl.investigaciones.turnos.calendar.service;
 
 import cl.investigaciones.turnos.calendar.domain.*;
 import cl.investigaciones.turnos.calendar.dto.*;
+import cl.investigaciones.turnos.calendar.mapper.AporteUnidadTurnoMapper;
 import cl.investigaciones.turnos.calendar.mapper.CalendarioMapper;
+import cl.investigaciones.turnos.calendar.repository.AporteUnidadTurnoRepository;
 import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,12 +22,14 @@ import java.util.stream.Collectors;
 public class CalendarioServiceImpl implements CalendarioService {
 
     private final CalendarioRepository repo;
+    private final AporteUnidadTurnoRepository aporteUnidadTurnoRepository;
     private final SlotGeneratorService slotService;
 
-    public CalendarioServiceImpl(CalendarioRepository repo,  SlotGeneratorService slotService) {
+    public CalendarioServiceImpl(CalendarioRepository repo,  SlotGeneratorService slotService,  AporteUnidadTurnoRepository aporteUnidadTurnoRepository) {
 
         this.repo = repo;
         this.slotService = slotService;
+        this.aporteUnidadTurnoRepository = aporteUnidadTurnoRepository;
     }
 
     @Override
@@ -48,8 +53,21 @@ public class CalendarioServiceImpl implements CalendarioService {
         return CalendarioMapper.toDto(savedEntity);
     }
 
+    // En tu servicio, reemplaza por este flujo:
     public List<CalendarioResponseDTO> listarCalendarios() {
-        return repo.findByEliminadoFalse().stream().map(CalendarioMapper::toDto).collect(Collectors.toList());
+        return repo.findByEliminadoFalse().stream().map(c -> {
+            CalendarioResponseDTO dto = CalendarioMapper.toDto(c);
+            if (c.getTipo() == CalendarType.COMPLEJO) {
+                List<AporteUnidadTurno> aportes = aporteUnidadTurnoRepository.findByIdCalendario(c.getId());
+                List<AporteUnidadTurnoResponseDTO> aporteDtos = aportes.stream()
+                        .map(AporteUnidadTurnoMapper::toDto)
+                        .collect(Collectors.toList());
+                dto.setAporteUnidadTurnos(aporteDtos);
+            } else {
+                dto.setAporteUnidadTurnos(Collections.emptyList());
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     public Optional<CalendarioResponseDTO> buscarPorId(Long id) {
@@ -68,7 +86,7 @@ public class CalendarioServiceImpl implements CalendarioService {
                 .map(CalendarioMapper::toDto).collect(Collectors.toList());
     }
 
-    public Optional<CalendarioResponseDTO> actualizar(Long id, CalendarioRequestDTO req, String usuario) {
+    public Optional<CalendarioResponseDTO> actualizar(Long id, CalendarioRequestDTO req, int usuario) {
         return repo.findById(id).filter(c -> !c.isEliminado()).map(c -> {
             CalendarioMapper.updateEntity(c, req);
             c.setModificadoPor(usuario);
@@ -77,7 +95,7 @@ public class CalendarioServiceImpl implements CalendarioService {
         });
     }
 
-    public boolean eliminar(Long id, String usuario) {
+    public boolean eliminar(Long id, int usuario) {
         return repo.findById(id).filter(c -> !c.isEliminado()).map(c -> {
             c.setEliminado(true);
             c.setEstado(CalendarState.ELIMINADO);
@@ -88,7 +106,7 @@ public class CalendarioServiceImpl implements CalendarioService {
         }).orElse(false);
     }
 
-    public Optional<CalendarioResponseDTO> cambiarEstado(Long id, CalendarState nuevoEstado, String usuario) {
+    public Optional<CalendarioResponseDTO> cambiarEstado(Long id, CalendarState nuevoEstado, int usuario) {
         return repo.findById(id).filter(c -> !c.isEliminado()).map(c -> {
             c.setEstado(nuevoEstado);
             c.setModificadoPor(usuario);

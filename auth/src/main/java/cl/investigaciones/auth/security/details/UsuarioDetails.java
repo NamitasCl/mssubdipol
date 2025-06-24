@@ -85,6 +85,7 @@ public class UsuarioDetails implements UserDetails {
     public String getSiglasUnidad() {
         return usuario.getSiglasUnidad();
     }
+    public int getIdUnidad() { return usuario.getIdUnidad(); }
 
 
 

@@ -26,6 +26,7 @@ public class JwtUtil {
             String nombreCompletoUsuario,
             String nombreCargo,
             String siglasUnidad,
+            int idUnidad,
             boolean isAdmin,
             int idFuncionario,
             List<String> permisos
@@ -41,6 +42,7 @@ public class JwtUtil {
                 .claim("nombreUsuario", nombreCompletoUsuario)
                 .claim("nombreCargo", nombreCargo)
                 .claim("siglasUnidad", siglasUnidad)
+                .claim("idUnidad", idUnidad)
                 .claim("isAdmin", isAdmin)
                 .claim("idFuncionario", idFuncionario)
                 .setIssuedAt(now)

@@ -11,7 +11,7 @@ public interface CalendarioService {
     Optional<CalendarioResponseDTO> buscarPorId(Long id);
     List<CalendarioResponseDTO> listarPorUnidad(Long unidadId);
     List<CalendarioResponseDTO> listarPorEstado(CalendarState estado);
-    Optional<CalendarioResponseDTO> actualizar(Long id, CalendarioRequestDTO req, String usuario);
-    boolean eliminar(Long id, String usuario);
-    Optional<CalendarioResponseDTO> cambiarEstado(Long id, CalendarState nuevoEstado, String usuario);
+    Optional<CalendarioResponseDTO> actualizar(Long id, CalendarioRequestDTO req, int usuario);
+    boolean eliminar(Long id, int usuario);
+    Optional<CalendarioResponseDTO> cambiarEstado(Long id, CalendarState nuevoEstado, int usuario);
 }

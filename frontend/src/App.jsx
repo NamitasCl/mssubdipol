@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 import Dashboard from "./Dashboard.jsx";
-import UnitAssignmentView from "./pages/turnos/UnitAssignmentView.jsx";
 import AsignacionTurnosMensual from "./pages/turnos/AsignacionTurnosMensual.jsx";
 import {RestrictedAreaJefe} from "./components/RestrictedAreaJefe.jsx";
 import {Jefe} from "./pages/turnos/Jefe.jsx";
@@ -25,6 +24,7 @@ import VistaRegistrosFormulario from "./pages/formularioDinamico/VistaRegistrosF
 import GestionTurnosPage from "./pages/turnos/GestionTurnosPage.jsx";
 import {UnitDepartmentManagement} from "./pages/turnos/UnitDepartmentManagement.jsx";
 import CalendarioPage from "./pages/calendarios/CalendarioPage.jsx";
+import MisCalendariosParaAportar from "./pages/calendarios/MisCalendariosParaAportar.jsx";
 
 
 
@@ -45,7 +45,7 @@ export default function App() {
                     <Route index element={<Dashboard />} />
                     <Route path="configuraunidades" element={<RestrictedAreaSecuin component={UnitDepartmentManagement} />} />
                     <Route path="gestion" element={<RestrictedAreaSecuin component={GestionTurnosPage} />} />
-                    <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={UnitAssignmentView} />} />
+                    <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={MisCalendariosParaAportar} />} />
                     <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
                     <Route path="calendario" element={<VistaCalendarioTurnosFiltros />} />
                     <Route path="calendarios" element={<CalendarioPage />} />

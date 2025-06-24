@@ -38,6 +38,12 @@ public class FuncionarioAporteController {
         return ResponseEntity.ok(lista);
     }
 
+    @GetMapping("/calendario/{idCalendario}")
+    public ResponseEntity<List<FuncionarioAporteResponseDTO>> listarFuncionarios(@PathVariable Long idCalendario) {
+        List<FuncionarioAporteResponseDTO> lista = service.listarPorCalendario(idCalendario);
+        return ResponseEntity.ok(lista);
+    }
+
     // Eliminar (borrado lógico) funcionario de la lista de aportes
     @DeleteMapping("/{id}")
     // @PreAuthorize("hasAnyRole('JEFE_UNIDAD', 'SUBJEFE_UNIDAD')")

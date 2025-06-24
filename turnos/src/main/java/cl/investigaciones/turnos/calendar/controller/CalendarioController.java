@@ -42,20 +42,20 @@ public class CalendarioController {
     }
 
     @PutMapping("/{id}")
-    public CalendarioResponseDTO actualizar(@PathVariable Long id, @RequestBody CalendarioRequestDTO req, @RequestHeader("usuario") String usuario) {
+    public CalendarioResponseDTO actualizar(@PathVariable Long id, @RequestBody CalendarioRequestDTO req, @RequestHeader("usuario") int usuario) {
         return servicio.actualizar(id, req, usuario)
                 .orElseThrow(() -> new RuntimeException("Calendario no encontrado o eliminado"));
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id, @RequestHeader("usuario") String usuario) {
+    public void eliminar(@PathVariable Long id, @RequestHeader("usuario") int usuario) {
         if (!servicio.eliminar(id, usuario)) {
             throw new RuntimeException("Calendario no encontrado o ya eliminado");
         }
     }
 
     @PutMapping("/{id}/estado")
-    public CalendarioResponseDTO cambiarEstado(@PathVariable Long id, @RequestParam CalendarState estado, @RequestHeader("usuario") String usuario) {
+    public CalendarioResponseDTO cambiarEstado(@PathVariable Long id, @RequestParam CalendarState estado, @RequestHeader("usuario") int usuario) {
         return servicio.cambiarEstado(id, estado, usuario)
                 .orElseThrow(() -> new RuntimeException("Calendario no encontrado o eliminado"));
     }

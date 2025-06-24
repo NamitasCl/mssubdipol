@@ -1,11 +1,12 @@
 package cl.investigaciones.turnos.calendar.dto;
 
 import cl.investigaciones.turnos.calendar.domain.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import java.util.List;
 
-@Getter @Setter @AllArgsConstructor @NoArgsConstructor
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor @JsonIgnoreProperties(ignoreUnknown = true)
 public class CalendarioResponseDTO {
     private Long id;
     private String nombre;
@@ -18,9 +19,10 @@ public class CalendarioResponseDTO {
     private List<Long> idPlantillasUsadas;
     private CalendarState estado;
     private boolean eliminado;
+    private List<AporteUnidadTurnoResponseDTO>  aporteUnidadTurnos;
     //Auditable fields
     private int creadoPor;
-    private String modificadoPor;
+    private int modificadoPor;
     private String fechaCreacion;
     private String fechaModificacion;
     private String nombreComplejo; // Nombre del complejo asociado, si aplica

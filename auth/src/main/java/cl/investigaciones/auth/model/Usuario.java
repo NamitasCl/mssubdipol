@@ -30,6 +30,7 @@ public class Usuario {
     private int idFun;
     private String nombrePerfil;
     private String siglasUnidad;
+    private int idUnidad;
     private String nombreCargo;
     private String siglasCargo;
     private String email;

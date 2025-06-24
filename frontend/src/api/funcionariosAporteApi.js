@@ -7,6 +7,12 @@ export async function listarFuncionariosAportados(idCalendario, idUnidad) {
     return res.data;
 }
 
+// Listar funcionarios por calendario
+export async function listar(idCalendario) {
+    const res = await axios.get(`${API_URL}/calendario/${idCalendario}`);
+    return res.data;
+}
+
 // Agregar funcionario aportado
 export async function agregarFuncionarioAportado(dto, usuarioId) {
     const res = await axios.post(API_URL, dto, {
