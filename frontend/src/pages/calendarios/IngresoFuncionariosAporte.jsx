@@ -6,18 +6,17 @@ import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 export default function IngresoFuncionariosAporte({ show, onHide, calendario, aporte }) {
 
-    const esComplejo = calendario.tipo === "COMPLEJO";
-    // Si no hay aporte (es UNIDAD), el cupo es ilimitado
-    const cupoRequerido = esComplejo ? (aporte?.cantidadFuncionarios ?? 0) : null;
-    const cuposRestantes = esComplejo ? (cupoRequerido - funcionarios.length) : null;
-
-
     const { user } = useAuth();
     const [funcionarios, setFuncionarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [nuevoFuncionario, setNuevoFuncionario] = useState(null); // Para el select
     const [guardando, setGuardando] = useState(false);
     const [error, setError] = useState(null);
+
+    const esComplejo = calendario.tipo === "COMPLEJO";
+    // Si no hay aporte (es UNIDAD), el cupo es ilimitado
+    const cupoRequerido = esComplejo ? (aporte?.cantidadFuncionarios ?? 0) : null;
+    const cuposRestantes = esComplejo ? (cupoRequerido - funcionarios.length) : null;
 
     // Carga funcionarios ya aportados
     useEffect(() => {

@@ -68,14 +68,6 @@ const CARDS = [
         roles: ["ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
     },
     {
-        title: "Administración",
-        text: "Acceda a funciones administrativas como roles, usuarios y configuración.",
-        icon: <FaCogs size={34} />,
-        route: "/layout/admin",
-        color: "#a67822",
-        roles: ["ROLE_ADMINISTRADOR"]
-    },
-    {
         title: "Ver turnos",
         text: "Visualice sus turnos mensuales y anuales.",
         icon: <FaCalendarAlt size={34} />,

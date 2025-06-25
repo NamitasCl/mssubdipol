@@ -2,8 +2,9 @@ import React from "react";
 import { Card, Row, Col, Container, Button, Image, Navbar, Nav } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { FaUsers, FaShieldAlt, FaCalendarAlt, FaCogs, FaSignOutAlt } from "react-icons/fa";
-import PdiLogo from "../../assets/imagenes/pdilogo.png";
-import { useAuth } from "../../components/contexts/AuthContext.jsx";
+import PdiLogo from "./assets/imagenes/pdilogo.png";
+import { useAuth } from "./components/contexts/AuthContext.jsx";
+import {FaWpforms} from "react-icons/fa6";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -25,21 +26,32 @@ const modules = [
         text: "Gestión completa de turnos y servicios regulares.",
         icon: <FaShieldAlt size={36} />,
         route: "/layout",
-        color: azulPDI
+        color: azulPDI,
+        roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
     },
     {
         title: "Formularios",
         text: "Configura y administra formularios para requerimiento de información.",
-        icon: <FaCogs size={36} />,
-        route: "/servicios-especiales",
-        color: "#a67822" // Dorado oscuro institucional
+        icon: <FaWpforms size={36} />,
+        route: "/formularios",
+        color: "#a67822",
+        roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
     },
     {
         title: "Escolta y Enlaces",
         text: "Gestión de escoltas y enlaces institucionales.",
         icon: <FaCalendarAlt size={36} />,
         route: "/enconstruccion",
-        color: "#28618b" // Azul intermedio institucional
+        color: "#28618b", // Azul intermedio institucional
+        roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
+    },
+    {
+        title: "Administración",
+        text: "Gestión de usuarios y permisos.",
+        icon: <FaCogs size={36} />,
+        route: "/admin",
+        color: "#28618b", // Azul intermedio institucional
+        roles: ["ROLE_ADMINISTRADOR"]
     },
 ];
 
@@ -106,6 +118,7 @@ function Header() {
 }
 
 export default function DashboardPrincipal() {
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     return (
@@ -133,57 +146,61 @@ export default function DashboardPrincipal() {
                         Panel Principal de Servicios
                     </h2>
                     <Row className="g-4">
-                        {modules.map((mod, idx) => (
-                            <Col key={idx} xs={12} sm={6} md={4}>
-                                <Card
-                                    className="dashboard-card h-100"
-                                    style={{
-                                        border: "none",
-                                        borderRadius: "1.5rem",
-                                        background: "#fff",
-                                        color: azulPDI,
-                                        boxShadow: "0 7px 24px 0 #2223",
-                                        cursor: "pointer",
-                                        minHeight: "220px",
-                                        transition: "transform .16s, box-shadow .15s"
-                                    }}
-                                    onClick={() => navigate(mod.route)}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
-                                        e.currentTarget.style.boxShadow = `0 16px 32px 0 ${mod.color}22`;
-                                        e.currentTarget.style.border = `2px solid ${mod.color}`;
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.transform = "none";
-                                        e.currentTarget.style.boxShadow = "0 7px 24px 0 #2223";
-                                        e.currentTarget.style.border = "none";
-                                    }}
-                                >
-                                    <Card.Body className="d-flex flex-column justify-content-between">
-                                        <div className="d-flex align-items-center mb-3" style={{ gap: "0.85rem" }}>
-                                            <div style={{
-                                                background: mod.color + "10",
-                                                borderRadius: "50%",
-                                                padding: "0.72rem",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                border: `2.5px solid ${mod.color}66`,
-                                                color: mod.color
-                                            }}>
-                                                {mod.icon}
-                                            </div>
-                                            <Card.Title className="mb-0 fs-6 fw-bold" style={{ color: azulPDI, textTransform: "uppercase", letterSpacing: ".07em" }}>
-                                                {mod.title}
-                                            </Card.Title>
-                                        </div>
-                                        <Card.Text style={{ color: grisOscuro, fontSize: "1.09rem", minHeight: "62px" }}>
-                                            {mod.text}
-                                        </Card.Text>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
+                        {modules.map((mod, idx) => {
+                            if(mod.roles.some(rol => user.roles.includes(rol))) {
+                                return (
+                                    <Col key={idx} xs={12} sm={6} md={4}>
+                                        <Card
+                                            className="dashboard-card h-100"
+                                            style={{
+                                                border: "none",
+                                                borderRadius: "1.5rem",
+                                                background: "#fff",
+                                                color: azulPDI,
+                                                boxShadow: "0 7px 24px 0 #2223",
+                                                cursor: "pointer",
+                                                minHeight: "220px",
+                                                transition: "transform .16s, box-shadow .15s"
+                                            }}
+                                            onClick={() => navigate(mod.route)}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
+                                                e.currentTarget.style.boxShadow = `0 16px 32px 0 ${mod.color}22`;
+                                                e.currentTarget.style.border = `2px solid ${mod.color}`;
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.transform = "none";
+                                                e.currentTarget.style.boxShadow = "0 7px 24px 0 #2223";
+                                                e.currentTarget.style.border = "none";
+                                            }}
+                                        >
+                                            <Card.Body className="d-flex flex-column justify-content-between">
+                                                <div className="d-flex align-items-center mb-3" style={{ gap: "0.85rem" }}>
+                                                    <div style={{
+                                                        background: mod.color + "10",
+                                                        borderRadius: "50%",
+                                                        padding: "0.72rem",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        border: `2.5px solid ${mod.color}66`,
+                                                        color: mod.color
+                                                    }}>
+                                                        {mod.icon}
+                                                    </div>
+                                                    <Card.Title className="mb-0 fs-6 fw-bold" style={{ color: azulPDI, textTransform: "uppercase", letterSpacing: ".07em" }}>
+                                                        {mod.title}
+                                                    </Card.Title>
+                                                </div>
+                                                <Card.Text style={{ color: grisOscuro, fontSize: "1.09rem", minHeight: "62px" }}>
+                                                    {mod.text}
+                                                </Card.Text>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                )
+                            }
+                        })}
                     </Row>
                 </Container>
             </div>

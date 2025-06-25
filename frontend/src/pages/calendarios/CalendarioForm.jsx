@@ -192,7 +192,7 @@ export default function CalendarioForm({ show, onHide, onSuccess, calendarioEdit
                             <Form.Label>Tipo</Form.Label>
                             <Form.Control as="select" name="tipo" value={form.tipo} onChange={handleChange}>
                                 {tipos.map((t) => (
-                                    <option key={t.value} value={t.value}>
+                                    <option key={t.value} value={t.value} disabled={(t.value === "COMPLEJO" && !user.roles.includes("ROLE_TURNOS"))}>
                                         {t.label}
                                     </option>
                                 ))}

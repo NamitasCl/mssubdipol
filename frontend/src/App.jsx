@@ -7,14 +7,14 @@ import {RestrictedAreaJefe} from "./components/RestrictedAreaJefe.jsx";
 import {Jefe} from "./pages/turnos/Jefe.jsx";
 import LoginForm from "./LoginForm.jsx";
 import {RestrictedAreaAdmin} from "./components/RestrictedAreaAdmin.jsx";
-import Admin from "./pages/turnos/Admin.jsx";
+import Admin from "./pages/admin/Admin.jsx";
 import {RestrictedAreaSubJefe} from "./components/RestrictedAreaSubJefe.jsx";
 import {RestrictedAreaSecuin} from "./components/RestrictedAreaSecuin.jsx";
 import AuthGuard from "./components/AuthGuard.jsx";
 import ModificarAsignacionesUnidad from "./pages/turnos/ModificarAsignacionesUnidad.jsx";
 import PaginaEnConstruccion from "./pages/PaginaEnConstruccion.jsx";
 import VistaCalendarioTurnosFiltros from "./pages/turnos/VistaCalendarioTurnosFiltros.jsx";
-import DashboardPrincipal from "./pages/formularioDinamico/DashboardPrincipal.jsx";
+import DashboardPrincipal from "./DashboardPrincipal.jsx";
 import ServiciosEspecialesLayout from "./pages/formularioDinamico/ServiciosEspecialesLayout.jsx";
 import './assets/App.css';
 import ListaFormulariosDisponibles from "./pages/formularioDinamico/ListaFormulariosDisponibles.jsx";
@@ -25,17 +25,21 @@ import GestionTurnosPage from "./pages/turnos/GestionTurnosPage.jsx";
 import {UnitDepartmentManagement} from "./pages/turnos/UnitDepartmentManagement.jsx";
 import CalendarioPage from "./pages/calendarios/CalendarioPage.jsx";
 import MisCalendariosParaAportar from "./pages/calendarios/MisCalendariosParaAportar.jsx";
+import AdminLayout from "./pages/admin/AdminLayout.jsx";
 
 
 
 export default function App() {
     return (
-        <Router basename="/turnos/">
+        <Router basename="/turnos">
             <Routes>
+                <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout /></RestrictedAreaAdmin>}>
+                    <Route index element={<Admin />} />
+                </Route>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />
                 <Route path="/" element={<AuthGuard><DashboardPrincipal /></AuthGuard>} />
-                <Route path="/servicios-especiales" element={<AuthGuard><ServiciosEspecialesLayout /></AuthGuard>}>
+                <Route path="/formularios" element={<AuthGuard><ServiciosEspecialesLayout /></AuthGuard>}>
                     <Route index element={<ListaFormulariosDisponibles />} />
                     <Route path="crear-formulario" element={<FormBuilderApp />} />
                     <Route path="formulario/:id" element={<FormularioDinamicoPage />} />
@@ -51,7 +55,6 @@ export default function App() {
                     <Route path="calendarios" element={<CalendarioPage />} />
                     <Route path="disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual} />} />
                     <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
-                    <Route path="admin" element={<RestrictedAreaAdmin component={Admin} />} />
                 </Route>
             </Routes>
         </Router>

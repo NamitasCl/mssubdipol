@@ -2,15 +2,17 @@ import React, { useState, useEffect } from "react";
 import AsyncSelect from "react-select/async";
 import { Card, Container, Row, Col, Form, Button, Badge, Alert, Spinner, Table } from "react-bootstrap";
 import axios from "axios";
+import {useNavigate} from "react-router-dom";
 
 const rolesDisponibles = [
     { value: "ROLE_JEFE", label: "Jefe de Unidad" },
     { value: "ROLE_SUBJEFE", label: "Subjefe de Unidad" },
     { value: "ROLE_ADMINISTRADOR", label: "Administrador del Sistema" },
-    { value: "ROLE_SECUIN", label: "Encargado de Turnos (SECUIN)" },
+    { value: "ROLE_TURNOS", label: "Asignado para hacer turnos en complejo" },
 ];
 
 export default function Admin() {
+    const navigate = useNavigate();
     const [selectedFuncionario, setSelectedFuncionario] = useState(null);
     const [selectedRoles, setSelectedRoles] = useState([]);
     const [mensaje, setMensaje] = useState("");
@@ -98,7 +100,16 @@ export default function Admin() {
 
     return (
         <Container className="mt-4">
-            <h3 className="mb-4">Administración de Roles</h3>
+            <div style={{ padding: "20px", display: "flex", justifyContent: "space-between" }}>
+                <div>
+                    <h3 className="mb-4">Administración de Roles</h3>
+                </div>
+                <div>
+                    <Button onClick={() => navigate("/")}>
+                        Volver al Dashboard
+                    </Button>
+                </div>
+            </div>
             <Card className="shadow-sm mb-4">
                 <Card.Body>
                     <Row className="mb-3">

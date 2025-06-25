@@ -104,7 +104,7 @@ export default function FormularioDinamicoPage() {
                 <Alert variant="success">
                     ¡Formulario guardado correctamente!
                 </Alert>
-                <Button onClick={() => navigate("/servicios-especiales")}>
+                <Button onClick={() => navigate("/formularios")}>
                     Volver a formularios
                 </Button>
             </div>
@@ -130,7 +130,7 @@ export default function FormularioDinamicoPage() {
             <div className="mt-4 text-end">
                 <Button
                     variant="secondary"
-                    onClick={() => navigate("/servicios-especiales")}
+                    onClick={() => navigate("/formularios")}
                 >
                     Volver
                 </Button>

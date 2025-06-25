@@ -5,6 +5,7 @@ import cl.investigaciones.auth.dto.ModificarRolRequestDTO;
 import cl.investigaciones.auth.dto.UsuarioSubjefeDTO;
 import cl.investigaciones.auth.model.Rol;
 import cl.investigaciones.auth.model.Usuario;
+import cl.investigaciones.auth.service.RolService;
 import cl.investigaciones.auth.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +18,24 @@ import java.util.List;
 public class RolesController {
 
     private final UsuarioService usuarioService;
+    private final RolService rolService;
 
-    public RolesController(UsuarioService usuarioService) {
+    public RolesController(
+            UsuarioService usuarioService,
+            RolService rolService
+    ) {
         this.usuarioService = usuarioService;
+        this.rolService = rolService;
+    }
+
+    @GetMapping("/listar")
+    public ResponseEntity<?> findAll() {
+        try {
+            return ResponseEntity.ok(rolService.findAll());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/asignados")

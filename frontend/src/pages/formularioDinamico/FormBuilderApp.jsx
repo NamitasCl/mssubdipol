@@ -17,7 +17,7 @@ function FormBuilderApp() {
 
     // Botón volver
     const handleBack = () => {
-        navigate("/servicios-especiales");
+        navigate("/formularios");
     };
 
     const handleShowPreview = () => {

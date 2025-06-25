@@ -2,18 +2,15 @@ import React from 'react';
 import {useAuth} from "./contexts/AuthContext.jsx";
 import {Alert} from "react-bootstrap";
 
-export function RestrictedAreaAdmin({component: Component, ...rest }) {
-    // Aquí puedes definir la lógica para verificar si el usuario tiene acceso a la ruta
+// Usa CHILDREN
+export function RestrictedAreaAdmin({children}) {
     const { user } = useAuth();
-
-    console.log("User en restricted: ", user);
-
     const hasAccess = user && (user.roles.includes('ROLE_ADMINISTRADOR') || user.isAdmin);
 
     return (
-        <div>
+        <>
             {hasAccess ? (
-                <Component {...rest} />
+                children
             ) : (
                 <Alert variant="warning" className="mt-4">
                     <h5>Acceso restringido</h5>
@@ -21,7 +18,6 @@ export function RestrictedAreaAdmin({component: Component, ...rest }) {
                     <p>Si crees que esto es un error, por favor contacta con el Administrador (PM Subdipol).</p>
                 </Alert>
             )}
-        </div>
+        </>
     );
-
 }

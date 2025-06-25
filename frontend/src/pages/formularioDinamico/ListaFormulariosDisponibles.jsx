@@ -168,7 +168,7 @@ export default function ListaFormulariosDisponibles() {
                                                         color: azulSuave,
                                                         background: "#fff"
                                                     }}
-                                                    onClick={() => navigate(`/servicios-especiales/formulario/${cuota.formularioId}`, {
+                                                    onClick={() => navigate(`/formularios/formulario/${cuota.formularioId}`, {
                                                         state: {
                                                             cuotaId: cuota.id,
                                                             idUnidad,
@@ -183,7 +183,7 @@ export default function ListaFormulariosDisponibles() {
                                                 size="sm"
                                                 variant="secondary"
                                                 onClick={() =>
-                                                    navigate(`/servicios-especiales/verregistros`, {
+                                                    navigate(`/formularios/verregistros`, {
                                                         state: {
                                                             formularioId: cuota.formularioId,
                                                             cuotaId: cuota.id,
@@ -271,7 +271,7 @@ export default function ListaFormulariosDisponibles() {
                                                         color: azulSuave,
                                                         background: "#fff"
                                                     }}
-                                                    onClick={() => navigate(`/servicios-especiales/formulario/${f.id}`)}
+                                                    onClick={() => navigate(`/formularios/formulario/${f.id}`)}
                                                 >
                                                     Completar
                                                 </Button>
@@ -280,7 +280,7 @@ export default function ListaFormulariosDisponibles() {
                                                         size="sm"
                                                         variant="secondary"
                                                         onClick={() =>
-                                                            navigate(`/servicios-especiales/verregistros`, {
+                                                            navigate(`/formularios/verregistros`, {
                                                                 state: {
                                                                     formularioId: f.id,
                                                                     esCuotaPadre: true
@@ -345,7 +345,7 @@ export default function ListaFormulariosDisponibles() {
                                                         color: "#000000",
                                                         background: "#fff"
                                                     }}
-                                                    onClick={() => navigate(`/servicios-especiales/formulario/${f.id}`)}
+                                                    onClick={() => navigate(`/formularios/formulario/${f.id}`)}
                                                 >
                                                     Completar
                                                 </Button>
@@ -353,7 +353,7 @@ export default function ListaFormulariosDisponibles() {
                                                     size="sm"
                                                     variant="secondary"
                                                     onClick={() =>
-                                                        navigate(`/servicios-especiales/verregistros`, {
+                                                        navigate(`/formularios/verregistros`, {
                                                             state: {
                                                                 formularioId: f.id,
                                                                 esCuotaPadre: true

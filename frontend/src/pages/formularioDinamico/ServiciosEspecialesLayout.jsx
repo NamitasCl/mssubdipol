@@ -173,7 +173,7 @@ const ServiciosEspecialesPanelLayout = ({ children }) => {
 
     // Botón flotante para crear formulario
     const crearFormulario = () => {
-        navigate("/servicios-especiales/crear-formulario");
+        navigate("/formularios/crear-formulario");
     };
 
     return (

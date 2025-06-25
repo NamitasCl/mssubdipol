@@ -10,11 +10,11 @@ import {
     Button,
     Card,
 } from "react-bootstrap";
-import { FaUserCircle, FaSignOutAlt, FaChevronRight } from "react-icons/fa";
-import PdiLogo from "./assets/imagenes/pdilogo.png";
-import { useAuth } from "./components/contexts/AuthContext.jsx";
+import { FaUserCircle, FaSignOutAlt, FaChevronRight, FaUsersCog, FaList, FaUserShield, FaKey, FaDatabase } from "react-icons/fa";
+import PdiLogo from "../../assets/imagenes/pdilogo.png"; // Usa la ruta adecuada
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
-// PALETA DE COLORES
+// Paleta de colores (igual que tu layout principal)
 const azulBase = "#2a4d7c";
 const azulMedio = "#4f7eb9";
 const azulClaro = "#b1cfff";
@@ -24,50 +24,40 @@ const grisClaro = "#f8fbfd";
 const textoPrincipal = "#22334a";
 const doradoSuave = "#ffe8a3";
 
-// ROLES
+// Roles
 const ROLES = {
-    ADMINISTRADOR: "ROLE_ADMINISTRADOR",
-    SUBJEFE: "ROLE_SUBJEFE",
-    SECUIN: "ROLE_SECUIN",
-    JEFE: "ROLE_JEFE",
-    FUNCIONARIO: "ROLE_FUNCIONARIO",
+    ADMINISTRADOR: "ROLE_ADMINISTRADOR"
 };
 
-// MENÚ DE NAVEGACIÓN CON SUBMENÚS
-const navConfig = [
+// Menú de administración (puedes extender con más secciones)
+const adminNavConfig = [
     {
-        label: "Dashboard",
-        to: "/layout",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO],
+        label: "Usuarios",
+        icon: <FaUsersCog />,
+        to: "/admin/usuarios",
+        allowedRoles: [ROLES.ADMINISTRADOR]
     },
     {
-        label: "Gestión por Unidad",
-        to: "/layout/asignacionunidad",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE],
-    },
-    {
-        label: "Modificar turnos",
-        to: "/layout/modificaturnosunidad",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE],
-    },
-    {
-        label: "Gestión de Turnos",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN],
+        label: "Listas maestras",
+        icon: <FaList />,
         submenu: [
-            { label: "Crear Calendario", to: "/layout/calendarios" },
-            { label: "Configurar unidad", to: "/layout/configuraunidades"},
-            { label: "Ver Calendarios", to: "/layout/calendario" },
-            { label: "Personal Disponible", to: "/layout/disponibles" }
-        ]
+            { label: "Comunas", to: "/admin/listas/comunas", icon: <FaDatabase /> },
+            { label: "Regiones", to: "/admin/listas/regiones", icon: <FaDatabase /> },
+            { label: "Cargos", to: "/admin/listas/cargos", icon: <FaDatabase /> },
+            { label: "Roles", to: "/admin/listas/roles", icon: <FaUserShield /> },
+            { label: "Permisos", to: "/admin/listas/permisos", icon: <FaKey /> }
+        ],
+        allowedRoles: [ROLES.ADMINISTRADOR]
     },
     {
-        label: "Zona Jefes",
-        to: "/layout/jefe",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE],
+        label: "Logs y Auditoría",
+        icon: <FaDatabase />,
+        to: "/admin/logs",
+        allowedRoles: [ROLES.ADMINISTRADOR]
     }
 ];
 
-export default function Layout() {
+export default function AdminLayout() {
     const location = useLocation();
     const { user, logout } = useAuth();
     const [openMenus, setOpenMenus] = useState({});
@@ -79,7 +69,7 @@ export default function Layout() {
 
     const visibleNavItems = useMemo(() => {
         if (user && user.roles) {
-            return navConfig.filter((item) =>
+            return adminNavConfig.filter((item) =>
                 item.allowedRoles?.some((rol) => user.roles.includes(rol))
             );
         }
@@ -111,7 +101,7 @@ export default function Layout() {
                         <BImage src={PdiLogo} alt="Logo" height={48} />
                         <div>
                             <h4 className="mb-0 fw-bold" style={{ color: blanco, letterSpacing: 1.2, fontSize: 24 }}>
-                                Plataforma de gestión de turnos
+                                Administración del sistema
                             </h4>
                             <span className="small" style={{ color: doradoSuave }}>
                                 Subdirección de Investigación Policial y Criminalística
@@ -202,9 +192,9 @@ export default function Layout() {
                                                         opacity: isAnySubActive ? 1 : 0.6,
                                                     }}
                                                 />
+                                                {item.icon}
                                                 {item.label}
                                             </div>
-
                                             {/* Subitems */}
                                             {isOpen && (
                                                 <div className="w-100">
@@ -232,6 +222,7 @@ export default function Layout() {
                                                                 }}
                                                             >
                                                                 <FaChevronRight size={16} style={{ opacity: isActive ? 1 : 0.5 }} />
+                                                                {subitem.icon}
                                                                 {subitem.label}
                                                             </Nav.Link>
                                                         );
@@ -265,13 +256,13 @@ export default function Layout() {
                                             transition: "background 0.16s, color 0.16s",
                                         }}
                                     >
+                                        {item.icon}
                                         <FaChevronRight size={19} style={{ opacity: isActive ? 1 : 0.6 }} />
                                         {item.label}
                                     </Nav.Link>
                                 );
                             })}
                         </Nav>
-
                     </Col>
 
                     {/* Main content */}
