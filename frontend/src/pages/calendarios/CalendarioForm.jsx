@@ -232,7 +232,9 @@ export default function CalendarioForm({ show, onHide, onSuccess, calendarioEdit
                                     <ul>
                                         {plantillasAgregadas.map((p) => (
                                             <li key={p.id}>
-                                                {p.nombre}
+                                                <p style={{marginRight: '10px', display: 'inline-block'}}>
+                                                    {p.nombre}
+                                                </p>
                                                 <Button
                                                     size="sm"
                                                     variant="outline-danger"

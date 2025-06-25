@@ -45,7 +45,7 @@ export default function App() {
                     <Route index element={<Dashboard />} />
                     <Route path="configuraunidades" element={<RestrictedAreaSecuin component={UnitDepartmentManagement} />} />
                     <Route path="gestion" element={<RestrictedAreaSecuin component={GestionTurnosPage} />} />
-                    <Route path="asignacionunidad" element={<RestrictedAreaSubJefe component={MisCalendariosParaAportar} />} />
+                    <Route path="asignacionunidad" element={<MisCalendariosParaAportar />} />
                     <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
                     <Route path="calendario" element={<VistaCalendarioTurnosFiltros />} />
                     <Route path="calendarios" element={<CalendarioPage />} />

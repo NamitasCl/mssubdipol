@@ -33,21 +33,30 @@ export default function MisCalendariosParaAportar() {
                 }
                 return false;
             });
+            console.log("Mis calendarios: ", mios);
 
             // Para cada calendario, consulta los aportes de unidades
             const aportesData = {};
             const funcionariosData = {};
             await Promise.all(mios.map(async (cal) => {
-                const aportes = await listarAportes(cal.id); // [{idUnidad, cantidadFuncionarios, ...}]
-                const miAporte = (cal.aporteUnidadTurnos || []).find(a => a.idUnidad === user.idUnidad);
-                aportesData[cal.id] = miAporte || null;
-
-                // Consulta funcionarios ya aportados solo si hay aporte
-                if (miAporte) {
-                    const funcionarios = await listarFuncionariosAportados(cal.id, user.idUnidad);
-                    funcionariosData[cal.id] = funcionarios;
+                let miAporte = null;
+                if (cal.tipo === "COMPLEJO") {
+                    miAporte = (cal.aporteUnidadTurnos || []).find(a => a.idUnidad === user.idUnidad) || null;
                 }
+                if (cal.tipo === "UNIDAD") {
+                    // Para unidad, crea un objeto "dummy" solo para uniformidad visual
+                    miAporte = {
+                        idUnidad: user.idUnidad,
+                        cantidadFuncionarios: null // O 'Infinity' o '—' si lo prefieres en la tabla
+                    };
+                }
+                aportesData[cal.id] = miAporte;
+
+                // Consulta funcionarios ya aportados (en ambos casos puedes consultar)
+                const funcionarios = await listarFuncionariosAportados(cal.id, user.idUnidad);
+                funcionariosData[cal.id] = funcionarios;
             }));
+
             setAportesPorCalendario(aportesData);
             setFuncionariosPorCalendario(funcionariosData);
             setCalendarios(mios);
@@ -65,8 +74,10 @@ export default function MisCalendariosParaAportar() {
     });
 
     return (
-        <div>
-            <h2>Mis calendarios donde debo aportar personal</h2>
+        <div style={{padding:'2%'}}>
+            <div style={{marginBottom: '20px'}}>
+                <h2>Mis calendarios donde debo aportar personal</h2>
+            </div>
             {pendientes.length > 0 && (
                 <Alert variant="warning">
                     ¡Tienes calendarios con cupos de personal pendientes de aportar!
@@ -87,34 +98,75 @@ export default function MisCalendariosParaAportar() {
                 </thead>
                 <tbody>
                 {calendarios.map(cal => {
-                    const aporte = aportesPorCalendario[cal.id];
-                    const funcionarios = funcionariosPorCalendario[cal.id] || [];
-                    if (!aporte) return null; // Solo muestra si la unidad tiene aporte asignado
 
-                    const estado = funcionarios.length >= aporte.cantidadFuncionarios ? "Completado" : "Pendiente";
+                    console.log("Renderizando calendario: ", cal);
+
+                    const puedeAportar =
+                        user.roles.includes('ROLE_JEFE') ||
+                        user.roles.includes('ROLE_SUBJEFE') ||
+                        user.roles.includes('ROLE_TURNOS');
+
+
+                    if(cal.tipo === "COMPLEJO" && !puedeAportar) {
+                        return null; // Solo muestra si el usuario es Jefe o Subjefe
+                    }
+
+                    const aporte = aportesPorCalendario[cal.id];
+
+                    // Si es COMPLEJO, pero no hay aporte para esta unidad, no muestra (la unidad no tiene asignación)
+                    if (cal.tipo === "COMPLEJO" && !aporte) return null;
+
+                    const funcionarios = funcionariosPorCalendario[cal.id] || [];
+
+                    // Lógica del estado y cuota según tipo
+                    let estado, cupoRequerido;
+                    if (cal.tipo === "COMPLEJO") {
+                        estado = funcionarios.length >= (aporte?.cantidadFuncionarios || 0) ? "Completado" : "Pendiente";
+                        cupoRequerido = aporte?.cantidadFuncionarios;
+                    } else {
+                        // UNIDAD: cupo libre, siempre pendiente si no hay ninguno, completado si hay al menos uno (o como quieras definirlo)
+                        estado = funcionarios.length > 0 ? "Completado" : "Pendiente";
+                        cupoRequerido = "Sin límite";
+                    }
+
+                    const esComplejo = cal.tipo === "COMPLEJO";
+                    let badgeColor, badgeText;
+
+                    if (esComplejo) {
+                        // Estado normal para complejos (hay cuota)
+                        estado = funcionarios.length >= cupoRequerido ? "Completado" : "Pendiente";
+                        badgeColor = estado === "Completado" ? "success" : "danger";
+                        badgeText = estado;
+                    } else {
+                        // Para unidad: siempre gestión libre, sin cuota
+                        estado = "Gestión libre";
+                        badgeColor = "secondary";
+                        badgeText = "Sin límite";
+                    }
+
 
                     return (
                         <tr key={cal.id}>
                             <td>{cal.nombre}</td>
                             <td>{cal.mes}/{cal.anio}</td>
                             <td>{cal.tipo}</td>
-                            <td>{cal.tipo === "COMPLEJO" ? cal.nombreComplejo : cal.nombreUnidad}</td>
-                            <td>{aporte.cantidadFuncionarios}</td>
+                            <td>{esComplejo ? cal.nombreComplejo : cal.nombreUnidad}</td>
+                            <td>{esComplejo ? cupoRequerido : "—"}</td>
                             <td>{funcionarios.length}</td>
                             <td>
-                                    <span className={`badge bg-${estado === "Completado" ? "success" : "danger"}`}>
-                                        {estado}
-                                    </span>
+                                <span className={`badge bg-${badgeColor}`}>
+                                    {badgeText}
+                                </span>
                             </td>
                             <td>
                                 <Button
-                                    variant={estado === "Completado" ? "outline-secondary" : "primary"}
+                                    variant={esComplejo && estado === "Completado" ? "outline-secondary" : "primary"}
                                     onClick={() => {
                                         setCalendarioSeleccionado({ ...cal, aporte });
                                         setShowIngreso(true);
                                     }}
                                 >
-                                    {estado === "Completado" ? "Ver / Editar" : "Aportar Personal"}
+                                    {esComplejo && estado === "Completado" ? "Ver / Editar" : "Aportar Personal"}
                                 </Button>
                             </td>
                         </tr>

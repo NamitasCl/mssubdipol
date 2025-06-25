@@ -21,7 +21,7 @@ public class InicializadorRoles implements CommandLineRunner {
         crearRolSiNoExiste("ROLE_SUBJEFE");
         crearRolSiNoExiste("ROLE_FUNCIONARIO");
         crearRolSiNoExiste("ROLE_ADMINISTRADOR");
-        crearRolSiNoExiste("ROLE_SECUIN");
+        crearRolSiNoExiste("ROLE_TURNOS");
     }
 
     private void crearRolSiNoExiste(String rol) {

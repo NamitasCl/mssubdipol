@@ -5,6 +5,13 @@ import { Button, Modal, Table, Form, Alert, Row, Col } from "react-bootstrap";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 export default function IngresoFuncionariosAporte({ show, onHide, calendario, aporte }) {
+
+    const esComplejo = calendario.tipo === "COMPLEJO";
+    // Si no hay aporte (es UNIDAD), el cupo es ilimitado
+    const cupoRequerido = esComplejo ? (aporte?.cantidadFuncionarios ?? 0) : null;
+    const cuposRestantes = esComplejo ? (cupoRequerido - funcionarios.length) : null;
+
+
     const { user } = useAuth();
     const [funcionarios, setFuncionarios] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -22,8 +29,6 @@ export default function IngresoFuncionariosAporte({ show, onHide, calendario, ap
         }
     }, [calendario, aporte, show]);
 
-    const cuposRestantes = aporte.cantidadFuncionarios - funcionarios.length;
-
     const handleAgregar = async () => {
         setGuardando(true);
         setError(null);
@@ -36,7 +41,7 @@ export default function IngresoFuncionariosAporte({ show, onHide, calendario, ap
                 setError("Este funcionario ya está registrado para este calendario.");
                 return;
             }
-            if (cuposRestantes <= 0) {
+            if (esComplejo && cuposRestantes <= 0) {
                 setError("Ya has completado todos los cupos requeridos.");
                 return;
             }
@@ -81,18 +86,23 @@ export default function IngresoFuncionariosAporte({ show, onHide, calendario, ap
             <Modal.Body>
                 <Row className="mb-2">
                     <Col>
-                        <b>Cupos requeridos:</b> {aporte.cantidadFuncionarios}
+                        <b>Cupos requeridos:</b> {esComplejo ? cupoRequerido : "Sin límite"}
                     </Col>
                     <Col>
                         <b>Cupos aportados:</b> {funcionarios.length}
                     </Col>
                     <Col>
                         <b>Restantes:</b>{" "}
-                        <span className={cuposRestantes > 0 ? "text-danger" : "text-success"}>
-                            {cuposRestantes > 0 ? cuposRestantes : 0}
-                        </span>
+                        {esComplejo ? (
+                            <span className={cuposRestantes > 0 ? "text-danger" : "text-success"}>
+                                {cuposRestantes > 0 ? cuposRestantes : 0}
+                            </span>
+                        ) : (
+                            <span className="text-success">—</span>
+                        )}
                     </Col>
                 </Row>
+
                 {error && <Alert variant="danger">{error}</Alert>}
 
                 <Form className="mb-3" onSubmit={e => { e.preventDefault(); handleAgregar(); }}>
@@ -109,7 +119,7 @@ export default function IngresoFuncionariosAporte({ show, onHide, calendario, ap
                             <Button
                                 variant="success"
                                 type="submit"
-                                disabled={guardando || cuposRestantes <= 0}
+                                disabled={guardando || (esComplejo && cuposRestantes <= 0)}
                             >
                                 {guardando ? "Guardando..." : "Agregar funcionario"}
                             </Button>
