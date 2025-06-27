@@ -84,6 +84,10 @@ export default function ListaFormulariosDisponibles() {
         setCuotaADistribuir(null);
     };
 
+    console.log("user:", user);
+    console.log("formulariosPrivados:", formulariosPrivados.map(f=>f.id));
+    console.log("soloPrivados:", soloPrivados.map(f=>f.id));
+    
     return (
         <div>
             <h2 className="fw-bold mb-4" style={{ color: textoPrincipal, fontSize: "1.28rem" }}>
