@@ -73,6 +73,8 @@ export default function ListaFormulariosDisponibles() {
 
     /* ====================== HELPERS/DERIVADOS ====================== */
 
+    const formulariosActivos = formularios.filter(f => f.activo);
+
     /** Buscar metadata del formulario por ID */
     const buscarFormularioPorId = (id) =>
         formularios.find((f) => String(f.id) === String(id)) || {};
@@ -81,29 +83,32 @@ export default function ListaFormulariosDisponibles() {
     const idsConCuota = new Set(cuotas.map((c) => String(c.formularioId)));
 
     /* ---------- 1) Formularios públicos ---------- */
-    const formulariosPublicos = formularios.filter((f) =>
-        f.visibilidad?.some((v) => v.tipoDestino === "publica")
-    );
-    const formulariosPublicosSinCuota = formulariosPublicos.filter(
-        (f) => !idsConCuota.has(String(f.id))
+    const formulariosPublicos = formulariosActivos.filter(f =>
+        f.visibilidad?.some(v => v.tipoDestino === "publica")
     );
 
-    /* ---------- 2) Formularios privados (usuario / unidad) ---------- */
-    const formulariosPrivados = formularios.filter((f) =>
+    const formulariosPublicosSinCuota = formulariosPublicos.filter(
+        f => !idsConCuota.has(String(f.id))
+    );
+
+    /* ---------- 2) Formularios privados ---------- */
+    const formulariosPrivados = formulariosActivos.filter(f =>
         f.visibilidad?.some(
-            (v) =>
-                /* visibilidad por USUARIO */
+            v =>
                 (v.tipoDestino === "usuario" &&
                     String(v.valorDestino) === String(user.idFuncionario)) ||
-                /* visibilidad por UNIDAD – coincide por sigla y/o idUnidad (si lo tienes) */
                 (v.tipoDestino === "unidad" &&
-                    ((v.valorDestinoSiglas &&
+                    (
+                        (v.valorDestinoSiglas &&
                             String(v.valorDestinoSiglas) === String(user.siglasUnidad)) ||
                         (v.valorDestino &&
                             user.idUnidad &&
-                            String(v.valorDestino) === String(user.idUnidad))))
+                            String(v.valorDestino) === String(user.idUnidad))
+                    )
+                )
         )
     );
+
 
     /* ---------- 3) Evitar duplicados (público y/o con cuota) ---------- */
     const idsFormulariosMostrados = new Set([
