@@ -35,6 +35,8 @@ export default function ListaFormulariosDisponibles() {
             }).then(res => res.json()),
         ])
             .then(([formulariosRes, cuotasRes]) => {
+                console.log("Formularios recibidos: ", formulariosRes);
+                console.log("Cuotas: ", cuotasRes);
                 setFormularios(formulariosRes);
                 setCuotas(cuotasRes);
             })
