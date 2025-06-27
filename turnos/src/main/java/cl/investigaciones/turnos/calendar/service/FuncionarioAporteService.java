@@ -50,7 +50,7 @@ public class FuncionarioAporteService {
                     for (DiaNoDisponibleDTO diaDto : dto.getDiasNoDisponibles()) {
                         FuncionarioAportadoDiasNoDisponible dia = new FuncionarioAportadoDiasNoDisponible();
                         dia.setFuncionarioAporte(entity);
-                        dia.setFecha(LocalDate.parse(diaDto.getFecha()));
+                        dia.setFecha(diaDto.getFecha());
                         dia.setMotivo(diaDto.getMotivo());
                         dia.setDetalle(diaDto.getDetalle());
                         diasRepo.save(dia);
@@ -69,7 +69,7 @@ public class FuncionarioAporteService {
                 for (DiaNoDisponibleDTO diaDto : dto.getDiasNoDisponibles()) {
                     FuncionarioAportadoDiasNoDisponible dia = new FuncionarioAportadoDiasNoDisponible();
                     dia.setFuncionarioAporte(entity);
-                    dia.setFecha(LocalDate.parse(diaDto.getFecha()));
+                    dia.setFecha(diaDto.getFecha());
                     dia.setMotivo(diaDto.getMotivo());
                     dia.setDetalle(diaDto.getDetalle());
                     diasRepo.save(dia);

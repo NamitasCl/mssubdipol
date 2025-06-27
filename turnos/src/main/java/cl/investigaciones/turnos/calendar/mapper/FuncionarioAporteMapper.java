@@ -1,8 +1,12 @@
 package cl.investigaciones.turnos.calendar.mapper;
 
+import cl.investigaciones.turnos.calendar.domain.FuncionarioAportadoDiasNoDisponible;
 import cl.investigaciones.turnos.calendar.domain.FuncionarioAporte;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteRequestDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
+
+import java.util.List;
 
 public class FuncionarioAporteMapper {
 
@@ -20,6 +24,18 @@ public class FuncionarioAporteMapper {
         entity.setCreadoPor(agregadoPor);
         entity.setFechaCreacion(java.time.LocalDateTime.now());
 
+        // Mapear días no disponibles, si existen en el DTO
+        if (dto.getDiasNoDisponibles() != null) {
+            for (DiaNoDisponibleDTO diaDto : dto.getDiasNoDisponibles()) {
+                FuncionarioAportadoDiasNoDisponible dia = new FuncionarioAportadoDiasNoDisponible();
+                dia.setFecha(diaDto.getFecha());
+                dia.setMotivo(diaDto.getMotivo());
+                dia.setDetalle(diaDto.getDetalle());
+                dia.setFuncionarioAporte(entity); // Relación bidireccional
+                entity.getDiasNoDisponibles().add(dia);
+            }
+        }
+
         return entity;
     }
 
@@ -35,6 +51,12 @@ public class FuncionarioAporteMapper {
         dto.setAgregadoPor(entity.getCreadoPor());
         dto.setFechaCreacion(entity.getFechaCreacion());
         dto.setDisponible(entity.isDisponible());
+        // No agregues los días no disponibles al response (según tu decisión anterior)
         return dto;
     }
+
+    public static FuncionarioAporteResponseDTO toDto(FuncionarioAporte entity, List<FuncionarioAportadoDiasNoDisponible> dias) {
+        return toDto(entity); // simplemente llama el método existente
+    }
+
 }

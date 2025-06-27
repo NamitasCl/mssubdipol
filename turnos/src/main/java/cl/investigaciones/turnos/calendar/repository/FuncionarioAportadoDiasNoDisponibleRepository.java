@@ -4,6 +4,10 @@ import cl.investigaciones.turnos.calendar.domain.FuncionarioAportadoDiasNoDispon
 import cl.investigaciones.turnos.calendar.domain.FuncionarioAporte;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface FuncionarioAportadoDiasNoDisponibleRepository extends JpaRepository<FuncionarioAportadoDiasNoDisponible, Long> {
     void deleteByFuncionarioAporte(FuncionarioAporte entity);
+
+    List<FuncionarioAportadoDiasNoDisponible> findByFuncionarioAporte(FuncionarioAporte entity);
 }
