@@ -65,6 +65,7 @@ export default function FormularioDinamicoPage() {
 
     /* ---------- submit ---------- */
     const guardar = (values, regId) => {
+        console.log(values,regId)
         const url = regId
             ? `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${regId}`
             : `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros`;
@@ -80,7 +81,10 @@ export default function FormularioDinamicoPage() {
             { headers: { Authorization: `Bearer ${user.token}` } }
         )
             .then(() => setEnviado(true))
-            .catch(() => setError("Error al guardar el formulario"));
+            .catch((e) => {
+                setError("Error al guardar el formulario")
+                console.log(e);
+            });
     };
 
     /* ---------- renders de estado ---------- */

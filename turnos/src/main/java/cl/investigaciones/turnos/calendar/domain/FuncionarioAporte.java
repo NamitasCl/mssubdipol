@@ -4,6 +4,9 @@ import cl.investigaciones.turnos.common.Auditable;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "funcionario_aporte")
 @Data
@@ -23,6 +26,10 @@ public class FuncionarioAporte extends Auditable {
     private int antiguedad;
 
     private boolean disponible = true;
+
+    @OneToMany(mappedBy = "funcionarioAporte", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FuncionarioAportadoDiasNoDisponible> diasNoDisponibles = new ArrayList<>();
+
 
 
 }

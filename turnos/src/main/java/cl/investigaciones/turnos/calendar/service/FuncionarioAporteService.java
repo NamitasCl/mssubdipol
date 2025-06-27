@@ -1,13 +1,18 @@
 package cl.investigaciones.turnos.calendar.service;
 
+import cl.investigaciones.turnos.calendar.domain.FuncionarioAportadoDiasNoDisponible;
 import cl.investigaciones.turnos.calendar.domain.FuncionarioAporte;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteRequestDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
 import cl.investigaciones.turnos.calendar.mapper.FuncionarioAporteMapper;
+import cl.investigaciones.turnos.calendar.repository.FuncionarioAportadoDiasNoDisponibleRepository;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAporteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,15 +22,11 @@ import java.util.stream.Collectors;
 public class FuncionarioAporteService {
 
     private final FuncionarioAporteRepository repo;
+    private final FuncionarioAportadoDiasNoDisponibleRepository diasRepo;
 
-    /**
-     * Registra un nuevo funcionario aportado por una unidad para un calendario.
-     * @param dto DTO con datos del funcionario
-     * @param agregadoPor ID del usuario que realiza el registro
-     * @return DTO de respuesta
-     */
+    @Transactional
     public FuncionarioAporteResponseDTO guardar(FuncionarioAporteRequestDTO dto, Integer agregadoPor) {
-        // Busca si ya existe (independiente de su estado)
+        // Busca si ya existe
         Optional<FuncionarioAporte> existente = repo.findByIdCalendarioAndIdUnidadAndIdFuncionario(
                 dto.getIdCalendario(), dto.getIdUnidad(), dto.getIdFuncionario());
 
@@ -34,51 +35,85 @@ public class FuncionarioAporteService {
         if (existente.isPresent()) {
             entity = existente.get();
             if (!entity.isDisponible()) {
-                // Si estaba eliminado, lo reactivamos y actualizamos los datos necesarios
                 entity.setDisponible(true);
                 entity.setModificadoPor(agregadoPor);
                 entity.setFechaModificacion(java.time.LocalDateTime.now());
-                // Actualiza otros datos si corresponde
                 entity.setNombreCompleto(dto.getNombreCompleto());
                 entity.setGrado(dto.getGrado());
                 entity.setAntiguedad(dto.getAntiguedad());
+
+                // Elimina los días no disponibles previos para este registro
+                diasRepo.deleteByFuncionarioAporte(entity);
+
+                // Registra los nuevos días no disponibles
+                if (dto.getDiasNoDisponibles() != null) {
+                    for (DiaNoDisponibleDTO diaDto : dto.getDiasNoDisponibles()) {
+                        FuncionarioAportadoDiasNoDisponible dia = new FuncionarioAportadoDiasNoDisponible();
+                        dia.setFuncionarioAporte(entity);
+                        dia.setFecha(LocalDate.parse(diaDto.getFecha()));
+                        dia.setMotivo(diaDto.getMotivo());
+                        dia.setDetalle(diaDto.getDetalle());
+                        diasRepo.save(dia);
+                    }
+                }
+
             } else {
                 throw new IllegalArgumentException("Este funcionario ya ha sido registrado para este calendario y unidad.");
             }
         } else {
             entity = FuncionarioAporteMapper.toEntity(dto, agregadoPor);
+            entity = repo.save(entity);
+
+            // Guarda los días no disponibles asociados a este nuevo registro
+            if (dto.getDiasNoDisponibles() != null) {
+                for (DiaNoDisponibleDTO diaDto : dto.getDiasNoDisponibles()) {
+                    FuncionarioAportadoDiasNoDisponible dia = new FuncionarioAportadoDiasNoDisponible();
+                    dia.setFuncionarioAporte(entity);
+                    dia.setFecha(LocalDate.parse(diaDto.getFecha()));
+                    dia.setMotivo(diaDto.getMotivo());
+                    dia.setDetalle(diaDto.getDetalle());
+                    diasRepo.save(dia);
+                }
+            }
         }
 
-        return FuncionarioAporteMapper.toDto(repo.save(entity));
+        // Recarga los días no disponibles (por si el mapper los requiere)
+        List<FuncionarioAportadoDiasNoDisponible> dias = diasRepo.findByFuncionarioAporte(entity);
+
+        return FuncionarioAporteMapper.toDto(entity, dias);
     }
 
-
-    /**
-     * Lista todos los funcionarios aportados por una unidad para un calendario.
-     */
     public List<FuncionarioAporteResponseDTO> listarPorCalendarioYUnidad(Long idCalendario, Long idUnidad) {
-        return repo.findByIdCalendarioAndIdUnidadAndDisponibleTrue(idCalendario, idUnidad)
-                .stream()
-                .map(FuncionarioAporteMapper::toDto)
+        List<FuncionarioAporte> aportes = repo.findByIdCalendarioAndIdUnidadAndDisponibleTrue(idCalendario, idUnidad);
+        return aportes.stream()
+                .map(aporte -> {
+                    List<FuncionarioAportadoDiasNoDisponible> dias = diasRepo.findByFuncionarioAporte(aporte);
+                    return FuncionarioAporteMapper.toDto(aporte, dias);
+                })
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Marca como no disponible (borrado lógico)
-     */
+    @Transactional
     public void eliminar(Long id, Integer modificadoPor) {
         FuncionarioAporte entity = repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No existe funcionario aporte con ese ID."));
         entity.setDisponible(false);
         entity.setModificadoPor(modificadoPor);
         entity.setFechaModificacion(java.time.LocalDateTime.now());
+
+        // (Opcional) Elimina los días no disponibles relacionados, o déjalos para trazabilidad
+        diasRepo.deleteByFuncionarioAporte(entity);
+
         repo.save(entity);
     }
 
     public List<FuncionarioAporteResponseDTO> listarPorCalendario(Long idCalendario) {
-        return repo.findByIdCalendarioAndDisponibleTrue(idCalendario)
-                .stream()
-                .map(FuncionarioAporteMapper::toDto)
+        List<FuncionarioAporte> aportes = repo.findByIdCalendarioAndDisponibleTrue(idCalendario);
+        return aportes.stream()
+                .map(aporte -> {
+                    List<FuncionarioAportadoDiasNoDisponible> dias = diasRepo.findByFuncionarioAporte(aporte);
+                    return FuncionarioAporteMapper.toDto(aporte, dias);
+                })
                 .collect(Collectors.toList());
     }
 }

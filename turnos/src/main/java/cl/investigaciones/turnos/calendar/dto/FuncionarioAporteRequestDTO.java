@@ -1,6 +1,7 @@
 package cl.investigaciones.turnos.calendar.dto;
 
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class FuncionarioAporteRequestDTO {
@@ -10,6 +11,7 @@ public class FuncionarioAporteRequestDTO {
     private String nombreCompleto;
     private String grado;
     private int antiguedad;
-;
-}
 
+    // Nueva propiedad: lista de días no disponibles
+    private List<DiaNoDisponibleDTO> diasNoDisponibles;
+}
