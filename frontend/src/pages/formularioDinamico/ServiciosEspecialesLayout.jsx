@@ -10,7 +10,7 @@ const azulSuave = "#7fa6da";
 const azulOscuro = "#23395d";
 const grisClaro = "#eceff4";
 const blanco = "#fff";
-const verdeMenta = "#a6e3cf";
+const verdeMenta = "#5ba58d";
 const textoPrincipal = "#23395d";
 
 function Header() {
@@ -209,13 +209,14 @@ const ServiciosEspecialesPanelLayout = ({ children }) => {
                     position: "fixed",
                     bottom: 38,
                     right: 38,
-                    width: 66,
+                    width: 200,
                     height: 66,
-                    borderRadius: "50%",
+                    borderRadius: "20px",
                     boxShadow: "0 4px 22px #b2c6e677",
                     background: azulSuave,
                     color: "#fff",
-                    fontSize: 30,
+                    fontWeight: "bold",
+                    fontSize: 20,
                     zIndex: 2024,
                     border: "none",
                     transition: "background .16s, box-shadow .14s, transform .10s"
@@ -225,14 +226,18 @@ const ServiciosEspecialesPanelLayout = ({ children }) => {
                     e.currentTarget.style.background = verdeMenta;
                     e.currentTarget.style.boxShadow = "0 8px 28px #a6e3cf55";
                     e.currentTarget.style.transform = "scale(1.09)";
+                    e.currentTarget.style.color = "white";
+                    e.currentTarget.style.fontWeight = "bold";
                 }}
                 onMouseLeave={e => {
                     e.currentTarget.style.background = azulSuave;
                     e.currentTarget.style.boxShadow = "0 4px 22px #b2c6e677";
                     e.currentTarget.style.transform = "none";
+                    e.currentTarget.style.color = "#fff";
+                    e.currentTarget.style.fontWeight = "bold";
                 }}
             >
-                <FaPlus />
+                Nuevo formulario
             </Button>
         </div>
     );

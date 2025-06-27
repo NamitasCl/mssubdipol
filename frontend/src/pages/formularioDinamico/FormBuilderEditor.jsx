@@ -392,7 +392,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                 <Card className="shadow-lg rounded-4" style={{ border: "none", background: "#fff", width: "100%", margin: "0 auto" }}>
                     <Card.Body>
                         <div className="mb-4 text-center">
-                            <h3 className="fw-bold mb-2" style={{ color: "#17355A" }}>Builder de Formulario</h3>
+                            <h3 className="fw-bold mb-2" style={{ color: "#17355A" }}>Constructor de Formulario</h3>
                             <p className="text-muted mb-0">Define los campos y visibilidad de tu formulario</p>
                         </div>
                         <Form>

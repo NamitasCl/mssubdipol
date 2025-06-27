@@ -16,7 +16,7 @@ import {
     FaTasks,
     FaShare,
 } from "react-icons/fa";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "../../components/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import DelegarCuotaFormulario from "./DelegarCuotaFormulario";
 
