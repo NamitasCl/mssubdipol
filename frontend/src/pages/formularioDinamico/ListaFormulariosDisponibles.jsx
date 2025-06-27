@@ -61,7 +61,7 @@ export default function ListaFormulariosDisponibles() {
         f.visibilidad?.some(
             v =>
                 (v.tipoDestino === "usuario" && String(v.valorDestino) === String(user.idFuncionario)) ||
-                (v.tipoDestino === "unidad" && String(v.valorDestino) === String(user.idUnidad))
+                (v.tipoDestino === "unidad" && String(v.valorDestinoSiglas) === String(user.siglasUnidad))
         )
     );
 
