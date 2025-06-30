@@ -142,19 +142,56 @@ export default function VistaRegistrosFormulario() {
             alert("No hay datos para exportar");
             return;
         }
-        const rows = registrosMostrados.map((r, i) => {
-            const fila = { "#": i + 1 };
+
+        // Indica aquí cuál campo corresponde al subform (array)
+        // Ejemplo: el nombre del campo es 'vehiculos', revisa el nombre en tu "campos"
+        // O si siempre está en la posición 8 (índice 8) puedes usar eso.
+        const campoArray = campos.find((c, idx) => idx === 8)?.nombre; // Ajusta si es otro campo
+
+        let rows = [];
+        registrosMostrados.forEach((r, i) => {
+            const baseFila = { "#": i + 1 };
+
+            // Crea base de la fila
             campos.forEach((c) => {
-                fila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
+                if (c.nombre !== campoArray) {
+                    baseFila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
+                }
             });
-            fila.Funcionario = r.nombreFuncionario
+
+            baseFila.Funcionario = r.nombreFuncionario
                 ? `${r.nombreFuncionario} (${r.idFuncionario})`
                 : r.idFuncionario;
-            fila.Fecha = r.fechaRespuesta
+            baseFila.Fecha = r.fechaRespuesta
                 ? new Date(r.fechaRespuesta).toLocaleString()
                 : "";
-            return fila;
+
+            // El campo del array (ej: vehiculos)
+            const valorCampoArray = r.datos?.[campoArray];
+
+            if (Array.isArray(valorCampoArray) && valorCampoArray.length > 0) {
+                // Una fila por cada elemento
+                valorCampoArray.forEach((item) => {
+                    rows.push({
+                        ...baseFila,
+                        [campoArray]: toPlain(item),
+                    });
+                });
+            } else if (valorCampoArray && typeof valorCampoArray === "object") {
+                // Solo un objeto (no array), igual aplanar
+                rows.push({
+                    ...baseFila,
+                    [campoArray]: toPlain(valorCampoArray),
+                });
+            } else {
+                // Ni objeto ni array, deja normal
+                rows.push({
+                    ...baseFila,
+                    [campoArray]: toPlain(valorCampoArray),
+                });
+            }
         });
+
         const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Registros");
@@ -164,6 +201,7 @@ export default function VistaRegistrosFormulario() {
             `registros_form${formularioId}.xlsx`
         );
     };
+
 
     const renderCell = (v) => {
         if (v === null || v === undefined) return "";
