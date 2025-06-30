@@ -143,53 +143,80 @@ export default function VistaRegistrosFormulario() {
             return;
         }
 
-        // Indica aquí cuál campo corresponde al subform (array)
-        // Ejemplo: el nombre del campo es 'vehiculos', revisa el nombre en tu "campos"
-        // O si siempre está en la posición 8 (índice 8) puedes usar eso.
-        const campoArray = campos.find((c, idx) => idx === 8)?.nombre; // Ajusta si es otro campo
+        const NOMBRE_CAMPO_ARRAY = "CARRO DESIGNADO";
+        const campoArray = campos.find(c => (c.etiqueta || c.nombre) === NOMBRE_CAMPO_ARRAY);
+        const campoArrayNombre = campoArray ? campoArray.nombre : null;
 
         let rows = [];
         registrosMostrados.forEach((r, i) => {
-            const baseFila = { "#": i + 1 };
+            const carros = r.datos?.[campoArrayNombre];
 
-            // Crea base de la fila
-            campos.forEach((c) => {
-                if (c.nombre !== campoArray) {
-                    baseFila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
-                }
-            });
-
-            baseFila.Funcionario = r.nombreFuncionario
-                ? `${r.nombreFuncionario} (${r.idFuncionario})`
-                : r.idFuncionario;
-            baseFila.Fecha = r.fechaRespuesta
-                ? new Date(r.fechaRespuesta).toLocaleString()
-                : "";
-
-            // El campo del array (ej: vehiculos)
-            const valorCampoArray = r.datos?.[campoArray];
-
-            if (Array.isArray(valorCampoArray) && valorCampoArray.length > 0) {
-                // Una fila por cada elemento
-                valorCampoArray.forEach((item) => {
-                    rows.push({
-                        ...baseFila,
-                        [campoArray]: toPlain(item),
+            if (Array.isArray(carros) && carros.length) {
+                carros.forEach((carro, j) => {
+                    const fila = { "#": `${i + 1}.${j + 1}` };
+                    campos.forEach((c) => {
+                        if (c.nombre === campoArrayNombre) {
+                            // Extrae los campos individuales de cada carro
+                            fila["SIGLA CARRO"]        = carro.siglaCarro || "";
+                            fila["TELEFONO CARRO"]     = carro.telefono || "";
+                            fila["CORPORATIVO"]        = carro.corporativo === true ? "Sí" : (carro.corporativo === false ? "No" : "");
+                            fila["FUNCIONARIO CARRO"]  = carro.funcionario?.label || "";
+                            fila["ID FUNCIONARIO"]     = carro.funcionario?.value || "";
+                        } else {
+                            fila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
+                        }
                     });
+                    fila.Funcionario = r.nombreFuncionario
+                        ? `${r.nombreFuncionario} (${r.idFuncionario})`
+                        : r.idFuncionario;
+                    fila.Fecha = r.fechaRespuesta
+                        ? new Date(r.fechaRespuesta).toLocaleString()
+                        : "";
+                    rows.push(fila);
                 });
-            } else if (valorCampoArray && typeof valorCampoArray === "object") {
-                // Solo un objeto (no array), igual aplanar
-                rows.push({
-                    ...baseFila,
-                    [campoArray]: toPlain(valorCampoArray),
+            } else if (carros && typeof carros === "object") {
+                // Solo un objeto, no array
+                const carro = carros;
+                const fila = { "#": i + 1 };
+                campos.forEach((c) => {
+                    if (c.nombre === campoArrayNombre) {
+                        fila["SIGLA CARRO"]        = carro.siglaCarro || "";
+                        fila["TELEFONO CARRO"]     = carro.telefono || "";
+                        fila["CORPORATIVO"]        = carro.corporativo === true ? "Sí" : (carro.corporativo === false ? "No" : "");
+                        fila["FUNCIONARIO CARRO"]  = carro.funcionario?.label || "";
+                        fila["ID FUNCIONARIO"]     = carro.funcionario?.value || "";
+                    } else {
+                        fila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
+                    }
                 });
+                fila.Funcionario = r.nombreFuncionario
+                    ? `${r.nombreFuncionario} (${r.idFuncionario})`
+                    : r.idFuncionario;
+                fila.Fecha = r.fechaRespuesta
+                    ? new Date(r.fechaRespuesta).toLocaleString()
+                    : "";
+                rows.push(fila);
             } else {
-                // Ni objeto ni array, deja normal
-                rows.push({
-                    ...baseFila,
-                    [campoArray]: toPlain(valorCampoArray),
+                // Sin carro designado (ni array ni objeto)
+                const fila = { "#": i + 1 };
+                campos.forEach((c) => {
+                    fila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
                 });
+                fila.Funcionario = r.nombreFuncionario
+                    ? `${r.nombreFuncionario} (${r.idFuncionario})`
+                    : r.idFuncionario;
+                fila.Fecha = r.fechaRespuesta
+                    ? new Date(r.fechaRespuesta).toLocaleString()
+                    : "";
+                rows.push(fila);
             }
+        });
+
+        // Opcional: Elimina la columna original de CARRO DESIGNADO si no quieres que salga la versión en JSON
+        rows = rows.map(row => {
+            const newRow = { ...row };
+            delete newRow["CARRO DESIGNADO"];
+            return newRow;
         });
 
         const ws = XLSX.utils.json_to_sheet(rows);
