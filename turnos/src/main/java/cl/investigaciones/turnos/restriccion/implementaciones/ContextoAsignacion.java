@@ -1,5 +1,7 @@
 package cl.investigaciones.turnos.restriccion.implementaciones;
 
+import cl.investigaciones.turnos.calendar.domain.FuncionarioAporte;
+import cl.investigaciones.turnos.plantilla.domain.RolServicio;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -7,6 +9,9 @@ import java.util.*;
 
 @Data
 public class ContextoAsignacion {
+
+    //Funcionarios disponibles para asignacion
+    private List<FuncionarioAporte> funcionarios = new ArrayList<>();
 
     // 1. Turnos ya asignados por funcionario (idFuncionario -> cantidad)
     private Map<Long, Integer> turnosPorFuncionario = new HashMap<>();
@@ -21,6 +26,21 @@ public class ContextoAsignacion {
     private Set<String> asignacionesPorFuncionarioFechaServicio = new HashSet<>();
 
     // (Opcional) Puedes agregar más estructuras según tus reglas
+    private List<String> grados = List.of("PFT","SPF","SPF (OPP)","COM","COM (OPP)",
+            "SBC","SBC (OPP)","ISP","SBI","DTV","APS","AP","APP","APP (AC)");
+
+    private final Map<RolServicio, Set<String>> rolesGrado = Map.of(
+            RolServicio.JEFE_DE_RONDA, Set.of("PFT", "PFT (OPP)", "SPF", "SPF (OPP)"),
+            RolServicio.JEFE_DE_SERVICIO, Set.of("SPF", "SPF (OPP)", "COM", "COM (OPP)"),
+            RolServicio.ENCARGADO_DE_GUARDIA, Set.of("COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP"),
+            RolServicio.JEFE_DE_MAQUINA, Set.of("PFT", "PFT (OPP)", "SPF", "SPF (OPP)", "COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
+            RolServicio.AYUDANTE_DE_GUARDIA, Set.of("COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
+            RolServicio.PRIMER_TRIPULANTE, Set.of("PFT", "PFT (OPP)", "SPF", "SPF (OPP)", "COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
+            RolServicio.SEGUNDO_TRIPULANTE, Set.of("PFT", "PFT (OPP)", "SPF", "SPF (OPP)", "COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
+            RolServicio.TRIPULANTE, Set.of("PFT", "PFT (OPP)", "SPF (OPP)", "COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
+            RolServicio.GUARDIA_ARMADO, Set.of("COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
+            RolServicio.REFUERZO_DE_GUARDIA, Set.of("SPF (OPP)", "COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)")
+    );
 
     // Agrega métodos para actualizar el contexto fácilmente
 
@@ -48,5 +68,11 @@ public class ContextoAsignacion {
     public void agregarAsignacionServicio(Long idFuncionario, LocalDate fecha, String nombreServicio) {
         asignacionesPorFuncionarioFechaServicio.add(claveAsignacion(idFuncionario, fecha, nombreServicio));
     }
+
+    public boolean gradoPuedeEjercerRol(RolServicio rol, String grado) {
+        Set<String> gradosPermitidos = rolesGrado.get(rol);
+        return gradosPermitidos != null && gradosPermitidos.contains(grado);
+    }
+
 }
 

@@ -1,5 +1,6 @@
 package cl.investigaciones.turnos.restriccion.implementaciones.restricciones;
 
+import cl.investigaciones.turnos.calendar.domain.FuncionarioAporte;
 import cl.investigaciones.turnos.calendar.domain.Slot;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 import cl.investigaciones.turnos.restriccion.implementaciones.ContextoAsignacion;
@@ -14,7 +15,7 @@ public class RestriccionMaximoDosTurnos implements Restriccion {
     }
 
     @Override
-    public boolean puedeAsignar(FuncionarioAporteResponseDTO funcionario, Slot slot, ContextoAsignacion ctx) {
+    public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
         int turnos = ctx.getTurnosPorFuncionario().getOrDefault(funcionario.getId(), 0);
         return turnos < maximoTurnos;
     }

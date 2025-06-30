@@ -13,6 +13,7 @@ public class CupoServicioPlantilla {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String rol;      // Ej: Encargado, Ayudante
+    @Enumerated(EnumType.STRING)
+    private RolServicio rol;      // Ej: Encargado, Ayudante
     private int cantidad;    // Ej: 1 encargado, 2 ayudantes
 }

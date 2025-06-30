@@ -1,12 +1,8 @@
 package cl.investigaciones.turnos.calendar.controller;
 
-import cl.investigaciones.turnos.calendar.domain.FuncionarioAporte;
 import cl.investigaciones.turnos.calendar.domain.Slot;
-import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 import cl.investigaciones.turnos.calendar.service.AsignacionFuncionariosService;
-import cl.investigaciones.turnos.restriccion.implementaciones.restricciones.RestriccionMaximoDosTurnos;
-import cl.investigaciones.turnos.restriccion.implementaciones.restricciones.RestriccionNoTurnoNocheAnterior;
-import cl.investigaciones.turnos.restriccion.implementaciones.restricciones.RestriccionUnSoloRolPorServicio;
+import cl.investigaciones.turnos.restriccion.implementaciones.restricciones.*;
 import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,8 +28,12 @@ public class AsignacionFuncionarioController {
             // Definir restricciones
             List<Restriccion> restricciones = List.of(
                     new RestriccionMaximoDosTurnos(2),
-                    new RestriccionNoTurnoNocheAnterior(),
-                    new RestriccionUnSoloRolPorServicio()
+                    new RestriccionJerarquiaRolServicio(),
+                    new RestriccionMaxUnaNochePorSemana(),
+                    new RestriccionUnSoloRolPorServicio(),
+                    new RestriccionNoDisponible(),
+                    new RestriccionSeparacionDias(4),
+                    new RestriccionMaximoTurnosFinDeSemana(2)
             );
 
             // Asignar funcionarios al calendario 1 (ejemplo)

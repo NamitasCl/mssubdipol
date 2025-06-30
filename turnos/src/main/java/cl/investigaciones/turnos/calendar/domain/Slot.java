@@ -1,5 +1,6 @@
 package cl.investigaciones.turnos.calendar.domain;
 
+import cl.investigaciones.turnos.plantilla.domain.RolServicio;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -17,7 +18,10 @@ public class Slot {
     private LocalDate fecha;
 
     private String nombreServicio;
-    private String rolRequerido;
+
+    @Enumerated(EnumType.STRING)
+    private RolServicio rolRequerido;
+
     private int recinto; // opcional: si quieres diferenciar por cantidadRecintos
 
     private boolean cubierto = false;
