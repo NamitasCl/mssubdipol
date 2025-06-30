@@ -24,4 +24,8 @@ public class SlotService {
         return slotRepository.findAllByIdCalendario(calendarId);
     }
 
+
+    public void saveAll(List<Slot> slots) {
+        slotRepository.saveAll(slots);
+    }
 }

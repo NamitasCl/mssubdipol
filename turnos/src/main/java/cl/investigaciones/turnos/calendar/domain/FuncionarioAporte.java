@@ -20,10 +20,10 @@ public class FuncionarioAporte extends Auditable {
     private Long idUnidad; //Unidad que aporta
 
     // Información del funcionario
-    private int idFuncionario;
+    private Integer idFuncionario;
     private String nombreCompleto;
     private String grado;
-    private int antiguedad;
+    private Integer antiguedad;
 
     private boolean disponible = true;
 

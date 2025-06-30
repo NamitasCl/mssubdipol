@@ -17,6 +17,9 @@ public class ContextoAsignacion {
     // 3. Días no disponibles por funcionario (idFuncionario -> set de fechas no disponibles)
     private Map<Long, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
 
+    // Nuevo: registro (idFuncionario, fecha, nombreServicio) -> nombreRol
+    private Set<String> asignacionesPorFuncionarioFechaServicio = new HashSet<>();
+
     // (Opcional) Puedes agregar más estructuras según tus reglas
 
     // Agrega métodos para actualizar el contexto fácilmente
@@ -29,6 +32,21 @@ public class ContextoAsignacion {
         turnosPorFechaPorFuncionario
                 .computeIfAbsent(idFuncionario, k -> new HashMap<>())
                 .put(fechaServicio, nombreTurno);
+
+        agregarAsignacionServicio(idFuncionario, fechaServicio, nombreTurno);
+    }
+
+    // clave: idFuncionario + fecha + nombreServicio
+    private String claveAsignacion(Long idFuncionario, LocalDate fecha, String nombreServicio) {
+        return idFuncionario + "|" + fecha + "|" + nombreServicio;
+    }
+
+    public boolean yaAsignadoAlServicio(Long idFuncionario, LocalDate fecha, String nombreServicio) {
+        return asignacionesPorFuncionarioFechaServicio.contains(claveAsignacion(idFuncionario, fecha, nombreServicio));
+    }
+
+    public void agregarAsignacionServicio(Long idFuncionario, LocalDate fecha, String nombreServicio) {
+        asignacionesPorFuncionarioFechaServicio.add(claveAsignacion(idFuncionario, fecha, nombreServicio));
     }
 }
 

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { listarCalendarios } from "../../api/calendarApi";
 import { listarFuncionariosAportados } from "../../api/funcionariosAporteApi";
-import { listar as listarAportes } from "../../api/funcionariosAporteApi.js"; // Debes crear este archivo o método según tu backend
 import { Button, Table, Spinner, Alert } from "react-bootstrap";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import IngresoFuncionariosAporte from "./IngresoFuncionariosAporte"; // El componente de ingreso
+import ListaFuncionariosAportados from "./ListaFuncionariosAportados";
 
 export default function MisCalendariosParaAportar() {
     const { user } = useAuth();
@@ -14,6 +14,8 @@ export default function MisCalendariosParaAportar() {
     const [aportesPorCalendario, setAportesPorCalendario] = useState({});
     const [funcionariosPorCalendario, setFuncionariosPorCalendario] = useState({});
     const [showIngreso, setShowIngreso] = useState(false);
+    const [showLista, setShowLista] = useState(false);
+    const [calendarioParaVer, setCalendarioParaVer] = useState(null);
 
     useEffect(() => {
         setLoading(true);
@@ -159,15 +161,27 @@ export default function MisCalendariosParaAportar() {
                                 </span>
                             </td>
                             <td>
-                                <Button
-                                    variant={esComplejo && estado === "Completado" ? "outline-secondary" : "primary"}
-                                    onClick={() => {
-                                        setCalendarioSeleccionado({ ...cal, aporte });
-                                        setShowIngreso(true);
-                                    }}
-                                >
-                                    {esComplejo && estado === "Completado" ? "Ver / Editar" : "Aportar Personal"}
-                                </Button>
+                                <div style={{display: 'flex', gap: '10px', flexDirection: 'column'}}>
+                                    <Button
+                                        variant={esComplejo && estado === "Completado" ? "outline-secondary" : "primary"}
+                                        onClick={() => {
+                                            setCalendarioSeleccionado({ ...cal, aporte });
+                                            setShowIngreso(true);
+                                        }}
+                                        disabled={!puedeAportar || (esComplejo && estado === "Completado")}
+                                    >
+                                        {esComplejo && estado === "Completado" ? "Completado" : "Ingresar funcionarios"}
+                                    </Button>
+                                    <Button
+                                        variant="warning"
+                                        onClick={() => {
+                                            setCalendarioParaVer({ ...cal, aporte });
+                                            setShowLista(true);
+                                        }}
+                                    >
+                                        Ver funcionarios
+                                    </Button>
+                                </div>
                             </td>
                         </tr>
                     );
@@ -182,6 +196,14 @@ export default function MisCalendariosParaAportar() {
                     onHide={() => setShowIngreso(false)}
                     calendario={calendarioSeleccionado}
                     aporte={calendarioSeleccionado.aporte}
+                />
+            )}
+            {showLista && calendarioParaVer && (
+                <ListaFuncionariosAportados
+                    show={showLista}
+                    onHide={() => setShowLista(false)}
+                    calendarioId={calendarioParaVer.id}
+                    idUnidad={user.idUnidad}
                 />
             )}
         </div>

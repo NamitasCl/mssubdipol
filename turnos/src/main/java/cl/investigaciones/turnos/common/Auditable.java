@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @Data
 public abstract class Auditable {
-    private int creadoPor;
+    private Integer creadoPor;
     private LocalDateTime fechaCreacion;
-    private int modificadoPor;
+    private Integer modificadoPor;
     private LocalDateTime fechaModificacion;
 }

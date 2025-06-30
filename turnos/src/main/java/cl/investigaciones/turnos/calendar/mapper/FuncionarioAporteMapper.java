@@ -48,7 +48,7 @@ public class FuncionarioAporteMapper {
         dto.setNombreCompleto(entity.getNombreCompleto());
         dto.setGrado(entity.getGrado());
         dto.setAntiguedad(entity.getAntiguedad());
-        dto.setAgregadoPor(entity.getCreadoPor());
+        dto.setCreadoPor(entity.getCreadoPor());
         dto.setFechaCreacion(entity.getFechaCreacion());
         dto.setDisponible(entity.isDisponible());
         // No agregues los días no disponibles al response (según tu decisión anterior)

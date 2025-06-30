@@ -30,6 +30,13 @@ export default function AsyncFuncionarioSelect({ value, onChange, user }) {
             value={value}
             onChange={onChange}
             placeholder="Buscar funcionario..."
+            // --- LO NUEVO ----
+            menuPortalTarget={document.body}
+            styles={{
+                menuPortal: base => ({ ...base, zIndex: 9999 }),
+                menu: base => ({ ...base, zIndex: 9999 }),
+            }}
+            // -----------------
         />
     );
 }
