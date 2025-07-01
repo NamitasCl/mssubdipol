@@ -26,6 +26,8 @@ public class Slot {
 
     private boolean cubierto = false;
 
-    private Long idFuncionarioAsignado; // se rellena más tarde
+    private Integer idFuncionario;
+    private String gradoFuncionario;
+    private String nombreFuncionario; // se rellena más tarde
 }
 

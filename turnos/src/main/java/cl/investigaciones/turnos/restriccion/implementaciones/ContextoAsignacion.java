@@ -14,13 +14,15 @@ public class ContextoAsignacion {
     private List<FuncionarioAporte> funcionarios = new ArrayList<>();
 
     // 1. Turnos ya asignados por funcionario (idFuncionario -> cantidad)
-    private Map<Long, Integer> turnosPorFuncionario = new HashMap<>();
+    private Map<Integer, Integer> turnosPorFuncionario = new HashMap<>();
 
     // 2. Fechas asignadas por funcionario (idFuncionario -> lista de fechas donde ya fue asignado)
-    private Map<Long, Map<LocalDate, String>> turnosPorFechaPorFuncionario = new HashMap<>();
+    private Map<Integer, Map<LocalDate, String>> turnosPorFechaPorFuncionario = new HashMap<>();
 
     // 3. Días no disponibles por funcionario (idFuncionario -> set de fechas no disponibles)
-    private Map<Long, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
+    private Map<Integer, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
+
+
 
     // Nuevo: registro (idFuncionario, fecha, nombreServicio) -> nombreRol
     private Set<String> asignacionesPorFuncionarioFechaServicio = new HashSet<>();
@@ -32,7 +34,7 @@ public class ContextoAsignacion {
     private final Map<RolServicio, Set<String>> rolesGrado = Map.of(
             RolServicio.JEFE_DE_RONDA, Set.of("PFT", "PFT (OPP)", "SPF", "SPF (OPP)"),
             RolServicio.JEFE_DE_SERVICIO, Set.of("SPF", "SPF (OPP)", "COM", "COM (OPP)"),
-            RolServicio.ENCARGADO_DE_GUARDIA, Set.of("COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP"),
+            RolServicio.ENCARGADO_DE_GUARDIA, Set.of("COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI"),
             RolServicio.JEFE_DE_MAQUINA, Set.of("PFT", "PFT (OPP)", "SPF", "SPF (OPP)", "COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
             RolServicio.AYUDANTE_DE_GUARDIA, Set.of("COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
             RolServicio.PRIMER_TRIPULANTE, Set.of("PFT", "PFT (OPP)", "SPF", "SPF (OPP)", "COM", "COM (OPP)", "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", "APS", "AP", "APP (AC)"),
@@ -44,28 +46,30 @@ public class ContextoAsignacion {
 
     // Agrega métodos para actualizar el contexto fácilmente
 
-    public void agregarAsignacion(Long idFuncionario, LocalDate fechaServicio, String nombreTurno) {
-        // Suma 1 al conteo de turnos
-        turnosPorFuncionario.merge(idFuncionario, 1, Integer::sum);
+    public void agregarAsignacion(FuncionarioAporte funcionario, LocalDate fechaServicio, String nombreTurno) {
+        Integer personaId = funcionario.getIdFuncionario();
+        turnosPorFuncionario.merge(personaId, 1, Integer::sum);
+        System.out.println("El funcionario: " + funcionario.getNombreCompleto() +
+                " lleva " + turnosPorFuncionario.get(personaId));
 
-        // Agrega la fecha asignada
         turnosPorFechaPorFuncionario
-                .computeIfAbsent(idFuncionario, k -> new HashMap<>())
+                .computeIfAbsent(personaId, k -> new HashMap<>())
                 .put(fechaServicio, nombreTurno);
+        System.out.println("El funcionario: " + funcionario.getNombreCompleto() +
+                " registro el día " + fechaServicio.toString());
 
-        agregarAsignacionServicio(idFuncionario, fechaServicio, nombreTurno);
+        agregarAsignacionServicio(personaId, fechaServicio, nombreTurno);
     }
 
-    // clave: idFuncionario + fecha + nombreServicio
-    private String claveAsignacion(Long idFuncionario, LocalDate fecha, String nombreServicio) {
+    private String claveAsignacion(Integer idFuncionario, LocalDate fecha, String nombreServicio) {
         return idFuncionario + "|" + fecha + "|" + nombreServicio;
     }
 
-    public boolean yaAsignadoAlServicio(Long idFuncionario, LocalDate fecha, String nombreServicio) {
+    public boolean yaAsignadoAlServicio(Integer idFuncionario, LocalDate fecha, String nombreServicio) {
         return asignacionesPorFuncionarioFechaServicio.contains(claveAsignacion(idFuncionario, fecha, nombreServicio));
     }
 
-    public void agregarAsignacionServicio(Long idFuncionario, LocalDate fecha, String nombreServicio) {
+    public void agregarAsignacionServicio(Integer idFuncionario, LocalDate fecha, String nombreServicio) {
         asignacionesPorFuncionarioFechaServicio.add(claveAsignacion(idFuncionario, fecha, nombreServicio));
     }
 
@@ -73,6 +77,8 @@ public class ContextoAsignacion {
         Set<String> gradosPermitidos = rolesGrado.get(rol);
         return gradosPermitidos != null && gradosPermitidos.contains(grado);
     }
+
+
 
 }
 

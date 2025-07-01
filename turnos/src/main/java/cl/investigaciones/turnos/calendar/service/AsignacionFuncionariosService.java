@@ -8,6 +8,7 @@ import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 import cl.investigaciones.turnos.calendar.mapper.FuncionarioAporteMapper;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAportadoDiasNoDisponibleRepository;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAporteRepository;
+import cl.investigaciones.turnos.plantilla.domain.RolServicio;
 import cl.investigaciones.turnos.restriccion.implementaciones.ContextoAsignacion;
 import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
 import jakarta.transaction.Transactional;
@@ -47,95 +48,80 @@ public class AsignacionFuncionariosService {
         // Aleatoriza el orden de funcionarios para repartir justo
         Collections.shuffle(funcionarios);
 
-        // Convierte a DTO para facilitar el manejo
-        List<FuncionarioAporteResponseDTO> funcionariosDTO = funcionarios.stream()
-                .map(FuncionarioAporteMapper::toDto)
-                .collect(Collectors.toList());
-
-        /*for(FuncionarioAporte funcionario : funcionarios) {
-            System.out.println("Nombre: " + funcionario.getNombreCompleto());
-            System.out.println("Grado: " + funcionario.getGrado());
-            System.out.println("Antiguedad: " + funcionario.getAntiguedad());
-            for (FuncionarioAportadoDiasNoDisponible diaNoDisponible : funcionario.getDiasNoDisponibles()) {
-                System.out.println("Dia no disponible: " + diaNoDisponible.getFecha());
-            }
-        }*/
+        System.out.println("Funcionarios obtenidos: " + funcionarios.size());
 
         // --- 1. Prepara el contexto con días no disponibles ---
-        Map<Long, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
+        Map<Integer, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
         for (FuncionarioAporte f : funcionarios) {
             if (f.getDiasNoDisponibles() != null) {
                 Set<LocalDate> fechas = f.getDiasNoDisponibles().stream()
                         .map(FuncionarioAportadoDiasNoDisponible::getFecha)
                         .collect(Collectors.toSet());
-                diasNoDisponibles.put(f.getId(), fechas);
+                diasNoDisponibles.put(f.getIdFuncionario(), fechas);
             }
         }
 
-        diasNoDisponibles.forEach((id, fechas) -> {
-            System.out.println("Funcionario: " + id);
-            fechas.forEach(f -> {
-                System.out.println("Fecha: " + f);
-            });
-        });
+        ContextoAsignacion ctx = new ContextoAsignacion();
+        ctx.setDiasNoDisponibles(diasNoDisponibles);
+        ctx.setFuncionarios(funcionarios);
 
-        ContextoAsignacion contexto = new ContextoAsignacion();
-        contexto.setDiasNoDisponibles(diasNoDisponibles);
-        contexto.setFuncionarios(funcionarios);
+        // Ordena los slots para que primero se asignen los encargados, después los ayudantes.
+        slots.sort(Comparator.comparingInt(slot -> {
+            RolServicio rol = slot.getRolRequerido();
+            // ENCARGADO primero, luego ayudante, luego otros
+            if (rol == RolServicio.ENCARGADO_DE_GUARDIA) return 0;
+            if (rol == RolServicio.AYUDANTE_DE_GUARDIA) return 1;
+            return 2;
+        }));
 
-        for (Slot slot : slots) {
-            boolean asignado = false;
-            System.out.println("Slot fecha: " + slot.getFecha());
-            System.out.println("Slot rol: " + slot.getRolRequerido());
-            for (FuncionarioAporte f : funcionarios) {
-                System.out.println("Funcionario: " + f.getNombreCompleto());
-                System.out.println("Funcionario grado: " + f.getGrado());
-                System.out.println("Funcionario antiguedad: " + f.getAntiguedad());
-                for (FuncionarioAportadoDiasNoDisponible diasNoDisponible : f.getDiasNoDisponibles()) {
-                    System.out.println("Fechas no disponible: " +  diasNoDisponible.getFecha());
+        for(int i = 1; i <=2; i++) {
+            for (Slot slot : slots ) {
+                System.out.println("Entrando a slot de fecha: " + slot.getFecha().toString());
+                System.out.println("Slot para " + slot.getRolRequerido());
+
+                //Obtengo el rol que necesito llenar
+                RolServicio rol = slot.getRolRequerido();
+
+                //Obtengo los grados que pueden ejercer el rol
+                Set<String> gradosRol = ctx.getRolesGrado().get(rol);
+
+                //Filtro los funcionarios que pueden cumplir ese rol
+                List<FuncionarioAporte> funcionariosFiltrados = funcionarios.stream()
+                        .filter(f -> gradosRol.contains(f.getGrado()))
+                        .toList();
+
+                System.out.println("Funcionarios filtrados: " + funcionariosFiltrados.size());
+
+
+                for (FuncionarioAporte f : funcionariosFiltrados) {
+                    boolean puede = restricciones.stream()
+                            .allMatch(r -> r.puedeAsignar(
+                                    f,
+                                    slot,
+                                    ctx
+                            ));
+                    if (puede) {
+                        ctx.agregarAsignacion(
+                                f,
+                                slot.getFecha(),
+                                slot.getNombreServicio()
+                        );
+                        slot.setCubierto(true);
+                        slot.setGradoFuncionario(f.getGrado());
+                        slot.setNombreFuncionario(f.getNombreCompleto());
+                        slot.setIdFuncionario(f.getIdFuncionario());
+                        break;
+                    }
                 }
-                boolean puede = restricciones.stream()
-                        .allMatch(r -> r.puedeAsignar(f, slot, contexto));
 
-                if(puede) {
-                    System.out.println("Funcionario puede ser asignado");
-                    slot.setIdFuncionarioAsignado(f.getId());
-                    contexto.agregarAsignacion(f.getId(), slot.getFecha(), slot.getNombreServicio());
-                    asignado = true;
-                    break;
-                }
-            }
-            if(!asignado) {
-                System.out.println("Funcionario no asignado");
-                slot.setIdFuncionarioAsignado(null);
             }
         }
 
 
-        /*// --- 2. Asigna funcionarios a slots respetando restricciones ---
-        for (Slot slot : slots) {
-            boolean asignado = false;
-            for (FuncionarioAporteResponseDTO funcionario : funcionariosDTO) {
-                boolean puede = restricciones.stream()
-                        .allMatch(r -> r.puedeAsignar(funcionario, slot, contexto));
-                if (puede) {
-                    slot.setIdFuncionarioAsignado(funcionario.getId());
-                    // Agrega asignación en contexto
-                    contexto.agregarAsignacion(funcionario.getId(), slot.getFecha(), slot.getNombreServicio());
-                    asignado = true;
-                    break; // slot cubierto
-                }
-            }
-            if (!asignado) {
-                // Si no se pudo asignar, puedes dejarlo en null o -1, según tu modelo
-                slot.setIdFuncionarioAsignado(null);
-            }
-        }*/
 
-        // Si necesitas guardar los slots asignados, puedes hacerlo aquí
-        //slotService.saveAll(slots);
 
-        return slots; // Devuelve la lista con los funcionarios ya asignados
+        return slots;
+
     }
 
 

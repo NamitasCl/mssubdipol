@@ -27,13 +27,14 @@ public class AsignacionFuncionarioController {
         try {
             // Definir restricciones
             List<Restriccion> restricciones = List.of(
-                    new RestriccionMaximoDosTurnos(2),
-                    new RestriccionJerarquiaRolServicio(),
+                    new RestriccionMaximoTurnos(2),
                     new RestriccionMaxUnaNochePorSemana(),
                     new RestriccionUnSoloRolPorServicio(),
                     new RestriccionNoDisponible(),
-                    new RestriccionSeparacionDias(4),
+                    new RestriccionSeparacionDias(3),
                     new RestriccionMaximoTurnosFinDeSemana(2)
+                    /*new RestriccionJerarquiaRolServicio()*/
+                    /*new RestriccionDummy()*/
             );
 
             // Asignar funcionarios al calendario 1 (ejemplo)
