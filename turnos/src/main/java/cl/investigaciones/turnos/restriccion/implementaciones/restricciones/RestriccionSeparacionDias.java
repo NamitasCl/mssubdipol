@@ -17,7 +17,7 @@ public class RestriccionSeparacionDias implements Restriccion {
 
     @Override
     public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
-        Map<LocalDate, String> fechasAsignadas = ctx.getTurnosPorFechaPorFuncionario().get(funcionario.getId());
+        Map<LocalDate, String> fechasAsignadas = ctx.getTurnosPorFechaPorFuncionario().get(funcionario.getIdFuncionario());
         if (fechasAsignadas != null) {
             LocalDate fecha = slot.getFecha();
             for (LocalDate asignada : fechasAsignadas.keySet()) {
