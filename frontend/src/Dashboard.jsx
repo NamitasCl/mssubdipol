@@ -74,7 +74,15 @@ const CARDS = [
         route: "/layout/calendario",
         color: azulOscuro,
         roles: ["ROLE_FUNCIONARIO", "ROLE_ADMINISTRADOR"]
-    }
+    },
+    {
+        title: "Constructor plantillas servicios",
+        text: "Construcción de plantillas de servicios.",
+        icon: <FaCogs size={36} />,
+        route: "/layout/plantillas",
+        color: "#28618b", // Azul intermedio institucional
+        roles: ["ROLE_ADMINISTRADOR"]
+    },
 ];
 
 export default function Dashboard() {

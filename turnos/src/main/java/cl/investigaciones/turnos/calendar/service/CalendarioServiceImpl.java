@@ -34,10 +34,12 @@ public class CalendarioServiceImpl implements CalendarioService {
 
     @Override
     public CalendarioResponseDTO crearCalendario(CalendarioRequestDTO req, int idFuncionario) {
+        System.out.println("Calendario que llega: " + req);
         Calendario entity = CalendarioMapper.toEntity(req);
         entity.setCreadoPor(idFuncionario);
         entity.setFechaCreacion(LocalDateTime.now());
         entity.setEstado(CalendarState.ABIERTO);
+        entity.setModificadoPor(null);
         System.out.println("Creando calendario: " + entity);
 
         Calendario savedEntity = repo.save(entity);

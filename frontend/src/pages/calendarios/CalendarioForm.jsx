@@ -10,6 +10,21 @@ const tipos = [
     { value: "COMPLEJO", label: "Complejo" },
 ];
 
+const rolServicioLabels = {
+    JEFE_DE_SERVICIO: "Jefe de Servicio",
+    JEFE_DE_MAQUINA: "Jefe de máquina",
+    PRIMER_TRIPULANTE: "Primer tripulante",
+    SEGUNDO_TRIPULANTE: "Segundo tripulante",
+    TRIPULANTE: "Tripulante",
+    ENCARGADO_DE_TURNO: "Encargado de turno",
+    ENCARGADO_DE_GUARDIA: "Encargado de guardia",
+    AYUDANTE_DE_GUARDIA: "Ayudante de guardia",
+    JEFE_DE_RONDA: "Jefe de ronda",
+    GUARDIA_ARMADO: "Guardia armado",
+    REFUERZO_DE_GUARDIA: "Refuerzo de guardia"
+};
+
+
 export default function CalendarioForm({ show, onHide, onSuccess, calendarioEditar }) {
     const { user } = useAuth();
 
@@ -281,7 +296,7 @@ export default function CalendarioForm({ show, onHide, onSuccess, calendarioEdit
                                         <ul>
                                             {s.cupos.map((c, j) => (
                                                 <li key={j}>
-                                                    {c.rol}: {c.cantidad}
+                                                    {rolServicioLabels[c.rol]}: {c.cantidad}
                                                 </li>
                                             ))}
                                         </ul>

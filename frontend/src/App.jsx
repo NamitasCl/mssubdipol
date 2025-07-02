@@ -26,7 +26,7 @@ import {UnitDepartmentManagement} from "./pages/turnos/UnitDepartmentManagement.
 import CalendarioPage from "./pages/calendarios/CalendarioPage.jsx";
 import MisCalendariosParaAportar from "./pages/calendarios/MisCalendariosParaAportar.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
-import AdministradorPlantillas from "./pages/admin/AdministradorPlantillas.jsx";
+import PlantillaTurnoBuilder from "./pages/calendarios/PlantillaTurnoBuilder.jsx";
 
 
 
@@ -36,8 +36,9 @@ export default function App() {
             <Routes>
                 <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout /></RestrictedAreaAdmin>}>
                     <Route index element={<Admin />} />
+                    <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
                     <Route path="listas">
-                        <Route path="plantillas" element={<AdministradorPlantillas />} />
+
                     </Route>
                 </Route>
                 <Route path="/login" element={<LoginForm />} />
@@ -59,6 +60,7 @@ export default function App() {
                     <Route path="calendarios" element={<CalendarioPage />} />
                     <Route path="disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual} />} />
                     <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
+                    <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
                 </Route>
             </Routes>
         </Router>

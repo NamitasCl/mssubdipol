@@ -54,6 +54,12 @@ const adminNavConfig = [
         icon: <FaDatabase />,
         to: "/admin/logs",
         allowedRoles: [ROLES.ADMINISTRADOR]
+    },
+    {
+        label: "Plantillas turnos",
+        icon: <FaDatabase />,
+        to: "/admin/plantillas",
+        allowedRoles: [ROLES.ADMINISTRADOR]
     }
 ];
 

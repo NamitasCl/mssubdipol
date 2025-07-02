@@ -21,8 +21,8 @@ public class CalendarioResponseDTO {
     private boolean eliminado;
     private List<AporteUnidadTurnoResponseDTO>  aporteUnidadTurnos;
     //Auditable fields
-    private int creadoPor;
-    private int modificadoPor;
+    private Integer creadoPor;
+    private Integer modificadoPor;
     private String fechaCreacion;
     private String fechaModificacion;
     private String nombreComplejo; // Nombre del complejo asociado, si aplica
