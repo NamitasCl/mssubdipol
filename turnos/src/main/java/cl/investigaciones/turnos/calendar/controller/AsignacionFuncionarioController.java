@@ -32,8 +32,8 @@ public class AsignacionFuncionarioController {
                     new RestriccionUnSoloRolPorServicio(),
                     new RestriccionNoDisponible(),
                     new RestriccionSeparacionDias(3),
-                    new RestriccionMaximoTurnosFinDeSemana(2)
-                    /*new RestriccionJerarquiaRolServicio()*/
+                    new RestriccionMaximoTurnosFinDeSemana(2),
+                    new RestriccionJerarquiaRolServicio()
                     /*new RestriccionDummy()*/
             );
 

@@ -103,8 +103,7 @@ public class AsignacionFuncionariosService {
                     if (puede) {
                         ctx.agregarAsignacion(
                                 f,
-                                slot.getFecha(),
-                                slot.getNombreServicio()
+                                slot
                         );
                         slot.setCubierto(true);
                         slot.setGradoFuncionario(f.getGrado());
