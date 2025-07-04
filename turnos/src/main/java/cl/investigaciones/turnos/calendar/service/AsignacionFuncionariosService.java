@@ -1,13 +1,13 @@
 package cl.investigaciones.turnos.calendar.service;
 
-import cl.investigaciones.turnos.calendar.domain.FuncionarioAportadoDiasNoDisponible;
-import cl.investigaciones.turnos.calendar.domain.FuncionarioAporte;
-import cl.investigaciones.turnos.calendar.domain.Slot;
+import cl.investigaciones.turnos.calendar.domain.*;
 import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 import cl.investigaciones.turnos.calendar.mapper.FuncionarioAporteMapper;
+import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAportadoDiasNoDisponibleRepository;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAporteRepository;
+import cl.investigaciones.turnos.common.RestriccionFactory;
 import cl.investigaciones.turnos.plantilla.domain.RolServicio;
 import cl.investigaciones.turnos.restriccion.implementaciones.ContextoAsignacion;
 import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
@@ -23,27 +23,36 @@ public class AsignacionFuncionariosService {
 
     private final FuncionarioAporteRepository funcionarioAporteRepository;
     private final FuncionarioAportadoDiasNoDisponibleRepository noDisponibleRepository;
+    private final CalendarioRepository calendarioRepository;
     private final SlotService slotService;
 
 
     public AsignacionFuncionariosService(
             FuncionarioAporteRepository funcionarioAporteService,
             SlotService slotService,
-            FuncionarioAportadoDiasNoDisponibleRepository noDisponibleRepository
+            FuncionarioAportadoDiasNoDisponibleRepository noDisponibleRepository,
+            CalendarioRepository calendarioRepository
     ) {
         this.funcionarioAporteRepository = funcionarioAporteService;
         this.slotService = slotService;
         this.noDisponibleRepository = noDisponibleRepository;
+        this.calendarioRepository = calendarioRepository;
     }
 
     @Transactional
-    public List<Slot> asignarFuncionarios(
-            Long idCalendario,
-            List<Restriccion> restricciones
-    ) {
+    public List<Slot> asignarFuncionarios(Long idCalendario) {
         // Recupera funcionarios designados y slots del calendario
         List<FuncionarioAporte> funcionarios = funcionarioAporteRepository.findByIdCalendarioAndDisponibleTrue(idCalendario);
         List<Slot> slots = slotService.getSlotsByCalendar(idCalendario);
+
+        Calendario calendario = calendarioRepository.findById(idCalendario)
+                .orElseThrow(() -> new RuntimeException("Calendario no encontrado"));
+
+        // Cargo la configuracion del calendario
+        ConfiguracionRestriccionesCalendario config = calendario.getConfiguracionRestricciones();
+
+        // Se construye la lista de restricciones en forma dinámica
+        List<Restriccion> restricciones = RestriccionFactory.fromJsonConfig(config.getParametrosJson());
 
         // Aleatoriza el orden de funcionarios para repartir justo
         Collections.shuffle(funcionarios);
@@ -94,7 +103,7 @@ public class AsignacionFuncionariosService {
 
 
                 for (FuncionarioAporte f : funcionariosFiltrados) {
-                    boolean puede = restricciones.stream()
+                    boolean puede = restricciones.stream().peek(restriccion -> System.out.println("Funcionario: " + f.getNombreCompleto() + " | " + "Antiguedad: " + f.getAntiguedad()))
                             .allMatch(r -> r.puedeAsignar(
                                     f,
                                     slot,

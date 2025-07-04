@@ -15,6 +15,7 @@ public class RestriccionMaximoTurnos implements Restriccion {
 
     @Override
     public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
+        /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
         int turnos = ctx.getTurnosPorFuncionario()
                 .getOrDefault(funcionario.getIdFuncionario(), 0);
         return turnos < maximoTurnos;

@@ -11,6 +11,7 @@ import java.util.Set;
 public class RestriccionNoDisponible implements Restriccion {
     @Override
     public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
+        /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
         Set<LocalDate> diasNoDisp = ctx.getDiasNoDisponibles().get(funcionario.getId());
         if (diasNoDisp == null) return true;
         return !diasNoDisp.contains(slot.getFecha());

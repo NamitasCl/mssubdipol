@@ -29,5 +29,8 @@ public class Calendario extends Auditable {
     private String nombreComplejo; // Nombre del complejo asociado, si aplica
     @ElementCollection
     private List<Long> idPlantillasUsadas;
+
+    @OneToOne(mappedBy = "calendario")
+    private ConfiguracionRestriccionesCalendario configuracionRestricciones;
     
 }

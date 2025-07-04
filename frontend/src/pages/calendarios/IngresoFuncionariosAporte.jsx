@@ -150,7 +150,7 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
         <Modal show={show} onHide={onHide} size="lg" centered>
             <Modal.Header closeButton>
                 <Modal.Title>
-                    Agregar Funcionario con Días No Disponibles
+                    Agregar Funcionario
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -171,7 +171,7 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
                                 disabled={disableSubmit}
                                 style={{ minWidth: 120 }}
                             >
-                                {guardando ? "Guardando..." : "Agregar"}
+                                {guardando ? "Guardando..." : "Agregar funcionario"}
                             </Button>
                         </Col>
                     </Row>
@@ -234,7 +234,7 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
                                     style={{ width: "100%" }}
                                     type="button"
                                 >
-                                    Agregar
+                                    Agregar día no disponible
                                 </Button>
                             </div>
                             {bloques.length > 0 && (

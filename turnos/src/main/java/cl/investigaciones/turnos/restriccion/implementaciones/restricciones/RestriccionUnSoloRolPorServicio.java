@@ -9,6 +9,7 @@ import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
 public class RestriccionUnSoloRolPorServicio implements Restriccion {
     @Override
     public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
+        /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
         return !ctx.yaAsignadoAlServicio(funcionario.getIdFuncionario(), slot.getFecha(), slot.getNombreServicio());
     }
 }

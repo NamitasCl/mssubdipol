@@ -18,6 +18,7 @@ public class RestriccionMaximoTurnosFinDeSemana implements Restriccion {
 
     @Override
     public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
+        /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
         LocalDate fecha = slot.getFecha();
         DayOfWeek dow = fecha.getDayOfWeek();
         if (dow != DayOfWeek.SATURDAY && dow != DayOfWeek.SUNDAY) return true;

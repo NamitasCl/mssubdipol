@@ -13,6 +13,7 @@ import java.util.Map;
 public class RestriccionMaxUnaNochePorSemana implements Restriccion {
     @Override
     public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
+        /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
         LocalDate fechaAsignar = slot.getFecha();
         Map<LocalDate, String> turnos = ctx.getTurnosPorFechaPorFuncionario().get(funcionario.getId());
         if (turnos == null) return true; // No tiene turnos aún

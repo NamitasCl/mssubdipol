@@ -11,6 +11,7 @@ public class RestriccionJerarquiaRolServicio implements Restriccion {
 
     @Override
     public boolean puedeAsignar(FuncionarioAporte f, Slot slot, ContextoAsignacion ctx) {
+        /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
         RolServicio rolRequerido = slot.getRolRequerido();
 
         // Si el rol es encargado, jefe de ronda o jefe de máquina, no hay restricción

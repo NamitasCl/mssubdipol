@@ -19,6 +19,7 @@ public class RestriccionNochesConsecutivas implements Restriccion {
 
     @Override
     public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
+        /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
         LocalDate fecha = slot.getFecha();
         Map<LocalDate, String> fechasAsignadas = ctx.getTurnosPorFechaPorFuncionario().get(funcionario.getId());
         if (fechasAsignadas == null) return true;

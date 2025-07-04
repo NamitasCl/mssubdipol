@@ -25,7 +25,7 @@ public class AsignacionFuncionarioController {
     public ResponseEntity<?> asignarFuncionarios() {
 
         try {
-            // Definir restricciones
+            /*// Definir restricciones
             List<Restriccion> restricciones = List.of(
                     new RestriccionMaximoTurnos(2),
                     new RestriccionMaxUnaNochePorSemana(),
@@ -34,12 +34,12 @@ public class AsignacionFuncionarioController {
                     new RestriccionSeparacionDias(3),
                     new RestriccionMaximoTurnosFinDeSemana(2),
                     new RestriccionJerarquiaRolServicio()
-                    /*new RestriccionDummy()*/
-            );
+                    *//*new RestriccionDummy()*//*
+            );*/
 
             // Asignar funcionarios al calendario 1 (ejemplo)
             Long idCalendario = 12L;
-            List<Slot> slotsAsignados = asignacionFuncionariosService.asignarFuncionarios(idCalendario, restricciones);
+            List<Slot> slotsAsignados = asignacionFuncionariosService.asignarFuncionarios(idCalendario);
 
             // Retornar los slots asignados
             return ResponseEntity.ok(slotsAsignados);
