@@ -17,6 +17,8 @@ export default function CalendarioDetalle({ id, onVolver }) {
     if (loading) return <Spinner animation="border" />;
     if (!cal) return <div>No encontrado</div>;
 
+    console.log("Calendario cargado:", cal);
+
     return (
         <Card>
             <Card.Header>
@@ -29,7 +31,7 @@ export default function CalendarioDetalle({ id, onVolver }) {
                 <div><b>Nombre:</b> {cal.nombre}</div>
                 <div><b>Mes/Año:</b> {cal.mes} / {cal.anio}</div>
                 <div><b>Tipo:</b> {cal.tipo}</div>
-                <div><b>Unidad:</b> {cal.siglasUnidad ?? cal.idUnidad}</div>
+                <div><b>Unidad:</b> {cal.tipo === "COMPLEJO" ? cal.nombre : cal.siglasUnidad}</div>
                 <div><b>Estado:</b> {cal.estado}</div>
 
                 {/* SOLO si es COMPLEJO muestra el botón */}

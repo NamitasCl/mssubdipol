@@ -41,11 +41,6 @@ const navConfig = [
         allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO],
     },
     {
-        label: "Gestión por Unidad",
-        to: "/layout/asignacionunidad",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE],
-    },
-    {
         label: "Modificar turnos",
         to: "/layout/modificaturnosunidad",
         allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE],
@@ -55,9 +50,8 @@ const navConfig = [
         allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN],
         submenu: [
             { label: "Crear Calendario", to: "/layout/calendarios" },
-            { label: "Configurar unidad", to: "/layout/configuraunidades"},
-            { label: "Ver Calendarios", to: "/layout/calendario" },
-            { label: "Personal Disponible", to: "/layout/disponibles" }
+            { label: "Añadir personal", to: "/layout/asignacionunidad"},
+            { label: "Generar turnos", to: "/layout/calendario" },
         ]
     },
     {

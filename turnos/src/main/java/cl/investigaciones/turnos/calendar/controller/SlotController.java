@@ -21,6 +21,16 @@ public class SlotController {
         this.slotService = slotService;
     }
 
+    @GetMapping("/calendario/{idCalendario}")
+    public ResponseEntity<?> getSlotsByIdCalendario(@PathVariable Long idCalendario) {
+        try {
+            return new ResponseEntity<>(slotService.getSlotsResponseByCalendar(idCalendario), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error obteniendo slots: " + e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @GetMapping("/resumen/{idCalendario}")
     public ResponseEntity<?> getSlotCountByIdCalendario(@PathVariable Long idCalendario) {
         try {
@@ -33,5 +43,7 @@ public class SlotController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+
 
 }

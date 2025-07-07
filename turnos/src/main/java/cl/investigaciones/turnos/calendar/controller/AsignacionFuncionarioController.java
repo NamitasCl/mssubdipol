@@ -2,8 +2,6 @@ package cl.investigaciones.turnos.calendar.controller;
 
 import cl.investigaciones.turnos.calendar.domain.Slot;
 import cl.investigaciones.turnos.calendar.service.AsignacionFuncionariosService;
-import cl.investigaciones.turnos.restriccion.implementaciones.restricciones.*;
-import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

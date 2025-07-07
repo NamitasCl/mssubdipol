@@ -2,13 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, ListGroup, Spinner, Alert } from "react-bootstrap";
 import axios from "axios";
 
-// Props:
-// - show, onHide
-// - mes, anio (para visual)
-// - seleccionadas (array de plantillas ya seleccionadas)
-// - onPlantillasGuardadas (callback: recibe array de plantillas seleccionadas)
-
-export default function AgregarPlantillasMes({ show, onHide, mes, anio, seleccionadas = [], onPlantillasGuardadas }) {
+export default function AgregarPlantillasMes({
+                                                 show, onHide, mes, anio, seleccionadas = [], onPlantillasGuardadas
+                                             }) {
     const [plantillas, setPlantillas] = useState([]);
     const [seleccion, setSeleccion] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -22,7 +18,6 @@ export default function AgregarPlantillasMes({ show, onHide, mes, anio, seleccio
             axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/plantillas`)
                 .then(resp => {
                     setPlantillas(resp.data || []);
-                    // Marca como seleccionadas las que ya están en props
                     setSeleccion(seleccionadas || []);
                 })
                 .catch(() => setError("Error al cargar plantillas"))
@@ -30,17 +25,15 @@ export default function AgregarPlantillasMes({ show, onHide, mes, anio, seleccio
         }
     }, [show, seleccionadas]);
 
-    const handleAgregar = (plantilla) => {
-        if (!seleccion.some(p => p.id === plantilla.id)) {
+    // Alternar selección
+    const toggleSeleccion = (plantilla) => {
+        if (seleccion.some(p => p.id === plantilla.id)) {
+            setSeleccion(seleccion.filter(p => p.id !== plantilla.id));
+        } else {
             setSeleccion([...seleccion, plantilla]);
         }
     };
 
-    const handleEliminar = (id) => {
-        setSeleccion(seleccion.filter(p => p.id !== id));
-    };
-
-    // Solo pasa al padre la selección actual
     const handleGuardar = () => {
         setSaving(true);
         setError(null);
@@ -67,46 +60,29 @@ export default function AgregarPlantillasMes({ show, onHide, mes, anio, seleccio
                 {loading ? (
                     <div className="text-center"><Spinner animation="border" /></div>
                 ) : (
-                    <>
-                        <Form.Group className="mb-3 mt-3">
-                            <Form.Label>Plantillas disponibles</Form.Label>
-                            <ListGroup>
-                                {plantillas.map((p) => (
+                    <Form.Group className="mb-3 mt-3">
+                        <Form.Label>Plantillas disponibles</Form.Label>
+                        <ListGroup>
+                            {plantillas.map((p) => {
+                                const isSelected = seleccion.some(sel => sel.id === p.id);
+                                return (
                                     <ListGroup.Item key={p.id} className="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <strong>{p.nombre}</strong> {" "}
+                                            <strong>{p.nombre}</strong>{" "}
                                             <span className="text-muted" style={{ fontSize: 13 }}>{p.descripcion}</span>
                                         </div>
                                         <Button
                                             size="sm"
-                                            variant="outline-primary"
-                                            disabled={!!seleccion.find(sel => sel.id === p.id)}
-                                            onClick={() => handleAgregar(p)}
+                                            variant={isSelected ? "danger" : "outline-primary"}
+                                            onClick={() => toggleSeleccion(p)}
                                         >
-                                            Añadir
+                                            {isSelected ? "Quitar" : "Añadir"}
                                         </Button>
                                     </ListGroup.Item>
-                                ))}
-                            </ListGroup>
-                        </Form.Group>
-                        <div className="mt-4">
-                            <h6>Servicios seleccionados:</h6>
-                            {seleccion.length === 0 && <div className="text-muted">No hay servicios seleccionados aún.</div>}
-                            <ListGroup>
-                                {seleccion.map(p => (
-                                    <ListGroup.Item key={p.id} className="d-flex justify-content-between align-items-center">
-                                        <span>
-                                            <strong>{p.nombre}</strong> {" "}
-                                            <span className="text-muted" style={{ fontSize: 13 }}>{p.descripcion}</span>
-                                        </span>
-                                        <Button size="sm" variant="outline-danger" onClick={() => handleEliminar(p.id)}>
-                                            Quitar
-                                        </Button>
-                                    </ListGroup.Item>
-                                ))}
-                            </ListGroup>
-                        </div>
-                    </>
+                                );
+                            })}
+                        </ListGroup>
+                    </Form.Group>
                 )}
             </Modal.Body>
             <Modal.Footer>

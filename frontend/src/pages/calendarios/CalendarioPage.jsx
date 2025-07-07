@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import CalendarioList from "./CalendarioList";
 import CalendarioDetalle from "./CalendarioDetalle";
+import GestionTurnosPage from "../turnos/GestionTurnosPage.jsx";
 
 export default function CalendarioPage() {
     const [detalleId, setDetalleId] = useState(null);
@@ -8,7 +9,7 @@ export default function CalendarioPage() {
     return (
         <div>
             {!detalleId ? (
-                <CalendarioList onSeleccionar={setDetalleId} />
+                <GestionTurnosPage onSeleccionar={setDetalleId} />
             ) : (
                 <CalendarioDetalle id={detalleId} onVolver={() => setDetalleId(null)} />
             )}

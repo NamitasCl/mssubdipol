@@ -118,6 +118,7 @@ public class AsignacionFuncionariosService {
                         slot.setGradoFuncionario(f.getGrado());
                         slot.setNombreFuncionario(f.getNombreCompleto());
                         slot.setIdFuncionario(f.getIdFuncionario());
+                        slot.setAntiguedadFuncionario(f.getAntiguedad());
                         break;
                     }
                 }

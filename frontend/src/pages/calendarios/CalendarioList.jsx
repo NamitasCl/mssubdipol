@@ -44,7 +44,7 @@ export default function CalendarioList({ onSeleccionar }) {
                 </tr>
                 </thead>
                 <tbody>
-                {calendarios.map((cal) => (
+                {/*{calendarios.map((cal) => (
                     <tr key={cal.id}>
                         <td>{cal.nombre}</td>
                         <td>{cal.mes}/{cal.anio}</td>
@@ -78,7 +78,7 @@ export default function CalendarioList({ onSeleccionar }) {
 
                         </td>
                     </tr>
-                ))}
+                ))}*/}
                 </tbody>
             </Table>
             <CalendarioForm

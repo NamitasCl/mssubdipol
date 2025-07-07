@@ -53,7 +53,7 @@ export default function App() {
                 <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
                     <Route path="configuraunidades" element={<RestrictedAreaSecuin component={UnitDepartmentManagement} />} />
-                    <Route path="gestion" element={<RestrictedAreaSecuin component={GestionTurnosPage} />} />
+                    <Route path="gestion" element={<RestrictedAreaSecuin component={CalendarioPage} />} />
                     <Route path="asignacionunidad" element={<MisCalendariosParaAportar />} />
                     <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
                     <Route path="calendario" element={<VistaCalendarioTurnosFiltros />} />
