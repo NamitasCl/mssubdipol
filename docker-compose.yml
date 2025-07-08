@@ -112,6 +112,23 @@ services:
     networks:
       - ms-network # <-- ¡Añadir! Conecta common-services a la red ms-network
 
+  nodos:
+    build:
+      context: ./nodos
+    container_name: nodos
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://172.21.15.23:5433/rac
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 7429000
+      # Cualquier otro secret o var necesaria
+    depends_on:
+      - auth   # Si tu lógica requiere validar tokens contra auth
+    ports:
+      - "8013:8013" # Ejemplo, puedes elegir el puerto expuesto
+    restart: unless-stopped
+    networks:
+      - ms-network
+
 
   #nginx-docker:
   #  image: nginx:latest
