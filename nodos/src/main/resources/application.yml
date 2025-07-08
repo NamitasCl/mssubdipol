@@ -14,5 +14,5 @@ spring:
       schema-locations: classpath:schema.sql
   jpa:
     hibernate:
-      ddl-auto: update # o validate, según tu estrategia
+      ddl-auto: update
     show-sql: true
