@@ -272,7 +272,7 @@ export default function ListaFormulariosDisponibles() {
                                                     }}
                                                     onClick={() =>
                                                         navigate(
-                                                            `/servicios-especiales/formulario/${cuota.formularioId}`,
+                                                            `/formularios/formulario/${cuota.formularioId}`,
                                                             {
                                                                 state: { cuotaId: cuota.id, idUnidad, idFuncionario },
                                                             }
@@ -288,7 +288,7 @@ export default function ListaFormulariosDisponibles() {
                                                 size="sm"
                                                 variant="secondary"
                                                 onClick={() =>
-                                                    navigate(`/servicios-especiales/verregistros`, {
+                                                    navigate(`/formularios/verregistros`, {
                                                         state: {
                                                             formularioId: cuota.formularioId,
                                                             cuotaId: cuota.id,
@@ -393,7 +393,7 @@ export default function ListaFormulariosDisponibles() {
                                                     }}
                                                     onClick={() =>
                                                         navigate(
-                                                            `/servicios-especiales/formulario/${f.id}`
+                                                            `/formularios/formulario/${f.id}`
                                                         )
                                                     }
                                                 >
@@ -405,7 +405,7 @@ export default function ListaFormulariosDisponibles() {
                                                     size="sm"
                                                     variant="secondary"
                                                     onClick={() =>
-                                                        navigate(`/servicios-especiales/verregistros`, {
+                                                        navigate(`/formularios/verregistros`, {
                                                             state: {
                                                                 formularioId: f.id,
                                                                 esCuotaPadre: true,
@@ -489,7 +489,7 @@ export default function ListaFormulariosDisponibles() {
                                                         background: "#fff",
                                                     }}
                                                     onClick={() =>
-                                                        navigate(`/servicios-especiales/formulario/${f.id}`)
+                                                        navigate(`/formularios/formulario/${f.id}`)
                                                     }
                                                 >
                                                     Completar
@@ -500,7 +500,7 @@ export default function ListaFormulariosDisponibles() {
                                                     size="sm"
                                                     variant="secondary"
                                                     onClick={() =>
-                                                        navigate(`/servicios-especiales/verregistros`, {
+                                                        navigate(`/formularios/verregistros`, {
                                                             state: {
                                                                 formularioId: f.id,
                                                                 esCuotaPadre: true,
