@@ -95,6 +95,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             usuarioBD.setRoles(optionalUsuario.get().getRoles());
             usuarioBD.setIdFun(usuarioAD.getIdFun());
             usuarioBD.setSiglasCargo(usuarioAD.getSiglasCargo());
+            usuarioBD.setIdUnidad(usuarioAD.getIdUnidad());
         } else {
             usuarioBD = new Usuario();
             usuarioBD.setUsername(usuarioAD.getUsuarioAD()); // username nuevo
