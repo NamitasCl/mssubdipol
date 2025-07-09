@@ -1,11 +1,13 @@
-package cl.investigaciones.nodos.domain;
+package cl.investigaciones.nodos.domain.entidadesconsulta;
 
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaModelo;
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaNacionalidad;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Immutable;
 
 @Entity
-@Table(name = "ficha_persona")
+@Table(name = "ficha_persona", schema = "public")
 @Data
 @Immutable
 public class FichaPersona {
@@ -14,7 +16,7 @@ public class FichaPersona {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "rut")
+    @Column
     private String rut;
 
     @Column(name = "nombre")
@@ -25,6 +27,10 @@ public class FichaPersona {
 
     @Column(name = "apellidoMat")
     private String apellidoMat;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nacionalidadP_id")
+    private ListaNacionalidad nacionalidad;
 
     @Column(name = "nombreViaP")
     private String direccion;

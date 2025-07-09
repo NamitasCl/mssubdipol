@@ -1,17 +1,19 @@
-package cl.investigaciones.nodos.domain;
+package cl.investigaciones.nodos.domain.entidadesconsulta;
 
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaCalibre;
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaModelo;
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaTipoArma;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Immutable;
 
 @Entity
-@Table(name = "ficha_armas")
+@Table(name = "ficha_armas", schema = "public")
 @Data
 @Immutable
-public class FichaArmas {
+public class FichaArma {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "marcaArma")
@@ -25,6 +27,14 @@ public class FichaArmas {
 
     @Column(name = "condicion")
     private String condicion; //ARMA TRADICIONAL o ARMA MODIFICADA
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "calibreArma_id")
+    private ListaCalibre calibreArma;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "arma_id")
+    private ListaTipoArma tipoArma;
 
     @Column(name = "obs")
     private String obs;

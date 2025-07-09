@@ -1,4 +1,4 @@
-package cl.investigaciones.nodos.domain;
+package cl.investigaciones.nodos.domain.entidadesconsulta;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -6,16 +6,14 @@ import org.hibernate.annotations.Immutable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
-@Table(name = "ficha_memo", schema = "nodos")
+@Table(name = "ficha_memo", schema = "public")
 @Data
 @Immutable
 public class FichaMemo {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "formulario")
@@ -37,14 +35,17 @@ public class FichaMemo {
     private List<FichaPersona> fichaPersonas;
 
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
-    private List<FichaArmas> fichaArmas;
+    private List<FichaArma> fichaArmas;
 
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
-    private List<FichaDineros> fichaDineros;
+    private List<FichaDinero> fichaDineros;
 
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
-    private List<FichaDrogas> fichaDrogas;
+    private List<FichaDroga> fichaDrogas;
 
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
-    private List<FichaFuncionarios> fichaFuncionarios;
+    private List<FichaFuncionario> fichaFuncionarios;
+
+    @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
+    private List<FichaMunicion> fichaMuniciones;
 }

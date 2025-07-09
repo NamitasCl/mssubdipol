@@ -1,17 +1,16 @@
-package cl.investigaciones.nodos.domain;
+package cl.investigaciones.nodos.domain.entidadesconsulta;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Immutable;
 
 @Entity
-@Table(name = "ficha_drogas")
+@Table(name = "ficha_drogas", schema = "public")
 @Data
 @Immutable
-public class FichaDrogas {
+public class FichaDroga {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "droga")
