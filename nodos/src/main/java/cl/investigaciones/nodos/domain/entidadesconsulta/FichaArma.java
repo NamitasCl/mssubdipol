@@ -16,16 +16,16 @@ public class FichaArma {
     @Id
     private Long id;
 
-    @Column(name = "marcaArma")
+    @Column(name = "\"marcaArma\"")
     private String marcaArma;
 
-    @Column(name = "serieArma")
+    @Column(name = "\"serieArma\"")
     private String serieArma;
 
-    @Column(name = "calidad")
+    @Column(name = "\"calidad\"")
     private String calidad; //Aqui puede ser INCAUTADO, SUSTRAIDO, ETC
 
-    @Column(name = "condicion")
+    @Column(name = "\"condicion\"")
     private String condicion; //ARMA TRADICIONAL o ARMA MODIFICADA
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,14 +33,14 @@ public class FichaArma {
     private ListaCalibre calibreArma;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "arma_id")
+    @JoinColumn(name = "\"arma_id\"")
     private ListaTipoArma tipoArma;
 
-    @Column(name = "obs")
+    @Column(name = "\"obs\"")
     private String obs;
 
     @ManyToOne
-    @JoinColumn(name = "id_memo_id")
+    @JoinColumn(name = "\"id_memo_id\"")
     private FichaMemo memo;
 
 }

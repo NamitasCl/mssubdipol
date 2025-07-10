@@ -13,13 +13,13 @@ public class FichaDinero {
     @Id
     private Long id;
 
-    @Column(name = "calidad")
+    @Column(name = "\"calidad\"")
     private String calidad;
 
-    @Column(name = "monto")
+    @Column(name = "\"monto\"")
     private Double monto;
 
-    @Column(name = "obs")
+    @Column(name = "\"obs\"")
     private String obs;
 
     @ManyToOne

@@ -27,6 +27,7 @@ import CalendarioPage from "./pages/calendarios/CalendarioPage.jsx";
 import MisCalendariosParaAportar from "./pages/calendarios/MisCalendariosParaAportar.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import PlantillaTurnoBuilder from "./pages/calendarios/PlantillaTurnoBuilder.jsx";
+import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
 
 
 
@@ -62,6 +63,7 @@ export default function App() {
                     <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
                 </Route>
+                <Route path="/grafos" element={<GrafoIndex />} />
             </Routes>
         </Router>
     );

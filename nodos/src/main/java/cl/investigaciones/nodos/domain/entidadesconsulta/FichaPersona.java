@@ -16,50 +16,50 @@ public class FichaPersona {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(name = "\"rut\"")
     private String rut;
 
-    @Column(name = "nombre")
+    @Column(name = "\"nombre\"")
     private String nombre;
 
-    @Column(name = "apellidoPat")
+    @Column(name = "\"apellidoPat\"")
     private String apellidoPat;
 
-    @Column(name = "apellidoMat")
+    @Column(name = "\"apellidoMat\"")
     private String apellidoMat;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nacionalidadP_id")
+    @JoinColumn(name = "\"nacionalidadP_id\"")
     private ListaNacionalidad nacionalidad;
 
-    @Column(name = "nombreViaP")
+    @Column(name = "\"nombreViaP\"")
     private String direccion;
 
-    @Column(name = "numP")
+    @Column(name = "\"numP\"")
     private String direccionNumero;
 
-    @Column(name = "deptoP")
+    @Column(name = "\"deptoP\"")
     private String departamento;
 
-    @Column(name = "blockP")
+    @Column(name = "\"blockP\"")
     private String block;
 
-    @Column(name = "condicionMigra")
+    @Column(name = "\"condicionMigra\"")
     private String condicionMigratoria;
 
-    @Column(name = "apodo")
+    @Column(name = "\"apodo\"")
     private String apodo;
 
-    @Column(name = "ciudadNacP")
+    @Column(name = "\"ciudadNacP\"")
     private String ciudadNacimiento;
 
-    @Column(name = "obs")
+    @Column(name = "\"obs\"")
     private String observaciones;
 
-    @Column(name = "fono")
+    @Column(name = "\"fono\"")
     private String fono;
 
-    @Column(name = "correo")
+    @Column(name = "\"correo\"")
     private String correoElectronico;
 
 

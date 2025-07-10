@@ -1,14 +1,9 @@
 package cl.investigaciones.nodos.dto.consulta;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class FichaPersonaResponse {
+public class FichaPersonaSimpleDTO {
     private Long id;
     private String rut;
     private String nombre;
@@ -25,6 +20,4 @@ public class FichaPersonaResponse {
     private String observaciones;
     private String fono;
     private String correoElectronico;
-
-    private List<FichaMemoDTO> memos;
 }

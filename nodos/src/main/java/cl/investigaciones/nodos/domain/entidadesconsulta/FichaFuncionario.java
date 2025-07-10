@@ -5,7 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.Immutable;
 
 @Entity
-@Table(name = "ficha_funcionarios", schema = "public")
+@Table(name = "ficha_funcionariosmemo", schema = "public")
 @Data
 @Immutable
 public class FichaFuncionario {
@@ -13,10 +13,10 @@ public class FichaFuncionario {
     @Id
     private Long id;
 
-    @Column(name = "funcionario")
+    @Column(name = "\"funcionario\"")
     private String funcionario;
 
-    @Column(name = "tipoF")
+    @Column(name = "\"tipoF\"")
     private String responsabilidadMemo;
 
     @ManyToOne

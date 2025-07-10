@@ -13,7 +13,7 @@ public class FichaMunicion {
     @Id
     private Long id;
 
-    @Column(name = "obs")
+    @Column(name = "\"obs\"")
     private String obs;
 
     @ManyToOne

@@ -16,19 +16,19 @@ public class FichaMemo {
     @Id
     private Long id;
 
-    @Column(name = "formulario")
+    @Column(name = "\"formulario\"")
     private String formulario;
 
-    @Column(name = "fecha")
+    @Column(name = "\"fecha\"")
     private OffsetDateTime fecha;
 
-    @Column(name = "folioBrain")
+    @Column(name = "\"folioBrain\"")
     private String folioBrain;
 
-    @Column(name = "ruc")
+    @Column(name = "\"ruc\"")
     private String ruc;
 
-    @Column(name = "modusDescripcion")
+    @Column(name = "\"modusDescripcion\"")
     private String modusDescripcion;
 
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
@@ -48,4 +48,7 @@ public class FichaMemo {
 
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
     private List<FichaMunicion> fichaMuniciones;
+
+    @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
+    private List<FichaVehiculo> fichaVehiculos;
 }

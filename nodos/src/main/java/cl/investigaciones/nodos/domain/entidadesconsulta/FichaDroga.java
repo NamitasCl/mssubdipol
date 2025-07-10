@@ -13,16 +13,16 @@ public class FichaDroga {
     @Id
     private Long id;
 
-    @Column(name = "droga")
+    @Column(name = "\"droga\"")
     private String tipoDroga;
 
-    @Column(name = "unidadMasa")
+    @Column(name = "\"unidadMasa\"")
     private String unidadMedida;
 
-    @Column(name = "cantidadDrog")
+    @Column(name = "\"cantidadDrog\"")
     private Double cantidadDroga;
 
-    @Column(name = "obs")
+    @Column(name = "\"obs\"")
     private String obs;
 
     @ManyToOne

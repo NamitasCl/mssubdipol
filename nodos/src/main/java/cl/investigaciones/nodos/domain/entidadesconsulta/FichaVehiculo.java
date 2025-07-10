@@ -15,7 +15,7 @@ public class FichaVehiculo {
     @Id
     private Long id;
 
-    @Column(name = "patente")
+    @Column(name = "\"patente\"")
     private String patente;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,10 +26,14 @@ public class FichaVehiculo {
     @JoinColumn(name = "modeloV_id")
     private ListaModelo modelo;
 
-    @Column(name = "calidad")
+    @Column(name = "\"calidad\"")
     private String calidad;
 
-    @Column(name = "obs")
+    @Column(name = "\"obs\"")
     private String obs;
+
+    @ManyToOne
+    @JoinColumn(name = "id_memo_id")
+    private FichaMemo memo;
 
 }
