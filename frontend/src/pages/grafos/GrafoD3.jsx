@@ -23,7 +23,7 @@ export default function GrafoD3({ nodes, links }) {
     const [tooltip,  setTooltip]  = useState({ show:false,x:0,y:0,content:"" });
 
     const width  = Math.floor(window.innerWidth * 0.9);
-    const height = 600;
+    const height = "730";
 
     /*------------- DIBUJA GRAFO (solo si cambian datos) ------------------*/
     useEffect(() => {
@@ -133,7 +133,7 @@ export default function GrafoD3({ nodes, links }) {
     return (
         <div style={{
             background:grisClaro,borderRadius:12,padding:18,boxShadow:"0 4px 32px #0001",
-            width:"90vw",margin:"auto",position:"relative"
+            width:"100%",margin:"auto",position:"relative", border: "1px solid #ccc",
         }}>
             <svg ref={svgRef} width="100%" height={height}
                  style={{display:"block",background:grisClaro,borderRadius:14}}/>

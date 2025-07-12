@@ -1,6 +1,5 @@
 package cl.investigaciones.nodos.controller.consulta;
 
-import cl.investigaciones.nodos.domain.entidadesconsulta.FichaMemo;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaPersona;
 import cl.investigaciones.nodos.dto.consulta.FichaMemoDTO;
 import cl.investigaciones.nodos.dto.consulta.FichaPersonaResponse;
@@ -12,13 +11,12 @@ import cl.investigaciones.nodos.service.consulta.GrafoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/nodos/consulta")
 @CrossOrigin("*")
-public class FichaPersonaController {
+public class NodosController {
 
     private final FichaPersonaRepository fichaPersonaRepository;
     private final FichaPersonaResponseMapper fichaPersonaResponseMapper;
@@ -26,7 +24,7 @@ public class FichaPersonaController {
     private final FichaPersonaSimpleMapper fichaPersonaSimpleMapper;
     private final GrafoService grafoService;
 
-    public FichaPersonaController(
+    public NodosController(
             FichaPersonaRepository fichaPersonaRepository,
             FichaPersonaResponseMapper fichaPersonaResponseMapper,
             FichaMemoMapper fichaMemoMapper, FichaPersonaSimpleMapper fichaPersonaSimpleMapper,
