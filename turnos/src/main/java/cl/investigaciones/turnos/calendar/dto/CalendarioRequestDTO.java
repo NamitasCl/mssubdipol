@@ -19,4 +19,5 @@ public class CalendarioRequestDTO {
     private String nombreUnidad;
     private List<Long> idPlantillasUsadas;
     private String nombreComplejo; // Nombre del complejo asociado, si aplica
+    private ConfiguracionRestriccionesCalendarioDTO configuracionCalendario;
 }

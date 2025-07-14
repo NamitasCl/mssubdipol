@@ -11,6 +11,8 @@ import cl.investigaciones.turnos.common.RestriccionFactory;
 import cl.investigaciones.turnos.plantilla.domain.RolServicio;
 import cl.investigaciones.turnos.restriccion.implementaciones.ContextoAsignacion;
 import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +42,7 @@ public class AsignacionFuncionariosService {
     }
 
     @Transactional
-    public List<Slot> asignarFuncionarios(Long idCalendario) {
+    public List<Slot> asignarFuncionarios(Long idCalendario) throws JsonProcessingException {
         // Recupera funcionarios designados y slots del calendario
         List<FuncionarioAporte> funcionarios = funcionarioAporteRepository.findByIdCalendarioAndDisponibleTrue(idCalendario);
         List<Slot> slots = slotService.getSlotsByCalendar(idCalendario);
@@ -52,7 +54,9 @@ public class AsignacionFuncionariosService {
         ConfiguracionRestriccionesCalendario config = calendario.getConfiguracionRestricciones();
 
         // Se construye la lista de restricciones en forma dinámica
-        List<Restriccion> restricciones = RestriccionFactory.fromJsonConfig(config.getParametrosJson());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String restriccionesConfig = objectMapper.writeValueAsString(config.getParametrosJson());
+        List<Restriccion> restricciones = RestriccionFactory.fromJsonConfig(restriccionesConfig);
 
         // Aleatoriza el orden de funcionarios para repartir justo
         Collections.shuffle(funcionarios);

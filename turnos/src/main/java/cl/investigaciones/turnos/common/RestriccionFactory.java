@@ -44,7 +44,7 @@ public class RestriccionFactory {
                 Map<String, Object> nochesConsec = config.get("nochesConsecutivas");
                 int valor = (Integer) nochesConsec.get("valor");
                 String palabraClave = (String) nochesConsec.getOrDefault("palabraClave", "noche");
-                restricciones.add(new RestriccionNochesConsecutivas(palabraClave, valor));
+                restricciones.add(new RestriccionNochesConsecutivas(valor));
             }
 
             // RestriccionSeparacionDias

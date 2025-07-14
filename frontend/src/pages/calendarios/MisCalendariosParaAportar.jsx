@@ -177,6 +177,15 @@ export default function MisCalendariosParaAportar() {
                                         {esComplejo && estado === "Completado" ? "Completado" : "Ingresar funcionarios"}
                                     </Button>
                                     <Button
+                                        variant="secondary"
+                                        onClick={() => {
+                                            setCalendarioParaVer({ ...cal, aporte });
+                                            setShowLista(true);
+                                        }}
+                                    >
+                                        Registrar Actividad / Citación
+                                    </Button>
+                                    <Button
                                         variant="warning"
                                         onClick={() => {
                                             setCalendarioParaVer({ ...cal, aporte });

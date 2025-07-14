@@ -1,0 +1,37 @@
+package cl.investigaciones.turnos.calendar.service;
+
+import cl.investigaciones.turnos.calendar.domain.DiaNoDisponibleGlobal;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleGlobalDTO;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleGlobalRequest;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleGlobalResponse;
+import cl.investigaciones.turnos.calendar.repository.FuncionarioDiaNoDisponibleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class FuncionarioDiaNoDisponibleService {
+
+    @Autowired
+    private FuncionarioDiaNoDisponibleRepository repo;
+
+    public void registrarDiasNoDisponibles(Integer idFuncionario, DiaNoDisponibleGlobalRequest dias) {
+        for (DiaNoDisponibleGlobalDTO dto : dias.getDias()) {
+            DiaNoDisponibleGlobal entity = new DiaNoDisponibleGlobal();
+            entity.setIdFuncionario(idFuncionario);
+            entity.setFecha(dto.getFecha());
+            entity.setMotivo(dto.getMotivo());
+            entity.setDetalle(dto.getDetalle());
+            repo.save(entity);
+        }
+    }
+
+    public List<DiaNoDisponibleGlobalResponse> findByIdFuncionario(Integer idFuncionario) {
+        return repo.findByIdFuncionario(idFuncionario);
+    }
+
+    // otros métodos: listar, eliminar, etc.
+}
+

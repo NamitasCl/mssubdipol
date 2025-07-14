@@ -1,0 +1,32 @@
+package cl.investigaciones.turnos.calendar.controller;
+
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleGlobalRequest;
+import cl.investigaciones.turnos.calendar.service.FuncionarioDiaNoDisponibleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/turnos/dianodisponible")
+public class FuncionarioDiaNoDisponibleController {
+
+    @Autowired
+    private FuncionarioDiaNoDisponibleService service;
+
+    @GetMapping("/listar/{idFuncionario}")
+    public ResponseEntity<?> listar(@PathVariable Integer idFuncionario){
+        return ResponseEntity.ok(service.findByIdFuncionario(idFuncionario));
+    }
+
+    @PostMapping("/registrar")
+    public ResponseEntity<?> registrar(
+            @RequestBody DiaNoDisponibleGlobalRequest dias
+    ) {
+        service.registrarDiasNoDisponibles(dias.getIdFuncionario(), dias);
+        return ResponseEntity.ok().build();
+    }
+}
+
