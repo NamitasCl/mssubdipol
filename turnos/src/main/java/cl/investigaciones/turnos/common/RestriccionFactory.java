@@ -22,6 +22,11 @@ public class RestriccionFactory {
                 ));
             }
 
+            // RestriccionNoDosTurnosMismoDia
+            if (Boolean.TRUE.equals(config.getOrDefault("noDosTurnosMismoDia", Map.of()).get("activa"))) {
+                restricciones.add(new RestriccionNoDosTurnosMismoDia());
+            }
+
             // RestriccionMaximoTurnosFinDeSemana
             if (Boolean.TRUE.equals(config.getOrDefault("maxTurnosFinDeSemana", Map.of()).get("activa"))) {
                 restricciones.add(new RestriccionMaximoTurnosFinDeSemana(

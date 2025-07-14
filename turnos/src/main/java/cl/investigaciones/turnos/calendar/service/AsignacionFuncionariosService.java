@@ -119,6 +119,16 @@ public class AsignacionFuncionariosService {
                         slot.setNombreFuncionario(f.getNombreCompleto());
                         slot.setIdFuncionario(f.getIdFuncionario());
                         slot.setAntiguedadFuncionario(f.getAntiguedad());
+
+                        // --- Dejo como no disponible el día asignado al funcionario para futuros calendarios en el mismo mes de la misma unidad ---
+                        FuncionarioAportadoDiasNoDisponible bloqueo = new FuncionarioAportadoDiasNoDisponible();
+                        bloqueo.setFuncionarioAporte(f);
+                        bloqueo.setFecha(slot.getFecha());
+                        bloqueo.setMotivo("ASIGNADO_TURNO"); // O el motivo que quieras, según el contexto (puedes personalizarlo)
+                        bloqueo.setDetalle("slotId:" + slot.getId());
+                        noDisponibleRepository.save(bloqueo);
+                        // ---------------------------------------------------------------
+
                         break;
                     }
                 }

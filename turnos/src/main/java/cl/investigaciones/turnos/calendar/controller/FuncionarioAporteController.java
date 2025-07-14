@@ -4,6 +4,7 @@ import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteRequestDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 import cl.investigaciones.turnos.calendar.service.FuncionarioAporteService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.List;
 @RequestMapping("/api/turnos/funcionarios-aporte")
 @RequiredArgsConstructor
 @CrossOrigin("*")
+@Slf4j
 public class FuncionarioAporteController {
 
     private final FuncionarioAporteService service;
@@ -25,6 +27,7 @@ public class FuncionarioAporteController {
             @RequestBody FuncionarioAporteRequestDTO dto,
             @RequestHeader("usuario") Integer agregadoPor // o saca del JWT según tu contexto
     ) {
+        log.info("Agregando funcionario aporte: ", dto.getNombreCompleto());
         FuncionarioAporteResponseDTO response = service.guardar(dto, agregadoPor);
         return ResponseEntity.ok(response);
     }

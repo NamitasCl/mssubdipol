@@ -17,7 +17,7 @@ export default function MisCalendariosParaAportar() {
     const [showLista, setShowLista] = useState(false);
     const [calendarioParaVer, setCalendarioParaVer] = useState(null);
 
-    useEffect(() => {
+    const cargarDatos = async () => {
         setLoading(true);
         listarCalendarios().then(async (todos) => {
             // Filtra solo los calendarios donde la unidad del usuario debe aportar
@@ -64,6 +64,10 @@ export default function MisCalendariosParaAportar() {
             setCalendarios(mios);
             setLoading(false);
         });
+    }
+
+    useEffect(() => {
+        cargarDatos();
     }, [user.idUnidad]);
 
     if (loading) return <Spinner />;
@@ -196,12 +200,19 @@ export default function MisCalendariosParaAportar() {
                     onHide={() => setShowIngreso(false)}
                     calendario={calendarioSeleccionado}
                     aporte={calendarioSeleccionado.aporte}
+                    onGuardado={() => {
+                        setShowIngreso(false);
+                        cargarDatos(); // Recargar datos después de guardar
+                    }}
                 />
             )}
             {showLista && calendarioParaVer && (
                 <ListaFuncionariosAportados
                     show={showLista}
-                    onHide={() => setShowLista(false)}
+                    onHide={() => {
+                        setShowLista(false);
+                        cargarDatos(); // Recargar datos al cerrar
+                    }}
                     calendarioId={calendarioParaVer.id}
                     idUnidad={user.idUnidad}
                 />
