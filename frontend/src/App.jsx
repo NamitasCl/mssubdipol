@@ -13,7 +13,7 @@ import {RestrictedAreaSecuin} from "./components/RestrictedAreaSecuin.jsx";
 import AuthGuard from "./components/AuthGuard.jsx";
 import ModificarAsignacionesUnidad from "./pages/turnos/ModificarAsignacionesUnidad.jsx";
 import PaginaEnConstruccion from "./pages/PaginaEnConstruccion.jsx";
-import VistaCalendarioTurnosFiltros from "./pages/turnos/VistaCalendarioTurnosFiltros.jsx";
+import VistaCalendarioTurnosFiltros from "./pages/calendarios/VistaCalendarioTurnosFiltros.jsx";
 import DashboardPrincipal from "./DashboardPrincipal.jsx";
 import ServiciosEspecialesLayout from "./pages/formularioDinamico/ServiciosEspecialesLayout.jsx";
 import './assets/App.css';

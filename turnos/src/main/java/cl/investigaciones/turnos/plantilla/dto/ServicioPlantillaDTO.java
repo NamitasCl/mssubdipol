@@ -10,10 +10,13 @@ import java.util.List;
 @Setter
 public class ServicioPlantillaDTO {
     private String nombreServicio;
-    private int cantidadRecintos;
     private String turno;
     private LocalTime horaInicio;
     private LocalTime horaFin;
     private List<CupoServicioPlantillaDTO> cupos;
+
+    // Nuevo:
+    private List<RecintoServicioPlantillaDTO> recintos;
 }
+
 

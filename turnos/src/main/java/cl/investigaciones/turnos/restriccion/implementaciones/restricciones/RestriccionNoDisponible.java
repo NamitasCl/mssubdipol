@@ -14,6 +14,9 @@ public class RestriccionNoDisponible implements Restriccion {
         /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
         Set<LocalDate> diasNoDisp = ctx.getDiasNoDisponibles().get(funcionario.getId());
         if (diasNoDisp == null) return true;
+
+        System.out.println("Para el dia " + slot.getFecha() + " el match es: " + diasNoDisp.contains(slot.getFecha()));
+
         return !diasNoDisp.contains(slot.getFecha());
     }
 }

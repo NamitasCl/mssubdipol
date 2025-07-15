@@ -5,6 +5,7 @@ import { Button, Table, Spinner, Alert } from "react-bootstrap";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import IngresoFuncionariosAporte from "./IngresoFuncionariosAporte"; // El componente de ingreso
 import ListaFuncionariosAportados from "./ListaFuncionariosAportados";
+import IngresoFuncionarioConDiasNoDisponibles from "./IngresoFuncionarioConDiasNoDisponibles.jsx";
 
 export default function MisCalendariosParaAportar() {
     const { user } = useAuth();
@@ -15,7 +16,10 @@ export default function MisCalendariosParaAportar() {
     const [funcionariosPorCalendario, setFuncionariosPorCalendario] = useState({});
     const [showIngreso, setShowIngreso] = useState(false);
     const [showLista, setShowLista] = useState(false);
+    const [showDiasNoDisponibles, setShowDiasNoDisponibles] = useState(false);
     const [calendarioParaVer, setCalendarioParaVer] = useState(null);
+    const [calendarioView, setCalendarioView] = useState(null);
+
 
     const cargarDatos = async () => {
         setLoading(true);
@@ -82,7 +86,7 @@ export default function MisCalendariosParaAportar() {
     return (
         <div style={{padding:'2%'}}>
             <div style={{marginBottom: '20px'}}>
-                <h2>Mis calendarios donde debo aportar personal</h2>
+                <h2>Calendarios</h2>
             </div>
             {pendientes.length > 0 && (
                 <Alert variant="warning">
@@ -179,8 +183,8 @@ export default function MisCalendariosParaAportar() {
                                     <Button
                                         variant="secondary"
                                         onClick={() => {
-                                            setCalendarioParaVer({ ...cal, aporte });
-                                            setShowLista(true);
+                                            setCalendarioView({ ...cal, aporte });
+                                            setShowDiasNoDisponibles(true);
                                         }}
                                     >
                                         Registrar Actividad / Citación
@@ -211,6 +215,18 @@ export default function MisCalendariosParaAportar() {
                     aporte={calendarioSeleccionado.aporte}
                     onGuardado={() => {
                         setShowIngreso(false);
+                        cargarDatos(); // Recargar datos después de guardar
+                    }}
+                />
+            )}
+            {/* Modal para ingresar dias no disponibles citacion / actividad */}
+            {showDiasNoDisponibles && calendarioView && (
+                <IngresoFuncionarioConDiasNoDisponibles
+                    show={showDiasNoDisponibles}
+                    onHide={() => setShowDiasNoDisponibles(false)}
+                    calendario={calendarioView}
+                    onGuardado={() => {
+                        setShowDiasNoDisponibles(false);
                         cargarDatos(); // Recargar datos después de guardar
                     }}
                 />

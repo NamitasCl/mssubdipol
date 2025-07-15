@@ -28,8 +28,22 @@ public class FuncionarioDiaNoDisponibleService {
         }
     }
 
-    public List<DiaNoDisponibleGlobalResponse> findByIdFuncionario(Integer idFuncionario) {
-        return repo.findByIdFuncionario(idFuncionario);
+    public DiaNoDisponibleGlobalResponse findByIdFuncionario(Integer idFuncionario) {
+
+        List<DiaNoDisponibleGlobal> consulta = repo.findByIdFuncionario(idFuncionario);
+        DiaNoDisponibleGlobalResponse response = new DiaNoDisponibleGlobalResponse();
+        response.setIdFuncionario(idFuncionario);
+        consulta.forEach(entity -> {
+            DiaNoDisponibleGlobalDTO dto = new DiaNoDisponibleGlobalDTO();
+            dto.setId(entity.getId());
+            dto.setFecha(entity.getFecha());
+            dto.setMotivo(entity.getMotivo());
+            dto.setDetalle(entity.getDetalle());
+
+            response.getDias().add(dto);
+        });
+
+        return response;
     }
 
     // otros métodos: listar, eliminar, etc.

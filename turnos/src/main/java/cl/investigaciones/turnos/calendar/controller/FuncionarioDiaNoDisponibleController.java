@@ -25,8 +25,12 @@ public class FuncionarioDiaNoDisponibleController {
     public ResponseEntity<?> registrar(
             @RequestBody DiaNoDisponibleGlobalRequest dias
     ) {
-        service.registrarDiasNoDisponibles(dias.getIdFuncionario(), dias);
-        return ResponseEntity.ok().build();
+        try {
+            service.registrarDiasNoDisponibles(dias.getIdFuncionario(), dias);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
 

@@ -2,6 +2,8 @@ package cl.investigaciones.turnos.calendar.service;
 
 import cl.investigaciones.turnos.calendar.domain.*;
 import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleGlobalDTO;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleGlobalResponse;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 import cl.investigaciones.turnos.calendar.mapper.FuncionarioAporteMapper;
 import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
@@ -27,18 +29,21 @@ public class AsignacionFuncionariosService {
     private final FuncionarioAportadoDiasNoDisponibleRepository noDisponibleRepository;
     private final CalendarioRepository calendarioRepository;
     private final SlotService slotService;
+    private final FuncionarioDiaNoDisponibleService diaNoDisponibleGlobalService;
 
 
     public AsignacionFuncionariosService(
             FuncionarioAporteRepository funcionarioAporteService,
             SlotService slotService,
             FuncionarioAportadoDiasNoDisponibleRepository noDisponibleRepository,
-            CalendarioRepository calendarioRepository
+            CalendarioRepository calendarioRepository,
+            FuncionarioDiaNoDisponibleService funcionarioDiaNoDisponibleService
     ) {
         this.funcionarioAporteRepository = funcionarioAporteService;
         this.slotService = slotService;
         this.noDisponibleRepository = noDisponibleRepository;
         this.calendarioRepository = calendarioRepository;
+        this.diaNoDisponibleGlobalService = funcionarioDiaNoDisponibleService;
     }
 
     @Transactional
@@ -71,6 +76,21 @@ public class AsignacionFuncionariosService {
                         .map(FuncionarioAportadoDiasNoDisponible::getFecha)
                         .collect(Collectors.toSet());
                 diasNoDisponibles.put(f.getIdFuncionario(), fechas);
+            }
+        }
+
+        // Cargo los dias no disponibles por citacion o actividad del funcionario
+        for (FuncionarioAporte f : funcionarios) {
+            DiaNoDisponibleGlobalResponse globalResponse = diaNoDisponibleGlobalService.findByIdFuncionario(f.getIdFuncionario());
+            if (globalResponse != null && globalResponse.getDias() != null) {
+                Set<LocalDate> fechasGlobales = globalResponse.getDias()
+                        .stream()
+                        .map(DiaNoDisponibleGlobalDTO::getFecha)
+                        .collect(Collectors.toSet());
+
+                diasNoDisponibles
+                        .computeIfAbsent(f.getIdFuncionario(), k -> new HashSet<>())
+                        .addAll(fechasGlobales);
             }
         }
 

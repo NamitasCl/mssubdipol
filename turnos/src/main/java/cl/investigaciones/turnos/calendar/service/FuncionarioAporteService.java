@@ -5,13 +5,17 @@ import cl.investigaciones.turnos.calendar.domain.FuncionarioAporte;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteRequestDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
+import cl.investigaciones.turnos.calendar.dto.FuncionariosAportadosPaginados;
 import cl.investigaciones.turnos.calendar.mapper.FuncionarioAporteMapper;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAportadoDiasNoDisponibleRepository;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAporteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -91,6 +95,21 @@ public class FuncionarioAporteService {
                     return FuncionarioAporteMapper.toDto(aporte, dias);
                 })
                 .collect(Collectors.toList());
+    }
+
+    public Page<FuncionariosAportadosPaginados> listarPorCalendarioYUnidadPaginado(Long idCalendario, Long idUnidad, Pageable pageable) {
+        Page<FuncionarioAporte> aportes = repo.findByIdCalendarioAndIdUnidad(idCalendario, idUnidad, pageable);
+
+        List<FuncionariosAportadosPaginados> contenido = aportes.getContent().stream()
+                .map(aporte -> {
+                    FuncionariosAportadosPaginados dto = new FuncionariosAportadosPaginados();
+                    dto.setId(aporte.getId());
+                    dto.setNombreCompleto(aporte.getNombreCompleto());
+                    return dto;
+                })
+                .toList();
+
+        return new PageImpl<>(contenido, pageable, aportes.getTotalElements());
     }
 
     @Transactional

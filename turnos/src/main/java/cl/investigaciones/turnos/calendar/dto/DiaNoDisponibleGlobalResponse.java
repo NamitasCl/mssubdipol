@@ -3,14 +3,12 @@ package cl.investigaciones.turnos.calendar.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DiaNoDisponibleGlobalResponse {
-    private Long id;
     private Integer idFuncionario;
-    private LocalDate fecha;
-    private String motivo;
-    private String detalle;
+    List<DiaNoDisponibleGlobalDTO> dias = new ArrayList<>();
 }
