@@ -5,6 +5,7 @@ import { Button, Table, Spinner, Alert } from "react-bootstrap";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import IngresoFuncionariosAporte from "./IngresoFuncionariosAporte"; // El componente de ingreso
 import ListaFuncionariosAportados from "./ListaFuncionariosAportados";
+import IngresoFuncionarioConDiasNoDisponibles from "./IngresoFuncionarioConDiasNoDisponibles.jsx";
 
 export default function MisCalendariosParaAportar() {
     const { user } = useAuth();
@@ -15,9 +16,12 @@ export default function MisCalendariosParaAportar() {
     const [funcionariosPorCalendario, setFuncionariosPorCalendario] = useState({});
     const [showIngreso, setShowIngreso] = useState(false);
     const [showLista, setShowLista] = useState(false);
+    const [showDiasNoDisponibles, setShowDiasNoDisponibles] = useState(false);
     const [calendarioParaVer, setCalendarioParaVer] = useState(null);
+    const [calendarioView, setCalendarioView] = useState(null);
 
-    useEffect(() => {
+
+    const cargarDatos = async () => {
         setLoading(true);
         listarCalendarios().then(async (todos) => {
             // Filtra solo los calendarios donde la unidad del usuario debe aportar
@@ -64,6 +68,10 @@ export default function MisCalendariosParaAportar() {
             setCalendarios(mios);
             setLoading(false);
         });
+    }
+
+    useEffect(() => {
+        cargarDatos();
     }, [user.idUnidad]);
 
     if (loading) return <Spinner />;
@@ -78,7 +86,7 @@ export default function MisCalendariosParaAportar() {
     return (
         <div style={{padding:'2%'}}>
             <div style={{marginBottom: '20px'}}>
-                <h2>Mis calendarios donde debo aportar personal</h2>
+                <h2>Calendarios</h2>
             </div>
             {pendientes.length > 0 && (
                 <Alert variant="warning">
@@ -173,6 +181,15 @@ export default function MisCalendariosParaAportar() {
                                         {esComplejo && estado === "Completado" ? "Completado" : "Ingresar funcionarios"}
                                     </Button>
                                     <Button
+                                        variant="secondary"
+                                        onClick={() => {
+                                            setCalendarioView({ ...cal, aporte });
+                                            setShowDiasNoDisponibles(true);
+                                        }}
+                                    >
+                                        Registrar Actividad / Citación
+                                    </Button>
+                                    <Button
                                         variant="warning"
                                         onClick={() => {
                                             setCalendarioParaVer({ ...cal, aporte });
@@ -196,12 +213,31 @@ export default function MisCalendariosParaAportar() {
                     onHide={() => setShowIngreso(false)}
                     calendario={calendarioSeleccionado}
                     aporte={calendarioSeleccionado.aporte}
+                    onGuardado={() => {
+                        setShowIngreso(false);
+                        cargarDatos(); // Recargar datos después de guardar
+                    }}
+                />
+            )}
+            {/* Modal para ingresar dias no disponibles citacion / actividad */}
+            {showDiasNoDisponibles && calendarioView && (
+                <IngresoFuncionarioConDiasNoDisponibles
+                    show={showDiasNoDisponibles}
+                    onHide={() => setShowDiasNoDisponibles(false)}
+                    calendario={calendarioView}
+                    onGuardado={() => {
+                        setShowDiasNoDisponibles(false);
+                        cargarDatos(); // Recargar datos después de guardar
+                    }}
                 />
             )}
             {showLista && calendarioParaVer && (
                 <ListaFuncionariosAportados
                     show={showLista}
-                    onHide={() => setShowLista(false)}
+                    onHide={() => {
+                        setShowLista(false);
+                        cargarDatos(); // Recargar datos al cerrar
+                    }}
                     calendarioId={calendarioParaVer.id}
                     idUnidad={user.idUnidad}
                 />

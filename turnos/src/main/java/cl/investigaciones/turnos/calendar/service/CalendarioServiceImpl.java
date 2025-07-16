@@ -4,8 +4,11 @@ import cl.investigaciones.turnos.calendar.domain.*;
 import cl.investigaciones.turnos.calendar.dto.*;
 import cl.investigaciones.turnos.calendar.mapper.AporteUnidadTurnoMapper;
 import cl.investigaciones.turnos.calendar.mapper.CalendarioMapper;
+import cl.investigaciones.turnos.calendar.mapper.ConfiguracionRestriccionCalendarioMapper;
 import cl.investigaciones.turnos.calendar.repository.AporteUnidadTurnoRepository;
 import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
+import cl.investigaciones.turnos.calendar.repository.ConfiguracionRestriccionCalendarioRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,16 +27,26 @@ public class CalendarioServiceImpl implements CalendarioService {
     private final CalendarioRepository repo;
     private final AporteUnidadTurnoRepository aporteUnidadTurnoRepository;
     private final SlotGeneratorService slotService;
+    private final ConfiguracionRestriccionCalendarioMapper calendarioConfigMapper;
+    private final ConfiguracionRestriccionCalendarioRepository configCalendarioRepo;
 
-    public CalendarioServiceImpl(CalendarioRepository repo,  SlotGeneratorService slotService,  AporteUnidadTurnoRepository aporteUnidadTurnoRepository) {
+    public CalendarioServiceImpl(
+            CalendarioRepository repo,
+            SlotGeneratorService slotService,
+            AporteUnidadTurnoRepository aporteUnidadTurnoRepository,
+            ConfiguracionRestriccionCalendarioMapper calendarioConfigMapper,
+            ConfiguracionRestriccionCalendarioRepository configCalendarioRepo
+    ) {
 
         this.repo = repo;
         this.slotService = slotService;
         this.aporteUnidadTurnoRepository = aporteUnidadTurnoRepository;
+        this.calendarioConfigMapper = calendarioConfigMapper;
+        this.configCalendarioRepo = configCalendarioRepo;
     }
 
     @Override
-    public CalendarioResponseDTO crearCalendario(CalendarioRequestDTO req, int idFuncionario) {
+    public CalendarioResponseDTO crearCalendario(CalendarioRequestDTO req, int idFuncionario) throws JsonProcessingException {
         System.out.println("Calendario que llega: " + req);
         Calendario entity = CalendarioMapper.toEntity(req);
         entity.setCreadoPor(idFuncionario);
@@ -41,6 +54,13 @@ public class CalendarioServiceImpl implements CalendarioService {
         entity.setEstado(CalendarState.ABIERTO);
         entity.setModificadoPor(null);
         System.out.println("Creando calendario: " + entity);
+
+        ConfiguracionRestriccionesCalendario calendarioConfig = new ConfiguracionRestriccionesCalendario();
+        calendarioConfig.setCalendario(entity);
+
+        calendarioConfig.setParametrosJson(req.getConfiguracionCalendario().getParametrosJson());
+
+        configCalendarioRepo.save(calendarioConfig);
 
         Calendario savedEntity = repo.save(entity);
         try {

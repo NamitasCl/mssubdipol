@@ -2,6 +2,8 @@ package cl.investigaciones.turnos.calendar.service;
 
 import cl.investigaciones.turnos.calendar.domain.*;
 import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleGlobalDTO;
+import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleGlobalResponse;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 import cl.investigaciones.turnos.calendar.mapper.FuncionarioAporteMapper;
 import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
@@ -11,6 +13,8 @@ import cl.investigaciones.turnos.common.RestriccionFactory;
 import cl.investigaciones.turnos.plantilla.domain.RolServicio;
 import cl.investigaciones.turnos.restriccion.implementaciones.ContextoAsignacion;
 import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -25,22 +29,25 @@ public class AsignacionFuncionariosService {
     private final FuncionarioAportadoDiasNoDisponibleRepository noDisponibleRepository;
     private final CalendarioRepository calendarioRepository;
     private final SlotService slotService;
+    private final FuncionarioDiaNoDisponibleService diaNoDisponibleGlobalService;
 
 
     public AsignacionFuncionariosService(
             FuncionarioAporteRepository funcionarioAporteService,
             SlotService slotService,
             FuncionarioAportadoDiasNoDisponibleRepository noDisponibleRepository,
-            CalendarioRepository calendarioRepository
+            CalendarioRepository calendarioRepository,
+            FuncionarioDiaNoDisponibleService funcionarioDiaNoDisponibleService
     ) {
         this.funcionarioAporteRepository = funcionarioAporteService;
         this.slotService = slotService;
         this.noDisponibleRepository = noDisponibleRepository;
         this.calendarioRepository = calendarioRepository;
+        this.diaNoDisponibleGlobalService = funcionarioDiaNoDisponibleService;
     }
 
     @Transactional
-    public List<Slot> asignarFuncionarios(Long idCalendario) {
+    public List<Slot> asignarFuncionarios(Long idCalendario) throws JsonProcessingException {
         // Recupera funcionarios designados y slots del calendario
         List<FuncionarioAporte> funcionarios = funcionarioAporteRepository.findByIdCalendarioAndDisponibleTrue(idCalendario);
         List<Slot> slots = slotService.getSlotsByCalendar(idCalendario);
@@ -52,7 +59,9 @@ public class AsignacionFuncionariosService {
         ConfiguracionRestriccionesCalendario config = calendario.getConfiguracionRestricciones();
 
         // Se construye la lista de restricciones en forma dinámica
-        List<Restriccion> restricciones = RestriccionFactory.fromJsonConfig(config.getParametrosJson());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String restriccionesConfig = objectMapper.writeValueAsString(config.getParametrosJson());
+        List<Restriccion> restricciones = RestriccionFactory.fromJsonConfig(restriccionesConfig);
 
         // Aleatoriza el orden de funcionarios para repartir justo
         Collections.shuffle(funcionarios);
@@ -67,6 +76,21 @@ public class AsignacionFuncionariosService {
                         .map(FuncionarioAportadoDiasNoDisponible::getFecha)
                         .collect(Collectors.toSet());
                 diasNoDisponibles.put(f.getIdFuncionario(), fechas);
+            }
+        }
+
+        // Cargo los dias no disponibles por citacion o actividad del funcionario
+        for (FuncionarioAporte f : funcionarios) {
+            DiaNoDisponibleGlobalResponse globalResponse = diaNoDisponibleGlobalService.findByIdFuncionario(f.getIdFuncionario());
+            if (globalResponse != null && globalResponse.getDias() != null) {
+                Set<LocalDate> fechasGlobales = globalResponse.getDias()
+                        .stream()
+                        .map(DiaNoDisponibleGlobalDTO::getFecha)
+                        .collect(Collectors.toSet());
+
+                diasNoDisponibles
+                        .computeIfAbsent(f.getIdFuncionario(), k -> new HashSet<>())
+                        .addAll(fechasGlobales);
             }
         }
 
@@ -119,6 +143,16 @@ public class AsignacionFuncionariosService {
                         slot.setNombreFuncionario(f.getNombreCompleto());
                         slot.setIdFuncionario(f.getIdFuncionario());
                         slot.setAntiguedadFuncionario(f.getAntiguedad());
+
+                        // --- Dejo como no disponible el día asignado al funcionario para futuros calendarios en el mismo mes de la misma unidad ---
+                        FuncionarioAportadoDiasNoDisponible bloqueo = new FuncionarioAportadoDiasNoDisponible();
+                        bloqueo.setFuncionarioAporte(f);
+                        bloqueo.setFecha(slot.getFecha());
+                        bloqueo.setMotivo("ASIGNADO_TURNO"); // O el motivo que quieras, según el contexto (puedes personalizarlo)
+                        bloqueo.setDetalle("slotId:" + slot.getId());
+                        noDisponibleRepository.save(bloqueo);
+                        // ---------------------------------------------------------------
+
                         break;
                     }
                 }

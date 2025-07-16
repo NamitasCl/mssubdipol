@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import CalendarioTurnosFuncionarios from "./CalendarioTurnosFuncionarios.jsx";
+import CalendarioTurnosFuncionarios from "../turnos/CalendarioTurnosFuncionarios.jsx";
 import { getSlotsByCalendario } from "../../api/slotApi.js";
 import { Spinner } from "react-bootstrap";
 import { listarCalendarios } from "../../api/calendarApi.js";
+import axios from "axios";
+import {realizarAsignacionFuncionarios} from "../../api/asignacionFuncionarioApi.js";
 
 /* -------------------------------------------------------------------------- */
 /*  Configuración de antigüedad por grado                                      */
@@ -65,29 +67,39 @@ export default function VistaCalendarioTurnosFiltros() {
             return;
         }
 
-        setLoading(true);
-        (async () => {
-            try {
-                // 1. Traer slots y ordenarlos
-                const data = await getSlotsByCalendario(seleccionado);
-                setSlots([...data].sort(compareAntiguedad));
-
-                // 2. Extraer mes/año del calendario elegido
-                const calSel = calendarios.find(c => c.id === Number(seleccionado));
-                setMes(calSel?.mes ?? null);
-                setAnio(calSel?.anio ?? null);
-            } catch (e) {
-                console.error("Error al cargar slots:", e);
-            } finally {
-                setLoading(false);
-            }
-        })();
+        loadSlots();
     }, [seleccionado, calendarios]);
 
-    /* ----------------------------- Acciones UI ----------------------------------- */
-    const handleGeneraTurnos = () => {
-        alert("Esta funcionalidad está en desarrollo y no está disponible aún.");
+    const loadSlots = async () => {
+        setLoading(true);
+        try {
+            const data = await getSlotsByCalendario(seleccionado);
+            setSlots([...data].sort(compareAntiguedad));
+
+            console.log(data);
+
+            const calSel = calendarios.find(c => c.id === Number(seleccionado));
+            setMes(calSel?.mes ?? null);
+            setAnio(calSel?.anio ?? null);
+        } catch (e) {
+            console.error("Error al cargar slots:", e);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    /* ----------------------------- Acciones UI ----------------------------------- */
+    const handleGeneraTurnos = async () => {
+        try {
+            await realizarAsignacionFuncionarios(seleccionado);
+            await loadSlots(); // 👈 recarga los datos
+            alert("Asignaciones realizadas con éxito");
+        } catch (e) {
+            alert("Hubo un error al asignar los turnos");
+            console.error(e);
+        }
+    };
+
 
     const exportarExcel = () => {
         /* Implementar cuando sea necesario */

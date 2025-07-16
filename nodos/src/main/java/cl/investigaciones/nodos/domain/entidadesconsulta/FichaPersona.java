@@ -1,0 +1,70 @@
+package cl.investigaciones.nodos.domain.entidadesconsulta;
+
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaModelo;
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaNacionalidad;
+import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.Immutable;
+
+@Entity
+@Table(name = "ficha_persona", schema = "public")
+@Data
+@Immutable
+public class FichaPersona {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "\"rut\"")
+    private String rut;
+
+    @Column(name = "\"nombre\"")
+    private String nombre;
+
+    @Column(name = "\"apellidoPat\"")
+    private String apellidoPat;
+
+    @Column(name = "\"apellidoMat\"")
+    private String apellidoMat;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "\"nacionalidadP_id\"")
+    private ListaNacionalidad nacionalidad;
+
+    @Column(name = "\"nombreViaP\"")
+    private String direccion;
+
+    @Column(name = "\"numP\"")
+    private String direccionNumero;
+
+    @Column(name = "\"deptoP\"")
+    private String departamento;
+
+    @Column(name = "\"blockP\"")
+    private String block;
+
+    @Column(name = "\"condicionMigra\"")
+    private String condicionMigratoria;
+
+    @Column(name = "\"apodo\"")
+    private String apodo;
+
+    @Column(name = "\"ciudadNacP\"")
+    private String ciudadNacimiento;
+
+    @Column(name = "\"obs\"")
+    private String observaciones;
+
+    @Column(name = "\"fono\"")
+    private String fono;
+
+    @Column(name = "\"correo\"")
+    private String correoElectronico;
+
+
+    @ManyToOne
+    @JoinColumn(name = "memos_id")
+    private FichaMemo memo;
+
+}

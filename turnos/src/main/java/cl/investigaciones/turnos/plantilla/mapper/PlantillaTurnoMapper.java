@@ -3,15 +3,18 @@ package cl.investigaciones.turnos.plantilla.mapper;
 import cl.investigaciones.turnos.plantilla.domain.CupoServicioPlantilla;
 import cl.investigaciones.turnos.plantilla.domain.PlantillaTurno;
 import cl.investigaciones.turnos.plantilla.domain.ServicioPlantilla;
+import cl.investigaciones.turnos.plantilla.domain.RecintoServicioPlantilla;
 import cl.investigaciones.turnos.plantilla.dto.CupoServicioPlantillaDTO;
 import cl.investigaciones.turnos.plantilla.dto.PlantillaTurnoRequestDTO;
 import cl.investigaciones.turnos.plantilla.dto.PlantillaTurnoResponseDTO;
 import cl.investigaciones.turnos.plantilla.dto.ServicioPlantillaDTO;
+import cl.investigaciones.turnos.plantilla.dto.RecintoServicioPlantillaDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class PlantillaTurnoMapper {
+
     public static PlantillaTurno toEntity(PlantillaTurnoRequestDTO dto) {
         PlantillaTurno entity = new PlantillaTurno();
         entity.setNombre(dto.getNombre());
@@ -26,14 +29,36 @@ public class PlantillaTurnoMapper {
     public static ServicioPlantilla toServicioEntity(ServicioPlantillaDTO dto) {
         ServicioPlantilla entity = new ServicioPlantilla();
         entity.setNombreServicio(dto.getNombreServicio());
-        entity.setCantidadRecintos(dto.getCantidadRecintos());
         entity.setTurno(dto.getTurno());
         entity.setHoraInicio(dto.getHoraInicio());
         entity.setHoraFin(dto.getHoraFin());
+
+        // --- cupos ---
         List<CupoServicioPlantilla> cupos = dto.getCupos().stream()
                 .map(PlantillaTurnoMapper::toCupoEntity)
-                .collect(Collectors.toList());
+                .toList();
         entity.setCupos(cupos);
+
+        // --- recintos ---
+        if (dto.getRecintos() != null) {
+            List<RecintoServicioPlantilla> recintos = dto.getRecintos().stream()
+                    .map(rdto -> {
+                        RecintoServicioPlantilla r = toRecintoEntity(rdto);
+                        r.setServicioPlantilla(entity);        // ★ vincular al padre
+                        return r;
+                    })
+                    .toList();
+            entity.setRecintos(recintos);
+        }
+
+        return entity;
+    }
+
+
+    public static RecintoServicioPlantilla toRecintoEntity(RecintoServicioPlantillaDTO dto) {
+        RecintoServicioPlantilla entity = new RecintoServicioPlantilla();
+        entity.setNombre(dto.getNombre());
+        entity.setOrden(dto.getOrden());
         return entity;
     }
 
@@ -59,13 +84,28 @@ public class PlantillaTurnoMapper {
     public static ServicioPlantillaDTO toServicioDto(ServicioPlantilla entity) {
         ServicioPlantillaDTO dto = new ServicioPlantillaDTO();
         dto.setNombreServicio(entity.getNombreServicio());
-        dto.setCantidadRecintos(entity.getCantidadRecintos());
         dto.setTurno(entity.getTurno());
         dto.setHoraInicio(entity.getHoraInicio());
         dto.setHoraFin(entity.getHoraFin());
+
+        // Mapear recintos
+        if (entity.getRecintos() != null) {
+            List<RecintoServicioPlantillaDTO> recintos = entity.getRecintos().stream()
+                    .map(PlantillaTurnoMapper::toRecintoDto)
+                    .collect(Collectors.toList());
+            dto.setRecintos(recintos);
+        }
+
         dto.setCupos(entity.getCupos().stream()
                 .map(PlantillaTurnoMapper::toCupoDto)
                 .collect(Collectors.toList()));
+        return dto;
+    }
+
+    public static RecintoServicioPlantillaDTO toRecintoDto(RecintoServicioPlantilla entity) {
+        RecintoServicioPlantillaDTO dto = new RecintoServicioPlantillaDTO();
+        dto.setNombre(entity.getNombre());
+        dto.setOrden(entity.getOrden());
         return dto;
     }
 
@@ -85,4 +125,3 @@ public class PlantillaTurnoMapper {
         return dto;
     }
 }
-

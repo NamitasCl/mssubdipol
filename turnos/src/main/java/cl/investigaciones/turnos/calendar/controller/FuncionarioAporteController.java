@@ -2,11 +2,16 @@ package cl.investigaciones.turnos.calendar.controller;
 
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteRequestDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
+import cl.investigaciones.turnos.calendar.dto.FuncionariosAportadosPaginados;
 import cl.investigaciones.turnos.calendar.service.FuncionarioAporteService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -14,6 +19,7 @@ import java.util.List;
 @RequestMapping("/api/turnos/funcionarios-aporte")
 @RequiredArgsConstructor
 @CrossOrigin("*")
+@Slf4j
 public class FuncionarioAporteController {
 
     private final FuncionarioAporteService service;
@@ -25,6 +31,7 @@ public class FuncionarioAporteController {
             @RequestBody FuncionarioAporteRequestDTO dto,
             @RequestHeader("usuario") Integer agregadoPor // o saca del JWT según tu contexto
     ) {
+        log.info("Agregando funcionario aporte: ", dto.getNombreCompleto());
         FuncionarioAporteResponseDTO response = service.guardar(dto, agregadoPor);
         return ResponseEntity.ok(response);
     }
@@ -38,6 +45,19 @@ public class FuncionarioAporteController {
         List<FuncionarioAporteResponseDTO> lista = service.listarPorCalendarioYUnidad(idCalendario, idUnidad);
         return ResponseEntity.ok(lista);
     }
+
+    @GetMapping("/calendario/{idCalendario}/unidad/{idUnidad}/page")
+    public ResponseEntity<Page<FuncionariosAportadosPaginados>> listarAportes(
+            @PathVariable Long idCalendario,
+            @PathVariable Long idUnidad,
+            Pageable pageable
+    ) {
+        Page<FuncionariosAportadosPaginados> resultado =
+                service.listarPorCalendarioYUnidadPaginado(idCalendario, idUnidad, pageable);
+
+        return ResponseEntity.ok(resultado);
+    }
+
 
     @GetMapping("/calendario/{idCalendario}")
     public ResponseEntity<List<FuncionarioAporteResponseDTO>> listarFuncionarios(@PathVariable Long idCalendario) {

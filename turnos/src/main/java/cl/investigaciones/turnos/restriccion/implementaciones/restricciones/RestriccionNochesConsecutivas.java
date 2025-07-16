@@ -12,8 +12,8 @@ public class RestriccionNochesConsecutivas implements Restriccion {
     private final String palabraClaveNoche;
     private final int maxNochesConsecutivas;
 
-    public RestriccionNochesConsecutivas(String palabraClaveNoche, int maxNochesConsecutivas) {
-        this.palabraClaveNoche = palabraClaveNoche.toLowerCase();
+    public RestriccionNochesConsecutivas(int maxNochesConsecutivas) {
+        this.palabraClaveNoche = "noche";
         this.maxNochesConsecutivas = maxNochesConsecutivas;
     }
 

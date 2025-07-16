@@ -13,7 +13,7 @@ import {RestrictedAreaSecuin} from "./components/RestrictedAreaSecuin.jsx";
 import AuthGuard from "./components/AuthGuard.jsx";
 import ModificarAsignacionesUnidad from "./pages/turnos/ModificarAsignacionesUnidad.jsx";
 import PaginaEnConstruccion from "./pages/PaginaEnConstruccion.jsx";
-import VistaCalendarioTurnosFiltros from "./pages/turnos/VistaCalendarioTurnosFiltros.jsx";
+import VistaCalendarioTurnosFiltros from "./pages/calendarios/VistaCalendarioTurnosFiltros.jsx";
 import DashboardPrincipal from "./DashboardPrincipal.jsx";
 import ServiciosEspecialesLayout from "./pages/formularioDinamico/ServiciosEspecialesLayout.jsx";
 import './assets/App.css';
@@ -27,6 +27,7 @@ import CalendarioPage from "./pages/calendarios/CalendarioPage.jsx";
 import MisCalendariosParaAportar from "./pages/calendarios/MisCalendariosParaAportar.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import PlantillaTurnoBuilder from "./pages/calendarios/PlantillaTurnoBuilder.jsx";
+import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
 
 
 
@@ -62,6 +63,7 @@ export default function App() {
                     <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
                 </Route>
+                <Route path="/grafos" element={<GrafoIndex />} />
             </Routes>
         </Router>
     );

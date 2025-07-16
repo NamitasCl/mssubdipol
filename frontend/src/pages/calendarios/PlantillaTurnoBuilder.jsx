@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {Form, Button, Card, Col, Row, InputGroup, Container} from "react-bootstrap";
+import { Form, Button, Card, Col, Row, InputGroup, Container } from "react-bootstrap";
 import { crearPlantilla } from "../../api/plantillaApi.js";
 
 const defaultRoles = [
@@ -21,16 +21,42 @@ export default function PlantillaTurnoBuilder() {
     const [descripcion, setDescripcion] = useState("");
     const [servicios, setServicios] = useState([]);
 
+    // Recintos
+    const addRecinto = (servicioIndex) => {
+        const updated = [...servicios];
+        const recintos = updated[servicioIndex].recintos || [];
+        updated[servicioIndex].recintos = [
+            ...recintos,
+            { nombre: "", orden: recintos.length + 1 }
+        ];
+        setServicios(updated);
+    };
+
+    const updateRecinto = (servicioIndex, recintoIndex, field, value) => {
+        const updated = [...servicios];
+        updated[servicioIndex].recintos[recintoIndex][field] = value;
+        setServicios(updated);
+    };
+
+    const removeRecinto = (servicioIndex, recintoIndex) => {
+        const updated = [...servicios];
+        updated[servicioIndex].recintos.splice(recintoIndex, 1);
+        // Reordena los orden
+        updated[servicioIndex].recintos.forEach((r, i) => (r.orden = i + 1));
+        setServicios(updated);
+    };
+
+    // Servicios y cupos
     const addServicio = () => {
         setServicios([
             ...servicios,
             {
                 nombreServicio: "",
-                cantidadRecintos: 1,
                 turno: "",
                 horaInicio: "",
                 horaFin: "",
                 cupos: [],
+                recintos: [{ nombre: "", orden: 1 }],
             },
         ]);
     };
@@ -60,20 +86,40 @@ export default function PlantillaTurnoBuilder() {
     };
 
     const handleSubmit = async () => {
+        // Valida que todos los recintos tengan nombre
+        for (const [i, servicio] of servicios.entries()) {
+            if (!servicio.recintos || servicio.recintos.length === 0) {
+                alert(`Debes agregar al menos un recinto en el Servicio #${i + 1}`);
+                return;
+            }
+            for (const [j, recinto] of servicio.recintos.entries()) {
+                if (!recinto.nombre || !recinto.nombre.trim()) {
+                    alert(`El recinto #${j + 1} en el Servicio #${i + 1} debe tener un nombre.`);
+                    return;
+                }
+            }
+        }
+
         const payload = {
             nombre,
             descripcion,
             servicios,
         };
         console.log("Plantilla creada:", payload);
-        // Aquí podrías enviarla a tu backend
-        const resp = await crearPlantilla(payload);
-
-
+        try {
+            await crearPlantilla(payload);
+            alert("Plantilla guardada con éxito");
+            // reset formulario si quieres
+            setNombre("");
+            setDescripcion("");
+            setServicios([]);
+        } catch (err) {
+            alert("Error al guardar la plantilla");
+        }
     };
 
     return (
-        <Container style={{width: 1200}}>
+        <Container style={{ width: 1200 }}>
             <Card className="p-4">
                 <h3>Crear Plantilla de Turno</h3>
                 <Form>
@@ -122,17 +168,6 @@ export default function PlantillaTurnoBuilder() {
                                 </Col>
                                 <Col md={3}>
                                     <Form.Group className="mb-2">
-                                        <Form.Label>Recintos</Form.Label>
-                                        <Form.Control
-                                            type="number"
-                                            min={1}
-                                            value={servicio.cantidadRecintos}
-                                            onChange={(e) => updateServicio(idx, "cantidadRecintos", parseInt(e.target.value))}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={3}>
-                                    <Form.Group className="mb-2">
                                         <Form.Label>Hora Inicio</Form.Label>
                                         <Form.Control
                                             type="time"
@@ -152,6 +187,45 @@ export default function PlantillaTurnoBuilder() {
                                     </Form.Group>
                                 </Col>
                             </Row>
+
+                            <h6 className="mt-3">Recintos</h6>
+                            {servicio.recintos?.map((recinto, rIdx) => (
+                                <Row key={rIdx} className="mb-2 align-items-center">
+                                    <Col md={8}>
+                                        <Form.Control
+                                            value={recinto.nombre}
+                                            placeholder={`Nombre recinto #${rIdx + 1}`}
+                                            onChange={e => updateRecinto(idx, rIdx, "nombre", e.target.value)}
+                                        />
+                                    </Col>
+                                    <Col md={2}>
+                                        <Form.Control
+                                            type="number"
+                                            value={recinto.orden}
+                                            min={1}
+                                            readOnly
+                                        />
+                                    </Col>
+                                    <Col md={2}>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={() => removeRecinto(idx, rIdx)}
+                                            disabled={servicio.recintos.length === 1}
+                                        >
+                                            Eliminar
+                                        </Button>
+                                    </Col>
+                                </Row>
+                            ))}
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                className="mb-2"
+                                onClick={() => addRecinto(idx)}
+                            >
+                                + Agregar Recinto
+                            </Button>
 
                             <h6 className="mt-3">Cupos por Rol</h6>
                             {servicio.cupos.map((cupo, cIdx) => (

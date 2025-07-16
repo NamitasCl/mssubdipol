@@ -22,7 +22,7 @@ public class Slot {
     @Enumerated(EnumType.STRING)
     private RolServicio rolRequerido;
 
-    private int recinto; // opcional: si quieres diferenciar por cantidadRecintos
+    private String recinto; // opcional: si quieres diferenciar por cantidadRecintos
 
     private boolean cubierto = false;
 

@@ -22,6 +22,11 @@ public class RestriccionFactory {
                 ));
             }
 
+            // RestriccionNoDosTurnosMismoDia
+            if (Boolean.TRUE.equals(config.getOrDefault("noDosTurnosMismoDia", Map.of()).get("activa"))) {
+                restricciones.add(new RestriccionNoDosTurnosMismoDia());
+            }
+
             // RestriccionMaximoTurnosFinDeSemana
             if (Boolean.TRUE.equals(config.getOrDefault("maxTurnosFinDeSemana", Map.of()).get("activa"))) {
                 restricciones.add(new RestriccionMaximoTurnosFinDeSemana(
@@ -39,7 +44,7 @@ public class RestriccionFactory {
                 Map<String, Object> nochesConsec = config.get("nochesConsecutivas");
                 int valor = (Integer) nochesConsec.get("valor");
                 String palabraClave = (String) nochesConsec.getOrDefault("palabraClave", "noche");
-                restricciones.add(new RestriccionNochesConsecutivas(palabraClave, valor));
+                restricciones.add(new RestriccionNochesConsecutivas(valor));
             }
 
             // RestriccionSeparacionDias

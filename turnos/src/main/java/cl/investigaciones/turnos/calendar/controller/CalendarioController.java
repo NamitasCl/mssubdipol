@@ -3,6 +3,7 @@ package cl.investigaciones.turnos.calendar.controller;
 import cl.investigaciones.turnos.calendar.domain.CalendarState;
 import cl.investigaciones.turnos.calendar.dto.*;
 import cl.investigaciones.turnos.calendar.service.CalendarioService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class CalendarioController {
     }
 
     @PostMapping
-    public CalendarioResponseDTO crear(@RequestBody CalendarioRequestDTO req, @RequestHeader("usuario") int usuario) {
+    public CalendarioResponseDTO crear(@RequestBody CalendarioRequestDTO req, @RequestHeader("usuario") int usuario) throws JsonProcessingException {
         return servicio.crearCalendario(req, usuario);
     }
 
