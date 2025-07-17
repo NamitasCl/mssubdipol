@@ -100,8 +100,8 @@ export default function MisCalendariosParaAportar() {
                     <th>Mes/Año</th>
                     <th>Tipo</th>
                     <th>Unidad/Complejo</th>
-                    <th>Cupos requeridos</th>
-                    <th>Cupos aportados</th>
+                    <th>Servicios a cubrir</th>
+                    <th>Personal aportado</th>
                     <th>Estado</th>
                     <th>Acción</th>
                 </tr>
@@ -144,8 +144,9 @@ export default function MisCalendariosParaAportar() {
 
                     if (esComplejo) {
                         // Estado normal para complejos (hay cuota)
-                        estado = funcionarios.length >= cupoRequerido ? "Completado" : "Pendiente";
-                        badgeColor = estado === "Completado" ? "success" : "danger";
+                        /*estado = funcionarios.length >= cupoRequerido ? "Completado" : "Pendiente";*/
+                        estado = cal.estado
+                        badgeColor = cal.estado === "CERRADO" ? "danger" : "success";
                         badgeText = estado;
                     } else {
                         // Para unidad: siempre gestión libre, sin cuota
@@ -176,9 +177,9 @@ export default function MisCalendariosParaAportar() {
                                             setCalendarioSeleccionado({ ...cal, aporte });
                                             setShowIngreso(true);
                                         }}
-                                        disabled={!puedeAportar || (esComplejo && estado === "Completado")}
+                                        disabled={!puedeAportar || (esComplejo && cal.estado === "CERRADO")}
                                     >
-                                        {esComplejo && estado === "Completado" ? "Completado" : "Ingresar funcionarios"}
+                                        {esComplejo && cal.estado === "CERRADO" ? "Calendario cerrado" : "Ingresar funcionarios"}
                                     </Button>
                                     <Button
                                         variant="secondary"

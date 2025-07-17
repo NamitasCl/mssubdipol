@@ -28,6 +28,7 @@ import MisCalendariosParaAportar from "./pages/calendarios/MisCalendariosParaApo
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import PlantillaTurnoBuilder from "./pages/calendarios/PlantillaTurnoBuilder.jsx";
 import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
+import PanelAdministracionAportes from "./pages/admin/PanelAdministracionAportes.jsx";
 
 
 
@@ -38,9 +39,10 @@ export default function App() {
                 <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout /></RestrictedAreaAdmin>}>
                     <Route index element={<Admin />} />
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
-                    <Route path="listas">
+                    <Route path="listas"></Route>
+                    <Route path="aportefuncionarios" element={<PanelAdministracionAportes />} />
 
-                    </Route>
+
                 </Route>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />

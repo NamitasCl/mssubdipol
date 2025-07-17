@@ -3,6 +3,7 @@ import { Modal, Button, Form, Alert, Row, Col, Table } from "react-bootstrap";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect.jsx";
+import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect.jsx";
 import { agregarFuncionarioAportado } from "../../api/funcionariosAporteApi";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
@@ -17,7 +18,10 @@ const MOTIVOS = [
 
 export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, calendario, aporte, onGuardado }) {
     const { user } = useAuth();
+    const esAdmin = user?.roles?.includes("ROLE_ADMINISTRADOR");
+
     const [nuevoFuncionario, setNuevoFuncionario] = useState(null);
+    const [unidadSeleccionada, setUnidadSeleccionada] = useState(null);
 
     const [seleccion, setSeleccion] = useState({ from: undefined, to: undefined });
     const [motivo, setMotivo] = useState("");
@@ -28,6 +32,8 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
     const [error, setError] = useState(null);
 
     const [faltanDias, setFaltanDias] = useState(false);
+
+    const [sinDiasNoDisponibles, setSinDiasNoDisponibles] = useState(false);
 
     const getResumenSeleccion = () => {
         if (!seleccion.from) return "No hay fechas";
@@ -85,18 +91,24 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
             setGuardando(false);
             return;
         }
-        if (!aporte?.idUnidad || !calendario?.id) {
+
+        // Determina la unidad según el rol
+        const idUnidad = esAdmin
+            ? unidadSeleccionada?.value
+            : aporte?.idUnidad;
+
+        if (!idUnidad || !calendario?.id) {
             setError("Faltan datos del calendario o unidad.");
             setGuardando(false);
             return;
         }
-        if (bloques.length === 0) {
+        if (bloques.length === 0 && !sinDiasNoDisponibles) {
             setError("Debes agregar al menos un grupo de días no disponibles (haz clic en 'Agregar' luego de seleccionar fechas y motivo).");
             setGuardando(false);
             return;
         }
 
-        const diasNoDisponibles = bloques.flatMap(b =>
+        const diasNoDisponibles = sinDiasNoDisponibles ? [] : bloques.flatMap(b =>
             b.dias.map(d => ({
                 fecha: d.toISOString().slice(0, 10),
                 motivo: b.motivo,
@@ -104,7 +116,7 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
             }))
         );
 
-        if (diasNoDisponibles.length === 0) {
+        if (diasNoDisponibles.length === 0 && !sinDiasNoDisponibles) {
             setError("No se agregaron días válidos. Por favor, revisa los bloques de días.");
             setGuardando(false);
             return;
@@ -112,7 +124,7 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
 
         const dto = {
             idCalendario: calendario.id,
-            idUnidad: aporte.idUnidad,
+            idUnidad,
             idFuncionario: parseInt(nuevoFuncionario.value, 10),
             nombreCompleto: nuevoFuncionario.f.nombreCompleto,
             grado: nuevoFuncionario.f.siglasCargo || "",
@@ -124,6 +136,7 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
             await agregarFuncionarioAportado(dto, user.idFuncionario);
             setNuevoFuncionario(null);
             setBloques([]);
+            setUnidadSeleccionada(null);
             setError(null);
             setFaltanDias(false);
             if (onGuardado) onGuardado();
@@ -142,9 +155,9 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
     const disableSubmit =
         guardando ||
         !nuevoFuncionario ||
-        !aporte?.idUnidad ||
         !calendario?.id ||
-        bloques.length === 0;
+        ((esAdmin && !unidadSeleccionada) || (!esAdmin && !aporte?.idUnidad)) ||
+        (bloques.length === 0 && !sinDiasNoDisponibles);
 
     return (
         <Modal show={show} onHide={onHide} size="lg" centered>
@@ -157,7 +170,7 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
                 {error && <Alert variant="danger">{error}</Alert>}
                 <Form onSubmit={handleAgregar}>
                     <Row className="mb-3">
-                        <Col md={9}>
+                        <Col md={8}>
                             <AsyncFuncionarioSelect
                                 value={nuevoFuncionario}
                                 onChange={setNuevoFuncionario}
@@ -173,6 +186,25 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
                             >
                                 {guardando ? "Guardando..." : "Agregar funcionario"}
                             </Button>
+                        </Col>
+                        <Col className="mt-2">
+                            <Form.Check
+                                type="checkbox"
+                                id="sin-dias-no-disponibles"
+                                label="Funcionario NO tiene días no disponibles"
+                                checked={sinDiasNoDisponibles}
+                                onChange={e => setSinDiasNoDisponibles(e.target.checked)}
+                                className="mb-2"
+                            />
+                            {esAdmin && (
+                                <Col md={8}>
+                                    <AsyncUnidadesSelect
+                                        value={unidadSeleccionada}
+                                        onChange={setUnidadSeleccionada}
+                                        user={user}
+                                    />
+                                </Col>
+                            )}
                         </Col>
                     </Row>
                     <Row>
@@ -202,10 +234,6 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
                         <Col md={6}>
                             <div className="mb-3">
                                 <Form.Label>Motivo</Form.Label>
-                                {/*
-                                    Quitamos el atributo required aquí, porque
-                                    la validación ocurre al agregar un bloque, no al submit global.
-                                */}
                                 <Form.Select
                                     value={motivo}
                                     onChange={e => setMotivo(e.target.value)}
