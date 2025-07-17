@@ -1,5 +1,5 @@
 import axios from "axios";
-const API_URL = "http://localhost:8010/api/turnos/aportes";
+const API_URL = `${import.meta.env.VITE_TURNOS_API_URL}/aportes`;
 
 // Obtener todos los aportes registrados para un calendario
 export async function getAportesPorCalendario(idCalendario) {

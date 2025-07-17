@@ -1,5 +1,5 @@
 import axios from "axios";
-const API_URL = "http://localhost:8010/api/turnos/plantillas";
+const API_URL = `${import.meta.env.VITE_TURNOS_API_URL}/plantillas`;
 
 export async function listarPlantillas() {
     const res = await axios.get(API_URL);

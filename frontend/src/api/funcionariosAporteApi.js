@@ -1,5 +1,5 @@
 import axios from "axios";
-const API_URL = "http://localhost:8010/api/turnos/funcionarios-aporte";
+const API_URL = `${import.meta.env.VITE_TURNOS_API_URL}/funcionarios-aporte`;
 
 // Listar funcionarios aportados por calendario y unidad
 export async function listarFuncionariosAportados(idCalendario, idUnidad) {

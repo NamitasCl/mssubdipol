@@ -1,5 +1,5 @@
 import axios from "axios";
-const API_UNIDAD = "http://localhost:8011/api/common/unidades/buscar";
+const API_UNIDAD = `${import.meta.env.VITE_COMMON_SERVICES_API_URL}/unidades/buscar`;
 
 export async function buscarUnidadesPorNombre(nombre) {
     const res = await axios.get(API_UNIDAD, { params: { nombre } });

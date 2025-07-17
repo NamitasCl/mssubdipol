@@ -1,5 +1,5 @@
 import axios from "axios";
-const API_URL = "http://localhost:8010/api/turnos/slots";
+const API_URL = `${import.meta.env.VITE_TURNOS_API_URL}/slots`;
 
 // Trae un resumen del total de slots de un calendario (ajusta endpoint a tu backend)
 export async function getResumenSlots(idCalendario) {
