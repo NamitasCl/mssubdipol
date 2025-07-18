@@ -49,19 +49,28 @@ public class AsignacionFuncionariosService {
     @Transactional
     public List<Slot> asignarFuncionarios(Long idCalendario) throws JsonProcessingException {
         // Recupera funcionarios designados y slots del calendario
+        System.out.println("IdCalendario: " + idCalendario);
         List<FuncionarioAporte> funcionarios = funcionarioAporteRepository.findByIdCalendarioAndDisponibleTrue(idCalendario);
+        System.out.println("Cantidad de funcionarios obtenidos: " +  funcionarios.size());
+
         List<Slot> slots = slotService.getSlotsByCalendar(idCalendario);
+        System.out.println("Slots obtenidos: " +  slots.size());
 
         Calendario calendario = calendarioRepository.findById(idCalendario)
                 .orElseThrow(() -> new RuntimeException("Calendario no encontrado"));
 
         // Cargo la configuracion del calendario
         ConfiguracionRestriccionesCalendario config = calendario.getConfiguracionRestricciones();
+        System.out.println("Configuracion restricciones: " +  config.toString());
 
         // Se construye la lista de restricciones en forma dinámica
         ObjectMapper objectMapper = new ObjectMapper();
+        System.out.println("A");
         String restriccionesConfig = objectMapper.writeValueAsString(config.getParametrosJson());
+        System.out.println("B");
+        System.out.println("JSON de restricciones: " + restriccionesConfig);
         List<Restriccion> restricciones = RestriccionFactory.fromJsonConfig(restriccionesConfig);
+        System.out.println("C");
 
         // Aleatoriza el orden de funcionarios para repartir justo
         Collections.shuffle(funcionarios);
@@ -102,8 +111,8 @@ public class AsignacionFuncionariosService {
         slots.sort(Comparator.comparingInt(slot -> {
             RolServicio rol = slot.getRolRequerido();
             // ENCARGADO primero, luego ayudante, luego otros
-            if (rol == RolServicio.ENCARGADO_DE_GUARDIA) return 0;
-            if (rol == RolServicio.AYUDANTE_DE_GUARDIA) return 1;
+            if (rol == RolServicio.JEFE_DE_SERVICIO) return 0;
+            if (rol == RolServicio.ENCARGADO_DE_GUARDIA) return 1;
             return 2;
         }));
 

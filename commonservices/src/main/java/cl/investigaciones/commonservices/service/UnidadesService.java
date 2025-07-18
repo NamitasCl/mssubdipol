@@ -79,6 +79,8 @@ public class UnidadesService {
                     unidadDto.setNombreUnidad(unidad.getNombreUnidad());
                     unidadDto.setSiglasUnidad(unidad.getSiglasUnidad());
                     unidadDto.setNombreComuna(unidad.getNombreComuna());
+                    unidadDto.setNombreRegion(unidad.getNombreRegion());
+                    unidadDto.setNombreUnidadReporta(unidad.getNombreUnidadReporta());
                     unidadDto.setRegionPolicial(unidad.getNombreUnidadPertenece());
                     unidadesRepository.save(unidadDto);
 
@@ -88,6 +90,8 @@ public class UnidadesService {
                     unidadDto.setNombreUnidad(unidad.getNombreUnidad());
                     unidadDto.setSiglasUnidad(unidad.getSiglasUnidad());
                     unidadDto.setNombreComuna(unidad.getNombreComuna());
+                    unidadDto.setNombreRegion(unidad.getNombreRegion());
+                    unidadDto.setNombreUnidadReporta(unidad.getNombreUnidadReporta());
                     unidadDto.setIdUnidad(unidad.getIdUnidad());
                     unidadDto.setRegionPolicial(unidad.getNombreUnidadPertenece());
                     unidadesRepository.save(unidadDto);

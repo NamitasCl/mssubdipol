@@ -108,17 +108,17 @@ export default function PanelAdministracionAportes() {
         // eslint-disable-next-line
     }, [calendarioSeleccionado, unidadSeleccionada]);
 
-    /*// --- Acciones tabla ---
+    // --- Acciones tabla ---
     const handleEliminar = (id) => {
-        if (!window.confirm("¿Seguro que deseas quitar este funcionario del aporte?")) return;
+        /*if (!window.confirm("¿Seguro que deseas quitar este funcionario del aporte?")) return;
         setLoadingFuncionarios(true);
         eliminarFuncionarioAportado(id, user.idFuncionario)
             .then(() => cargarFuncionarios(pagina))
             .catch(() => {
                 setError("No se pudo eliminar");
                 setLoadingFuncionarios(false);
-            });
-    };*/
+            });*/
+    };
 
     // --- Agregar funcionario ---
     const limpiarSeleccion = () => {
@@ -232,7 +232,7 @@ export default function PanelAdministracionAportes() {
         <div className="container py-4">
             <h2 className="mb-4">Administrar Aportes por Unidad y Calendario</h2>
             <Card className="mb-4 p-3">
-                <Row>
+                <Row className="mb-4">
                     <Col md={6}>
                         <label className="fw-bold mb-1">Calendario</label>
                         <Select
@@ -244,31 +244,55 @@ export default function PanelAdministracionAportes() {
                             isClearable
                         />
                     </Col>
-                    <Col md={6}>
+                </Row>
+                <Row className="mb-4">
+                    <Col md={12}>
                         <label className="fw-bold mb-1">Unidades que deben aportar</label>
                         {loadingUnidades ? (
                             <Spinner size="sm" />
                         ) : (
-                            <ListGroup>
+                            <div
+                                style={{
+                                    width: "100%",
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                                    gap: "1rem",
+                                    marginBottom: "1rem"
+                                }}
+                            >
                                 {unidadesAporte.map(unidad => (
-                                    <ListGroup.Item
+                                    <Card
                                         key={unidad.idUnidad}
-                                        action
-                                        active={unidadSeleccionada?.idUnidad === unidad.idUnidad}
                                         onClick={() => setUnidadSeleccionada(unidad)}
-                                        style={{ cursor: "pointer" }}
+                                        border={unidadSeleccionada?.idUnidad === unidad.idUnidad ? "primary" : "light"}
+                                        style={{
+                                            cursor: "pointer",
+                                            boxShadow: unidadSeleccionada?.idUnidad === unidad.idUnidad
+                                                ? "0 0 0 4px #0d6efd55"
+                                                : "0 2px 3px rgba(0,0,0,.04)"
+                                        }}
+                                        className={unidadSeleccionada?.idUnidad === unidad.idUnidad ? "border-primary" : ""}
                                     >
-                                        <b>{unidad.siglasUnidad}</b> - {unidad.nombreUnidad}
-                                        {" "}
-                                        <span className="text-muted">
-                                            (Aporta: {unidad.cantidadFuncionarios})
-                                        </span>
-                                    </ListGroup.Item>
+                                        <Card.Body>
+                                            <Card.Title style={{ fontSize: "1.1rem" }}>
+                                                <b>{unidad.siglasUnidad}</b>
+                                            </Card.Title>
+                                            <Card.Subtitle className="mb-2 text-muted" style={{ fontSize: ".97rem" }}>
+                                                {unidad.nombreUnidad}
+                                            </Card.Subtitle>
+                                            <div style={{ fontSize: ".9rem", color: "#888" }}>
+                                                Aporta: {unidad.cantidadFuncionarios}
+                                            </div>
+                                        </Card.Body>
+                                    </Card>
                                 ))}
                                 {unidadesAporte.length === 0 &&
-                                    <div className="text-muted">No hay unidades configuradas para este calendario.</div>
+                                    <div className="text-muted" style={{ gridColumn: "1/-1" }}>
+                                        No hay unidades configuradas para este calendario.
+                                    </div>
                                 }
-                            </ListGroup>
+                            </div>
+
                         )}
                     </Col>
                 </Row>
@@ -452,13 +476,13 @@ export default function PanelAdministracionAportes() {
                                                     <tr key={f.id}>
                                                         <td>{f.nombreCompleto}</td>
                                                         <td>
-                                                            {/*<Button
+                                                            <Button
                                                                 variant="danger"
                                                                 size="sm"
                                                                 onClick={() => handleEliminar(f.id)}
                                                             >
                                                                 Quitar
-                                                            </Button>*/}
+                                                            </Button>
                                                         </td>
                                                     </tr>
                                                 ))}

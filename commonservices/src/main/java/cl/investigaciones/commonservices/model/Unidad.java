@@ -21,6 +21,8 @@ public class Unidad {
     private String nombreUnidad;
     private String siglasUnidad;
     private String nombreComuna;
+    private String nombreRegion;
+    private String nombreUnidadReporta;
     private String regionPolicial;
 
     //@ManyToOne(fetch = FetchType.LAZY)

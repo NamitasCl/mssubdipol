@@ -88,11 +88,6 @@ export default function MisCalendariosParaAportar() {
             <div style={{marginBottom: '20px'}}>
                 <h2>Calendarios</h2>
             </div>
-            {pendientes.length > 0 && (
-                <Alert variant="warning">
-                    ¡Tienes calendarios con cupos de personal pendientes de aportar!
-                </Alert>
-            )}
             <Table striped bordered>
                 <thead>
                 <tr>

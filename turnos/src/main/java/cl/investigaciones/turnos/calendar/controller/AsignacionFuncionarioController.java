@@ -37,6 +37,7 @@ public class AsignacionFuncionarioController {
             );*/
 
             // Asignar funcionarios al calendario 1 (ejemplo)
+            System.out.println("Iniciando proceso de asignacion en calendario: " +  idCalendario);
             List<Slot> slotsAsignados = asignacionFuncionariosService.asignarFuncionarios(idCalendario);
 
             // Retornar los slots asignados

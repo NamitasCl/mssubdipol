@@ -10,4 +10,6 @@ public interface FichaPersonaRepository extends JpaRepository<FichaPersona, Long
 
     List<FichaPersona> findByRut(String rut);
 
+
+
 }
