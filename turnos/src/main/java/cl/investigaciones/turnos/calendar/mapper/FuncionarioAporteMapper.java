@@ -18,6 +18,7 @@ public class FuncionarioAporteMapper {
         entity.setNombreCompleto(dto.getNombreCompleto());
         entity.setGrado(dto.getGrado());
         entity.setAntiguedad(dto.getAntiguedad());
+        entity.setSiglasUnidad(dto.getSiglasUnidad());
         entity.setDisponible(true);
 
         // Auditoría
@@ -48,6 +49,7 @@ public class FuncionarioAporteMapper {
         dto.setNombreCompleto(entity.getNombreCompleto());
         dto.setGrado(entity.getGrado());
         dto.setAntiguedad(entity.getAntiguedad());
+        dto.setSiglasUnidad(entity.getSiglasUnidad());
         dto.setCreadoPor(entity.getCreadoPor());
         dto.setFechaCreacion(entity.getFechaCreacion());
         dto.setDisponible(entity.isDisponible());

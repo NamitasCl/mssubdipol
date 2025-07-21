@@ -15,9 +15,13 @@ public class RestriccionJerarquiaRolServicio implements Restriccion {
         RolServicio rolRequerido = slot.getRolRequerido();
 
         // Si el rol es encargado, jefe de ronda o jefe de máquina, no hay restricción
-        if (rolRequerido.equals(RolServicio.ENCARGADO_DE_GUARDIA) ||
+        if (
+                rolRequerido.equals(RolServicio.ENCARGADO_DE_GUARDIA) ||
                 rolRequerido.equals(RolServicio.JEFE_DE_RONDA) ||
-                rolRequerido.equals(RolServicio.JEFE_DE_MAQUINA)) {
+                rolRequerido.equals(RolServicio.JEFE_DE_MAQUINA) ||
+                rolRequerido.equals(RolServicio.JEFE_DE_SERVICIO)
+        )
+        {
             return true;
         }
 
@@ -38,9 +42,9 @@ public class RestriccionJerarquiaRolServicio implements Restriccion {
         // Sólo dejamos pasar si f es menos antiguo que el encargado (es decir, su valor jerárquico es mayor)
         // OJO: Si quieres que pueda ser IGUAL en antigüedad, usa <=
         boolean ayudanteEsMasAntiguo = !JerarquiaUtils.esMasAntiguo(f, encargado);
-        System.out.println("Encargado: " + encargado.getNombreCompleto());
+        /*System.out.println("Encargado: " + encargado.getNombreCompleto());
         System.out.println("Ayudante: " + f.getNombreCompleto());
-        System.out.println("Ayudante es más antiguo que encargado: " + ayudanteEsMasAntiguo);
+        System.out.println("Ayudante es más antiguo que encargado: " + ayudanteEsMasAntiguo);*/
         return ayudanteEsMasAntiguo;
     }
 }

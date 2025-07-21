@@ -11,6 +11,7 @@ public class FuncionarioAporteRequestDTO {
     private String nombreCompleto;
     private String grado;
     private int antiguedad;
+    private String siglasUnidad;
 
     // Nueva propiedad: lista de días no disponibles
     private List<DiaNoDisponibleDTO> diasNoDisponibles;

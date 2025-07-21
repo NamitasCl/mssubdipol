@@ -18,7 +18,7 @@ public class RestriccionFactory {
             // RestriccionMaximoTurnos
             if (Boolean.TRUE.equals(config.getOrDefault("maxTurnosPorMes", Map.of()).get("activa"))) {
                 restricciones.add(new RestriccionMaximoTurnos(
-                        (Integer) config.get("maxTurnosPorMes").get("valor")
+                        Integer.parseInt((String) config.get("maxTurnosPorMes").get("valor"))
                 ));
             }
 
@@ -30,7 +30,7 @@ public class RestriccionFactory {
             // RestriccionMaximoTurnosFinDeSemana
             if (Boolean.TRUE.equals(config.getOrDefault("maxTurnosFinDeSemana", Map.of()).get("activa"))) {
                 restricciones.add(new RestriccionMaximoTurnosFinDeSemana(
-                        (Integer) config.get("maxTurnosFinDeSemana").get("valor")
+                        Integer.parseInt((String) config.get("maxTurnosFinDeSemana").get("valor"))
                 ));
             }
 
@@ -42,7 +42,7 @@ public class RestriccionFactory {
             // RestriccionNochesConsecutivas
             if (Boolean.TRUE.equals(config.getOrDefault("nochesConsecutivas", Map.of()).get("activa"))) {
                 Map<String, Object> nochesConsec = config.get("nochesConsecutivas");
-                int valor = (Integer) nochesConsec.get("valor");
+                int valor = Integer.parseInt((String) nochesConsec.get("valor"));
                 String palabraClave = (String) nochesConsec.getOrDefault("palabraClave", "noche");
                 restricciones.add(new RestriccionNochesConsecutivas(valor));
             }
@@ -50,7 +50,7 @@ public class RestriccionFactory {
             // RestriccionSeparacionDias
             if (Boolean.TRUE.equals(config.getOrDefault("separacionDias", Map.of()).get("activa"))) {
                 restricciones.add(new RestriccionSeparacionDias(
-                        (Integer) config.get("separacionDias").get("valor")
+                        Integer.parseInt((String) config.get("separacionDias").get("valor"))
                 ));
             }
 

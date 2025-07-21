@@ -10,6 +10,7 @@ import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAportadoDiasNoDisponibleRepository;
 import cl.investigaciones.turnos.calendar.repository.FuncionarioAporteRepository;
 import cl.investigaciones.turnos.common.RestriccionFactory;
+import cl.investigaciones.turnos.common.utils.JerarquiaUtils;
 import cl.investigaciones.turnos.plantilla.domain.RolServicio;
 import cl.investigaciones.turnos.restriccion.implementaciones.ContextoAsignacion;
 import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
@@ -31,6 +32,15 @@ public class AsignacionFuncionariosService {
     private final SlotService slotService;
     private final FuncionarioDiaNoDisponibleService diaNoDisponibleGlobalService;
 
+    private final List<RolServicio> ROLES = List.of(
+            RolServicio.JEFE_DE_RONDA,
+            RolServicio.JEFE_DE_SERVICIO,
+            RolServicio.ENCARGADO_DE_GUARDIA,
+            RolServicio.JEFE_DE_MAQUINA,
+            RolServicio.AYUDANTE_DE_GUARDIA,
+            RolServicio.TRIPULANTE
+    );
+
 
     public AsignacionFuncionariosService(
             FuncionarioAporteRepository funcionarioAporteService,
@@ -48,6 +58,7 @@ public class AsignacionFuncionariosService {
 
     @Transactional
     public List<Slot> asignarFuncionarios(Long idCalendario) throws JsonProcessingException {
+
         // Recupera funcionarios designados y slots del calendario
         System.out.println("IdCalendario: " + idCalendario);
         List<FuncionarioAporte> funcionarios = funcionarioAporteRepository.findByIdCalendarioAndDisponibleTrue(idCalendario);
@@ -61,21 +72,24 @@ public class AsignacionFuncionariosService {
 
         // Cargo la configuracion del calendario
         ConfiguracionRestriccionesCalendario config = calendario.getConfiguracionRestricciones();
-        System.out.println("Configuracion restricciones: " +  config.toString());
 
         // Se construye la lista de restricciones en forma dinámica
         ObjectMapper objectMapper = new ObjectMapper();
-        System.out.println("A");
         String restriccionesConfig = objectMapper.writeValueAsString(config.getParametrosJson());
-        System.out.println("B");
-        System.out.println("JSON de restricciones: " + restriccionesConfig);
         List<Restriccion> restricciones = RestriccionFactory.fromJsonConfig(restriccionesConfig);
-        System.out.println("C");
+
+        // Prepara el contexto de asignación
+        ContextoAsignacion ctx = new ContextoAsignacion();
+
+        // Ordenar por jerarquía: primero los más altos en la escala
+        funcionarios.sort(Comparator.comparingInt(JerarquiaUtils::valorJerarquico));
+
+        for (int i = 0; i <= 40; i++) {
+            System.out.println("Funcionario " + i + ": " + funcionarios.get(i).getGrado() + " || Antiguedad: " + funcionarios.get(i).getAntiguedad());
+        }
 
         // Aleatoriza el orden de funcionarios para repartir justo
-        Collections.shuffle(funcionarios);
-
-        System.out.println("Funcionarios obtenidos: " + funcionarios.size());
+        /*Collections.shuffle(funcionarios);*/
 
         // --- 1. Prepara el contexto con días no disponibles ---
         Map<Integer, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
@@ -103,23 +117,20 @@ public class AsignacionFuncionariosService {
             }
         }
 
-        ContextoAsignacion ctx = new ContextoAsignacion();
+        // Configuro el contexto de asignación
         ctx.setDiasNoDisponibles(diasNoDisponibles);
         ctx.setFuncionarios(funcionarios);
 
         // Ordena los slots para que primero se asignen los encargados, después los ayudantes.
         slots.sort(Comparator.comparingInt(slot -> {
-            RolServicio rol = slot.getRolRequerido();
-            // ENCARGADO primero, luego ayudante, luego otros
-            if (rol == RolServicio.JEFE_DE_SERVICIO) return 0;
-            if (rol == RolServicio.ENCARGADO_DE_GUARDIA) return 1;
-            return 2;
+            int idx = ROLES.indexOf(slot.getRolRequerido());
+            // Si el rol no está en la lista, lo manda al final
+            return idx == -1 ? Integer.MAX_VALUE : idx;
         }));
 
+        // Comienzo la asignación de funcionarios a los slots
         for(int i = 1; i <=2; i++) {
             for (Slot slot : slots ) {
-                System.out.println("Entrando a slot de fecha: " + slot.getFecha().toString());
-                System.out.println("Slot para " + slot.getRolRequerido());
 
                 //Obtengo el rol que necesito llenar
                 RolServicio rol = slot.getRolRequerido();
@@ -132,11 +143,8 @@ public class AsignacionFuncionariosService {
                         .filter(f -> gradosRol.contains(f.getGrado()))
                         .toList();
 
-                System.out.println("Funcionarios filtrados: " + funcionariosFiltrados.size());
-
-
                 for (FuncionarioAporte f : funcionariosFiltrados) {
-                    boolean puede = restricciones.stream().peek(restriccion -> System.out.println("Funcionario: " + f.getNombreCompleto() + " | " + "Antiguedad: " + f.getAntiguedad()))
+                    boolean puede = restricciones.stream()
                             .allMatch(r -> r.puedeAsignar(
                                     f,
                                     slot,
@@ -152,6 +160,7 @@ public class AsignacionFuncionariosService {
                         slot.setNombreFuncionario(f.getNombreCompleto());
                         slot.setIdFuncionario(f.getIdFuncionario());
                         slot.setAntiguedadFuncionario(f.getAntiguedad());
+                        slot.setSiglasUnidadFuncionario(f.getSiglasUnidad());
 
                         // --- Dejo como no disponible el día asignado al funcionario para futuros calendarios en el mismo mes de la misma unidad ---
                         FuncionarioAportadoDiasNoDisponible bloqueo = new FuncionarioAportadoDiasNoDisponible();
@@ -168,10 +177,6 @@ public class AsignacionFuncionariosService {
 
             }
         }
-
-
-
-
         return slots;
 
     }

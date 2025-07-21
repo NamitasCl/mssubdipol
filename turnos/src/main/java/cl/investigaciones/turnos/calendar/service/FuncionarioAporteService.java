@@ -45,6 +45,7 @@ public class FuncionarioAporteService {
                 entity.setNombreCompleto(dto.getNombreCompleto());
                 entity.setGrado(dto.getGrado());
                 entity.setAntiguedad(dto.getAntiguedad());
+                entity.setSiglasUnidad(dto.getSiglasUnidad());
 
                 // Elimina los días no disponibles previos para este registro
                 diasRepo.deleteByFuncionarioAporte(entity);

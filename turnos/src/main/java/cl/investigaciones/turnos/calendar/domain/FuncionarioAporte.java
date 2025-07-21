@@ -24,6 +24,7 @@ public class FuncionarioAporte extends Auditable {
     private String nombreCompleto;
     private String grado;
     private Integer antiguedad;
+    private String siglasUnidad;
 
     private boolean disponible = true;
 

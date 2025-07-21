@@ -38,6 +38,7 @@ public class FuncionarioController {
                     funcSearchResponse.setSiglasCargo(funcionario.getSiglasCargo());
                     funcSearchResponse.setAntiguedad(funcionario.getAntiguedad());
                     funcSearchResponse.setIdFun(funcionario.getIdFun());
+                    funcSearchResponse.setSiglasUnidad(funcionario.getSiglasUnidad());
                     return funcSearchResponse;
                 }).collect(Collectors.toList());
 

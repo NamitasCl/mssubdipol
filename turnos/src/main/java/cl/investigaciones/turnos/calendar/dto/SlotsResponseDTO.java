@@ -16,4 +16,5 @@ public class SlotsResponseDTO {
     private String gradoFuncionario;
     private String nombreFuncionario; // se rellena más tarde
     private Integer antiguedadFuncionario; // se rellena más tarde
+    private String siglasUnidadFuncionario; // se rellena más tarde
 }

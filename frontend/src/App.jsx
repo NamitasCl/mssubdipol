@@ -11,7 +11,7 @@ import Admin from "./pages/admin/Admin.jsx";
 import {RestrictedAreaSubJefe} from "./components/RestrictedAreaSubJefe.jsx";
 import {RestrictedAreaSecuin} from "./components/RestrictedAreaSecuin.jsx";
 import AuthGuard from "./components/AuthGuard.jsx";
-import ModificarAsignacionesUnidad from "./pages/turnos/ModificarAsignacionesUnidad.jsx";
+import ModificarAsignacionesUnidad from "./pages/calendarios/ModificarAsignacionesUnidad.jsx";
 import PaginaEnConstruccion from "./pages/PaginaEnConstruccion.jsx";
 import VistaCalendarioTurnosFiltros from "./pages/calendarios/VistaCalendarioTurnosFiltros.jsx";
 import DashboardPrincipal from "./DashboardPrincipal.jsx";

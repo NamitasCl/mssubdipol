@@ -129,6 +129,7 @@ export default function IngresoFuncionarioConDiasNoDisponibles({ show, onHide, c
             nombreCompleto: nuevoFuncionario.f.nombreCompleto,
             grado: nuevoFuncionario.f.siglasCargo || "",
             antiguedad: nuevoFuncionario.f.antiguedad || 0,
+            siglasUnidad: nuevoFuncionario.f.siglasUnidad || "",
             diasNoDisponibles
         };
 

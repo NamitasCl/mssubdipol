@@ -12,6 +12,7 @@ public class FuncionarioAporteResponseDTO {
     private Long idUnidad;
     private int idFuncionario;
     private String nombreCompleto;
+    private String siglasUnidad;
     private String grado;
     private int antiguedad;
     private Integer creadoPor; // ID del usuario que creó el registro

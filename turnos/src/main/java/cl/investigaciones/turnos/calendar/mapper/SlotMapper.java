@@ -18,6 +18,7 @@ public class SlotMapper {
         dto.setGradoFuncionario(slot.getGradoFuncionario());
         dto.setNombreFuncionario(slot.getNombreFuncionario());
         dto.setAntiguedadFuncionario(slot.getAntiguedadFuncionario());
+        dto.setSiglasUnidadFuncionario(slot.getSiglasUnidadFuncionario());
         return dto;
     }
 
