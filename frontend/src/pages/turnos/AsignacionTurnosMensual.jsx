@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios                from "axios";
 import { Row, Col, Form, Spinner, Button, Card, Modal } from "react-bootstrap";
 import * as XLSX            from "xlsx";
-import CalendarioTurnosFuncionarios from "./CalendarioTurnosFuncionarios.jsx";
+import CalendarioTurnosFuncionarios from "../calendarios/CalendarioTurnosFuncionarios.jsx";
 import { FaSyncAlt, FaSave, FaFileExcel } from "react-icons/fa"; // Para iconos de botones
 
 const azulPastel = "#b1cfff";

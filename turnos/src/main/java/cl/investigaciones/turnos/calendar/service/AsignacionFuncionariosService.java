@@ -128,22 +128,39 @@ public class AsignacionFuncionariosService {
             return idx == -1 ? Integer.MAX_VALUE : idx;
         }));
 
+        System.out.println("Limpiando slots");
+        for (Slot slot : slots) {
+            slot.setCubierto(false);
+            slot.setGradoFuncionario(null);
+            slot.setNombreFuncionario(null);
+            slot.setIdFuncionario(null);
+            slot.setAntiguedadFuncionario(null);
+            slot.setSiglasUnidadFuncionario(null);
+        }
+        System.out.println("Limpieza terminada.");
+
+
+        System.out.println("Iniciando asignación");
         // Comienzo la asignación de funcionarios a los slots
-        for(int i = 1; i <=2; i++) {
+        for(int i = 1; i <=3; i++) {
             for (Slot slot : slots ) {
 
                 //Obtengo el rol que necesito llenar
                 RolServicio rol = slot.getRolRequerido();
+                System.out.println("Rol requerido: " + rol);
 
                 //Obtengo los grados que pueden ejercer el rol
                 Set<String> gradosRol = ctx.getRolesGrado().get(rol);
 
                 //Filtro los funcionarios que pueden cumplir ese rol
-                List<FuncionarioAporte> funcionariosFiltrados = funcionarios.stream()
+                List<FuncionarioAporte> funcionariosFiltrados = new ArrayList<>(funcionarios.stream()
                         .filter(f -> gradosRol.contains(f.getGrado()))
-                        .toList();
+                        .toList());
+
+                funcionariosFiltrados.sort(Comparator.comparingInt(JerarquiaUtils::valorJerarquico));
 
                 for (FuncionarioAporte f : funcionariosFiltrados) {
+                    System.out.println("Funcionario a evaluar: " + f.getNombreCompleto());
                     boolean puede = restricciones.stream()
                             .allMatch(r -> r.puedeAsignar(
                                     f,

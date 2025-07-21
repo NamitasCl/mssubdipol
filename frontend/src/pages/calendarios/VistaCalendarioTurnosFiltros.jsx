@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import CalendarioTurnosFuncionarios from "../turnos/CalendarioTurnosFuncionarios.jsx";
+import CalendarioTurnosFuncionarios from "./CalendarioTurnosFuncionarios.jsx";
 import { getSlotsByCalendario } from "../../api/slotApi.js";
 import { Spinner } from "react-bootstrap";
 import { listarCalendarios } from "../../api/calendarApi.js";

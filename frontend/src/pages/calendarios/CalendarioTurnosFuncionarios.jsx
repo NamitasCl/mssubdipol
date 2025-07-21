@@ -18,7 +18,11 @@ const defaultRoles = [
     { value: "REFUERZO_DE_GUARDIA",label: "Refuerzo de guardia" }
 ];
 
-const rolToLabel = rol => defaultRoles.find(r => r.value === rol)?.label || rol;
+const rolToLabel = (rol) => {
+    console.log(rol);
+    const a = defaultRoles.find(r => r.value === rol)?.label || rol;
+    return a;
+}
 
 /* -------------------------------------------------------------------------- */
 /*  Componente                                                                */
@@ -100,7 +104,7 @@ export default function CalendarioTurnosFuncionarios({
             p.dias.add(dia);
             p.total += 1;
             p.turnos.push(slot.rolRequerido);
-            p.turnosPorDia[dia] = slot.rolRequerido;
+            p.turnosPorDia[dia] = slot;
         });
 
         // 2. Suma por día (fila de totales)
@@ -276,7 +280,14 @@ export default function CalendarioTurnosFuncionarios({
                                         placement="top"
                                         overlay={
                                             <Tooltip id={`tt-${p.idFuncionario}-${d}`}>
-                                                {rolToLabel(p.turnosPorDia[d])}
+                                                {p.turnosPorDia[d] ? (
+                                                    <div className="text-start">
+                                                        <div><b>Rol:</b> {rolToLabel(p.turnosPorDia[d].rolRequerido)}</div>
+                                                        <div><b>Recinto:</b> {p.turnosPorDia[d].recinto}</div>
+                                                        <div><b>Nombre servicio:</b> {p.turnosPorDia[d].nombreServicio}</div>
+                                                        {/* Agrega cualquier otro campo relevante */}
+                                                    </div>
+                                                ) : null}                                          
                                             </Tooltip>
                                         }
                                     >
