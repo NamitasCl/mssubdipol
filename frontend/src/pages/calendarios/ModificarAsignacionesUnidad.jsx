@@ -1,213 +1,234 @@
 import React, { useEffect, useState } from "react";
-import { listarCalendarios } from "../../api/calendarApi.js";
+import {
+    DndContext,
+    useDraggable,
+    useDroppable,
+    PointerSensor,
+    useSensor,
+    useSensors
+} from "@dnd-kit/core";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
-import { listarFuncionariosAportados } from "../../api/funcionariosAporteApi.js";
+import { listarCalendarios } from "../../api/calendarApi.js";
 import { getSlotsByCalendario } from "../../api/slotApi.js";
-import "bootstrap/dist/css/bootstrap.min.css";
+import {addHours, eachDayOfInterval, endOfMonth, format, parseISO} from "date-fns";
 
-function ModificarAsignacionesUnidad() {
+/* ------------------- Estilos básicos ------------------- */
+const styleDisponible = { width: 200 };
+const styleCalendario = { width: "100%" };
+
+const rolToLabel = {
+    JEFE_DE_SERVICIO: "Jefe de Servicio",
+    JEFE_DE_MAQUINA: "Jefe de máquina",
+    PRIMER_TRIPULANTE: "Primer tripulante",
+    SEGUNDO_TRIPULANTE: "Segundo tripulante",
+    TRIPULANTE: "Tripulante",
+    ENCARGADO_DE_TURNO: "Encargado de turno",
+    ENCARGADO_DE_GUARDIA: "Encargado de guardia",
+    AYUDANTE_DE_GUARDIA: "Ayudante de guardia",
+    JEFE_DE_RONDA: "Jefe de ronda",
+    GUARDIA_ARMADO: "Guardia armado",
+    REFUERZO_DE_GUARDIA: "Refuerzo de guardia"
+};
+
+/* ---------------------- Componente ---------------------- */
+export default function ModificarAsignacionesUnidad() {
     const { user } = useAuth();
-
-    // Calendarios de la unidad del jefe
+    const [locations, setLocations] = useState({});
     const [calendarios, setCalendarios] = useState([]);
     const [calendarioSeleccionado, setCalendarioSeleccionado] = useState(null);
+    const [funcionariosAportadosUnidad, setFuncionariosAportadosUnidad] = useState([]);
+    const [slots, setSlots] = useState([]);
 
-    // Funcionario por calendario (objeto: calendarioId => array de funcionarios)
-    const [funcionariosPorCalendario, setFuncionariosPorCalendario] = useState({});
-    // Slots por calendario (objeto: calendarioId => array de slots)
-    const [slotsPorCalendario, setSlotsPorCalendario] = useState({});
-
-    // Selección de fechas para swap
-    const [slotOrigenId, setSlotOrigenId] = useState(null);
-    const [slotDestinoId, setSlotDestinoId] = useState(null);
-
-    // Estado de carga
-    const [loading, setLoading] = useState(true);
-    const [mensaje, setMensaje] = useState("");
-
-    // 1. Cargar calendarios de la unidad
+    /* ---------- Cargar calendarios según unidad ---------- */
     useEffect(() => {
-        setLoading(true);
-        listarCalendarios().then(async (todos) => {
-            const calendariosUnidad = todos.filter((c) => {
-                if (c.tipo === "UNIDAD") {
-                    return c.idUnidad === user.idUnidad;
-                }
-                if (c.tipo === "COMPLEJO") {
-                    return (c.aporteUnidadTurnos || []).some(
-                        (a) => a.idUnidad === user.idUnidad
-                    );
-                }
-                return false;
-            });
-            setCalendarios(calendariosUnidad);
+        if (!user?.idUnidad) return;
+        listarCalendarios().then((all) =>
+            setCalendarios(
+                all.filter(
+                    (c) =>
+                        (c.tipo === "UNIDAD" && c.idUnidad === user.idUnidad) ||
+                        (c.tipo === "COMPLEJO" &&
+                            (c.aporteUnidadTurnos || []).some((a) => a.idUnidad === user.idUnidad))
+                )
+            )
+        );
+    }, [user]);
 
-            // Cargar funcionarios de cada calendario
-            const funcionariosData = {};
-            for (const cal of calendariosUnidad) {
-                funcionariosData[cal.id] = await listarFuncionariosAportados(
-                    cal.id,
-                    user.idUnidad
-                );
-            }
-            setFuncionariosPorCalendario(funcionariosData);
+    /* -------- Cargar slots del calendario seleccionado -------- */
+    useEffect(() => {
+        if (!calendarioSeleccionado || !user?.idUnidad) return;
 
-            setLoading(false);
+        getSlotsByCalendario(calendarioSeleccionado.id).then((data) => {
+            const slotsUnidad = data.filter(
+                (slot) => slot.siglasUnidadFuncionario === user.siglasUnidad
+            );
+
+            // Normalizar la fecha de cada slot
+            const normalizados = slotsUnidad.map(slot => ({
+                ...slot,
+                fechaNormalizada: format(addHours(parseISO(slot.fecha), 4), "yyyy-MM-dd")
+            }));
+
+            setFuncionariosAportadosUnidad(normalizados);
+            console.log("Slots: ", slots);
+            setSlots(data);
+
+            // Inicializar ubicaciones basadas en la fecha normalizada
+            const ubicaciones = Object.fromEntries(
+                normalizados.map((slot) => [`${slot.id}-item`, slot.fechaNormalizada])
+            );
+            setLocations(ubicaciones);
         });
-    }, [user.idUnidad]);
+    }, [calendarioSeleccionado, user]);
 
-    // 2. Cargar slots cuando se selecciona un calendario
-    useEffect(() => {
-        if (calendarioSeleccionado) {
-            getSlotsByCalendario(calendarioSeleccionado.id).then((slots) => {
-                console.log("Calendario seleccionado:", calendarioSeleccionado);
-                // Por defecto, los slots traen info de fecha y funcionario asignado (ajusta si tu backend lo trae distinto)
-                console.log("Slots cargados:", slots);
-                setSlotsPorCalendario((prev) => ({
-                    ...prev,
-                    [calendarioSeleccionado.id]: slots,
-                }));
-                console.log("Slots por calendario actualizados:", slotsPorCalendario);
-            });
+    const sensors = useSensors(useSensor(PointerSensor));
+
+    // Generar días del mes para el calendario
+    const diasDelMes = calendarioSeleccionado
+        ? eachDayOfInterval({
+            start: new Date(calendarioSeleccionado.anio, calendarioSeleccionado.mes - 1, 1),
+            end: endOfMonth(new Date(calendarioSeleccionado.anio, calendarioSeleccionado.mes - 1, 1))
+        })
+        : [];
+
+    const handleDragEnd = (event) => {
+        const { over, active } = event;
+        if (over && active) {
+            setLocations((prev) => ({
+                ...prev,
+                [active.id]: over.id
+            }));
         }
-        // Limpiar selecciones si cambió calendario
-        setSlotOrigenId(null);
-        setSlotDestinoId(null);
-        setMensaje("");
-    }, [calendarioSeleccionado]);
-
-    // 3. Lógica de swap de funcionarios
-    const intercambiar = () => {
-        if (!slotOrigenId || !slotDestinoId || slotOrigenId === slotDestinoId) {
-            setMensaje("Selecciona dos fechas distintas para intercambiar.");
-            return;
-        }
-        const slots = [...(slotsPorCalendario[calendarioSeleccionado.id] || [])];
-        const origenIdx = slots.findIndex((s) => s.id === slotOrigenId);
-        const destinoIdx = slots.findIndex((s) => s.id === slotDestinoId);
-
-        if (origenIdx === -1 || destinoIdx === -1) {
-            setMensaje("Error al encontrar los slots.");
-            return;
-        }
-        // Intercambiar funcionario asignado
-        const temp = slots[origenIdx].funcionario;
-        slots[origenIdx].funcionario = slots[destinoIdx].funcionario;
-        slots[destinoIdx].funcionario = temp;
-
-        setSlotsPorCalendario((prev) => ({
-            ...prev,
-            [calendarioSeleccionado.id]: slots,
-        }));
-
-        setMensaje("¡Intercambio realizado!");
-        setSlotOrigenId(null);
-        setSlotDestinoId(null);
-
-        // Aquí podrías llamar a tu API para persistir el swap si lo necesitas.
-    };
-
-    // Función utilitaria para mostrar nombre del funcionario
-    const getNombreFuncionario = (funcionario) => {
-        if (!funcionario) return <span className="text-secondary">Sin asignar</span>;
-        // Si funcionario es objeto {nombre, ...}
-        if (typeof funcionario === "object" && funcionario.nombre)
-            return funcionario.nombre;
-        // Si es string
-        return funcionario;
     };
 
     return (
-        <div className="container my-4">
-            <h2 className="mb-3">Modificar Asignaciones de Unidad</h2>
-            {loading ? (
-                <div className="alert alert-info">Cargando calendarios...</div>
-            ) : (
-                <>
-                    <div className="mb-3">
-                        <label className="form-label">
-                            <b>Selecciona un calendario:</b>
-                        </label>
-                        <select
-                            className="form-select"
-                            value={calendarioSeleccionado?.id || ""}
-                            onChange={(e) => {
-                                const cal = calendarios.find(
-                                    (c) => c.id.toString() === e.target.value
-                                );
-                                setCalendarioSeleccionado(cal);
-                            }}
-                        >
-                            <option value="">-- Selecciona --</option>
-                            {calendarios.map((cal) => (
-                                <option key={cal.id} value={cal.id}>
-                                    {cal.nombre}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+        <>
+            <label className="form-label mt-3">Selecciona un calendario:</label>
+            <select
+                className="form-select mb-3"
+                value={calendarioSeleccionado?.id || ""}
+                onChange={(e) =>
+                    setCalendarioSeleccionado(
+                        calendarios.find((c) => c.id.toString() === e.target.value)
+                    )
+                }
+            >
+                <option value="">-- Selecciona --</option>
+                {calendarios.map((c) => (
+                    <option key={c.id} value={c.id}>
+                        {c.nombre}
+                    </option>
+                ))}
+            </select>
 
-                    {calendarioSeleccionado && (
-                        <>
-                            <h5>Fechas y funcionarios asignados</h5>
-                            <div className="table-responsive">
-                                <table className="table table-bordered align-middle">
-                                    <thead>
-                                    <tr>
-                                        <th>Fecha</th>
-                                        <th>Funcionario asignado</th>
-                                        <th>Seleccionar Origen</th>
-                                        <th>Seleccionar Destino</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {(slotsPorCalendario[calendarioSeleccionado.id] || []).map(
-                                        (slot) => (
-                                            <tr key={slot.id}>
-                                                <td>{slot.fecha}</td>
-                                                <td>{getNombreFuncionario(slot.funcionario)}</td>
-                                                <td>
-                                                    <input
-                                                        type="radio"
-                                                        name="origen"
-                                                        checked={slotOrigenId === slot.id}
-                                                        onChange={() => setSlotOrigenId(slot.id)}
-                                                        disabled={slotDestinoId === slot.id}
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input
-                                                        type="radio"
-                                                        name="destino"
-                                                        checked={slotDestinoId === slot.id}
-                                                        onChange={() => setSlotDestinoId(slot.id)}
-                                                        disabled={slotOrigenId === slot.id}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <button
-                                className="btn btn-primary"
-                                onClick={intercambiar}
-                                disabled={
-                                    !slotOrigenId ||
-                                    !slotDestinoId ||
-                                    slotOrigenId === slotDestinoId
-                                }
-                            >
-                                Intercambiar funcionarios
-                            </button>
-                            {mensaje && <div className="alert alert-info mt-3">{mensaje}</div>}
-                        </>
-                    )}
-                </>
-            )}
-        </div>
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+                <div style={{ display: "flex", gap: "40px", padding: "10px" }}>
+                    {/* Zona de personal disponible */}
+                    <Droppable id="zoneA" label="Personal disponible" style={styleDisponible}>
+                        {funcionariosAportadosUnidad
+                            .filter((f) => locations[`${f.id}-item`] === "zoneA")
+                            .map((f) => (
+                                <Draggable key={f.id} id={`${f.id}-item`} funcionario={f} />
+                            ))}
+                    </Droppable>
+
+                    {/* Zona calendario: una columna por día */}
+                    <div
+                        style={{
+                            width: "100%",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(7, 1fr)",
+                            gap: 10
+                        }}
+                    >
+                        {diasDelMes.map((dia) => {
+                            const fechaStr = format(dia, "yyyy-MM-dd");
+
+                            return (
+                                <Droppable key={fechaStr} id={fechaStr} label={format(dia, "dd/MM")}>
+                                    {funcionariosAportadosUnidad
+                                        .filter((f) => locations[`${f.id}-item`] === fechaStr)
+                                        .map((f) => (
+                                            <Draggable key={f.id} id={`${f.id}-item`} funcionario={f} />
+                                        ))}
+                                </Droppable>
+                            );
+                        })}
+                    </div>
+                </div>
+            </DndContext>
+        </>
     );
 }
 
-export default ModificarAsignacionesUnidad;
+/* ---------------------- Draggable ---------------------- */
+function Draggable({ id, funcionario }) {
+    const { attributes, listeners, setNodeRef, transform } = useDraggable({ id });
+
+    const style = {
+        width: 150,
+        padding: 10,
+        margin: 5,
+        backgroundColor: "orange",
+        transform: transform
+            ? `translate(${transform.x}px, ${transform.y}px)`
+            : undefined,
+        cursor: "grab",
+        borderRadius: 8,
+        textAlign: "center",
+        fontSize: 12
+    };
+
+    return (
+        <>
+            <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="d-flex flex-column align-items-center">
+                <span>{funcionario?.nombreFuncionario ?? funcionario?.nombreCompleto ?? "Funcionario"}</span>
+                <span style={{fontWeight: "bold"}}>{funcionario?.nombreServicio}</span>
+                <span style={{fontWeight: "bold"}}>{funcionario?.recinto}</span>
+                <span style={{fontWeight: "bold"}}>{
+                    funcionario.rolRequerido === "JEFE_DE_SERVICIO" ?
+                        "" : rolToLabel[funcionario?.rolRequerido]
+                }</span>
+            </div>
+            <div>
+
+            </div>
+        </>
+    );
+}
+
+/* ---------------------- Droppable ---------------------- */
+function Droppable({ id, label, children, style: customStyle = {} }) {
+    const { isOver, setNodeRef } = useDroppable({ id });
+
+    const baseBackground = customStyle.backgroundColor || "#ddd";
+    const backgroundColor = isOver ? "#b0eacb" : baseBackground;
+
+    const combinedStyle = {
+        minHeight: 300,
+        maxHeight: 500,
+        overflowY: "auto",
+        border: "2px dashed #aaa",
+        display: "flex",
+        flexDirection: "column",
+        padding: 10,
+        borderRadius: 10,
+        transition: "background-color 0.2s",
+        ...customStyle,
+        backgroundColor
+    };
+
+    const listStyle = {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 5,
+        alignContent: "flex-start"
+    };
+
+    return (
+        <div ref={setNodeRef} style={combinedStyle}>
+            <div style={{ marginBottom: 10, fontWeight: "bold", fontSize: 15 }}>{label}</div>
+            <div style={listStyle}>{children}</div>
+        </div>
+    );
+}

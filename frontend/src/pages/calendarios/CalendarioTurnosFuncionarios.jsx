@@ -287,7 +287,7 @@ export default function CalendarioTurnosFuncionarios({
                                                         <div><b>Nombre servicio:</b> {p.turnosPorDia[d].nombreServicio}</div>
                                                         {/* Agrega cualquier otro campo relevante */}
                                                     </div>
-                                                ) : null}                                          
+                                                ) : null}
                                             </Tooltip>
                                         }
                                     >
