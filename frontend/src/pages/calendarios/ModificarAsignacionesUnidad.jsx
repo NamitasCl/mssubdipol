@@ -93,6 +93,7 @@ export default function ModificarAsignacionesUnidad() {
 
     const handleDragEnd = (event) => {
         const { over, active } = event;
+
         if (over && active) {
             setLocations((prev) => ({
                 ...prev,

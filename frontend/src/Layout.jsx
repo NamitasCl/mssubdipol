@@ -58,7 +58,8 @@ const navConfig = [
         label: "Zona Jefes",
         to: "/layout/jefe",
         allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE],
-    }
+    },
+
 ];
 
 export default function Layout() {
