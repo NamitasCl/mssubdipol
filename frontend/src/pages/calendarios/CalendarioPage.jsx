@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import CalendarioList from "./CalendarioList";
 import CalendarioDetalle from "./CalendarioDetalle";
-import GestionTurnosPage from "../turnos/GestionTurnosPage.jsx";
+import GestionTurnosPage from "./GestionTurnosPage.jsx";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 export default function CalendarioPage() {

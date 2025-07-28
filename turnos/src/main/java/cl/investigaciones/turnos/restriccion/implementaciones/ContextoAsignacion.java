@@ -17,11 +17,16 @@ public class ContextoAsignacion {
     // 1. Turnos ya asignados por funcionario (idFuncionario -> cantidad)
     private Map<Integer, Integer> turnosPorFuncionario = new HashMap<>();
 
+    // Turnos ya asignados por unidad
+    private final Map<Long, Map<LocalDate, Integer>> turnosPorUnidadPorDia = new HashMap<>();
+
     // 2. Fechas asignadas por funcionario (idFuncionario -> lista de fechas donde ya fue asignado)
     private Map<Integer, Map<LocalDate, String>> turnosPorFechaPorFuncionario = new HashMap<>();
 
     // 3. Días no disponibles por funcionario (idFuncionario -> set de fechas no disponibles)
     private Map<Integer, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
+
+    private Map<Integer, Set<LocalDate>> diasNoDisponiblesPorAsignacion = new HashMap<>();
 
     // Nuevo: registro (idFuncionario, fecha, nombreServicio) -> nombreRol
     private Set<String> asignacionesPorFuncionarioFechaServicio = new HashSet<>();
@@ -48,17 +53,22 @@ public class ContextoAsignacion {
 
     // Agrega métodos para actualizar el contexto fácilmente
 
-    public void agregarAsignacion(FuncionarioAporte funcionario, Slot slot) {
+    public void actualizarContexto(FuncionarioAporte funcionario, Slot slot) {
         Integer personaId = funcionario.getIdFuncionario();
         turnosPorFuncionario.merge(personaId, 1, Integer::sum);
         /*System.out.println("El funcionario: " + funcionario.getNombreCompleto() +
                 " lleva " + turnosPorFuncionario.get(personaId));*/
 
+        Long unidadId = funcionario.getIdUnidad();
+        LocalDate fecha = slot.getFecha(); // Asegúrate de que sea LocalDate
+
+        turnosPorUnidadPorDia
+                .computeIfAbsent(unidadId, k -> new HashMap<>())
+                .merge(fecha, 1, Integer::sum);
+
         turnosPorFechaPorFuncionario
                 .computeIfAbsent(personaId, k -> new HashMap<>())
                 .put(slot.getFecha(), slot.getNombreServicio());
-        /*System.out.println("El funcionario: " + funcionario.getNombreCompleto() +
-                " registro el día " + fechaServicio.toString());*/
 
         agregarAsignacionServicio(personaId, slot.getFecha(), slot.getNombreServicio());
 

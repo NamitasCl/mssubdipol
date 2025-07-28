@@ -8,11 +8,11 @@ import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
 import java.time.LocalDate;
 import java.util.Set;
 
-public class RestriccionNoDisponible implements Restriccion {
+public class RestriccionNoDisponiblePorAsignacionTurno implements Restriccion {
     @Override
     public boolean puedeAsignar(FuncionarioAporte funcionario, Slot slot, ContextoAsignacion ctx) {
         /*System.out.println("Aplicando " + this.getClass().getSimpleName());*/
-        Set<LocalDate> diasNoDisp = ctx.getDiasNoDisponibles().get(funcionario.getId());
+        Set<LocalDate> diasNoDisp = ctx.getDiasNoDisponiblesPorAsignacion().get(funcionario.getId());
         if (diasNoDisp == null) return true;
 
         return !diasNoDisp.contains(slot.getFecha());

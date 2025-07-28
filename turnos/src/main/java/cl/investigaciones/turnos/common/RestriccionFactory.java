@@ -67,6 +67,14 @@ public class RestriccionFactory {
             // RestriccionNoDisponible
             if (Boolean.TRUE.equals(config.getOrDefault("noDisponible", Map.of()).get("activa"))) {
                 restricciones.add(new RestriccionNoDisponible());
+                restricciones.add(new RestriccionNoDisponiblePorAsignacionTurno());
+            }
+
+            // RestriccionMaximoRepeticionUnidadPorDia
+            if (Boolean.TRUE.equals(config.getOrDefault("maximoRepeticionUnidadPorDia", Map.of()).get("activa"))) {
+                restricciones.add(new RestriccionMaximoRepeticionUnidadPorDia(
+                        Integer.parseInt((String) config.get("maximoRepeticionUnidadPorDia").get("valor"))
+                ));
             }
 
         } catch (Exception e) {

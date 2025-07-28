@@ -19,6 +19,11 @@ public class FuncionarioAportadoDiasNoDisponible {
     @JoinColumn(name = "funcionario_aporte_id")
     private FuncionarioAporte funcionarioAporte;
 
+    // Relación con el calendario
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "calendario_id")
+    private Calendario calendario;
+
     @Column(nullable = false)
     private LocalDate fecha;
 

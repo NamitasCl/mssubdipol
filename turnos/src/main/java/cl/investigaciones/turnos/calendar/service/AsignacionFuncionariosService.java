@@ -117,6 +117,20 @@ public class AsignacionFuncionariosService {
             }
         }
 
+        for (FuncionarioAporte f : funcionarios) {
+            DiaNoDisponibleGlobalResponse globalResponse = diaNoDisponibleGlobalService.findByIdFuncionarioDiaNoDisponible(f.getIdFuncionario());
+            if (globalResponse != null && globalResponse.getDias() != null) {
+                Set<LocalDate> fechasGlobales = globalResponse.getDias()
+                        .stream()
+                        .map(DiaNoDisponibleGlobalDTO::getFecha)
+                        .collect(Collectors.toSet());
+
+                diasNoDisponibles
+                        .computeIfAbsent(f.getIdFuncionario(), k -> new HashSet<>())
+                        .addAll(fechasGlobales);
+            }
+        }
+
         // Configuro el contexto de asignación
         ctx.setDiasNoDisponibles(diasNoDisponibles);
         ctx.setFuncionarios(funcionarios);
@@ -141,13 +155,22 @@ public class AsignacionFuncionariosService {
 
 
         System.out.println("Iniciando asignación");
+
+        // Limpio los días asignados al calendario por iniciarse una nueva asignación.
+        System.out.println("Eliminando registros de no disponibles por asignacion");
+        noDisponibleRepository.deleteByCalendarioAndMotivo(calendario, "ASIGNADO_TURNO");
+        System.out.println("Registros eliminados");
+
         // Comienzo la asignación de funcionarios a los slots
-        for(int i = 1; i <=3; i++) {
+        for(int i = 1; i <=2; i++) {
             for (Slot slot : slots ) {
+
+                if(slot.isCubierto()) {
+                    continue;
+                }
 
                 //Obtengo el rol que necesito llenar
                 RolServicio rol = slot.getRolRequerido();
-                System.out.println("Rol requerido: " + rol);
 
                 //Obtengo los grados que pueden ejercer el rol
                 Set<String> gradosRol = ctx.getRolesGrado().get(rol);
@@ -160,7 +183,6 @@ public class AsignacionFuncionariosService {
                 funcionariosFiltrados.sort(Comparator.comparingInt(JerarquiaUtils::valorJerarquico));
 
                 for (FuncionarioAporte f : funcionariosFiltrados) {
-                    System.out.println("Funcionario a evaluar: " + f.getNombreCompleto());
                     boolean puede = restricciones.stream()
                             .allMatch(r -> r.puedeAsignar(
                                     f,
@@ -168,7 +190,7 @@ public class AsignacionFuncionariosService {
                                     ctx
                             ));
                     if (puede) {
-                        ctx.agregarAsignacion(
+                        ctx.actualizarContexto(
                                 f,
                                 slot
                         );
@@ -180,12 +202,23 @@ public class AsignacionFuncionariosService {
                         slot.setSiglasUnidadFuncionario(f.getSiglasUnidad());
 
                         // --- Dejo como no disponible el día asignado al funcionario para futuros calendarios en el mismo mes de la misma unidad ---
-                        FuncionarioAportadoDiasNoDisponible bloqueo = new FuncionarioAportadoDiasNoDisponible();
-                        bloqueo.setFuncionarioAporte(f);
-                        bloqueo.setFecha(slot.getFecha());
-                        bloqueo.setMotivo("ASIGNADO_TURNO"); // O el motivo que quieras, según el contexto (puedes personalizarlo)
-                        bloqueo.setDetalle("slotId:" + slot.getId());
-                        noDisponibleRepository.save(bloqueo);
+                        boolean yaExiste = noDisponibleRepository.existsByFuncionarioAporte_IdAndFechaAndCalendario_IdAndMotivo(
+                                f.getId(), slot.getFecha(), calendario.getId(), "ASIGNADO_TURNO"
+                        );
+
+                        if (!yaExiste) {
+
+                            FuncionarioAportadoDiasNoDisponible bloqueo = new FuncionarioAportadoDiasNoDisponible();
+                            bloqueo.setFuncionarioAporte(f);
+                            bloqueo.setFecha(slot.getFecha());
+                            bloqueo.setMotivo("ASIGNADO_TURNO");
+                            bloqueo.setDetalle("slotId:" + slot.getId());
+                            bloqueo.setCalendario(calendario); // << nuevo
+                            noDisponibleRepository.save(bloqueo);
+
+                        }
+
+
                         // ---------------------------------------------------------------
 
                         break;
@@ -194,6 +227,7 @@ public class AsignacionFuncionariosService {
 
             }
         }
+
         return slots;
 
     }

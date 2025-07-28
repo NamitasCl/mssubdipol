@@ -13,8 +13,8 @@ import {
     Tooltip,
     OverlayTrigger
 } from "react-bootstrap";
-import { useAuth } from "../../components/contexts/AuthContext";
-import AgregarPlantillasMes from "./AgregarPlantillasMes";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
+import AgregarPlantillasMes from "../turnos/AgregarPlantillasMes.jsx";
 // import PlantillasTurnoCrudModal from "./PlantillasTurnoCrudModal"; // ← descomenta si lo usas
 import {
     eliminarCalendario,
@@ -22,7 +22,7 @@ import {
     crearCalendario,
     actualizarCalendario
 } from "../../api/calendarApi.js";
-import UnidadSelect from "../calendarios/UnidadSelect.jsx";
+import UnidadSelect from "./UnidadSelect.jsx";
 
 /* ====== RESTRICCIONES DISPONIBLES ====== */
 const restriccionesDisponibles = [
@@ -92,6 +92,14 @@ const restriccionesDisponibles = [
         requiereValor: false,
         descripcion:
             "Bloquea asignaciones cuando el funcionario está marcado como no disponible."
+    },
+    {
+        key: "maximoRepeticionUnidadPorDia",
+        label: "Cantidad máxima de funcionarios por unidad y por día",
+        requiereValor: true,
+        tipoValor: "number",
+        valorPlaceholder: "Ej: 2",
+        descripcion: "Cantidad de funcionarios de una misma unidad asignables el mismo día."
     }
 ];
 /* ======================================= */
