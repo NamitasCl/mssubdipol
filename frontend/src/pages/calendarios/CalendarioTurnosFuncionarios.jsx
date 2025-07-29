@@ -19,7 +19,6 @@ const defaultRoles = [
 ];
 
 const rolToLabel = (rol) => {
-    console.log(rol);
     const a = defaultRoles.find(r => r.value === rol)?.label || rol;
     return a;
 }
@@ -153,6 +152,22 @@ export default function CalendarioTurnosFuncionarios({
     ]);
 
     console.log("Lista de personas:", listaPersonas);
+
+    const Ticket = ({ servicio }) => {
+        console.log("Servicio:", servicio);
+        const color =
+            servicio === "JEFE_DE_SERVICIO" ? "green" :
+                servicio === "ENCARGADO_DE_GUARDIA" ? "orange" :
+                    servicio === "AYUDANTE_DE_GUARDIA" ? "red" :
+                        "black"; // default
+
+        return (
+            <span style={{ cursor: "pointer", color, fontWeight: "bold", fontSize: "1.2rem" }}>
+                ✔
+            </span>
+        );
+    };
+
 
     /* --------------------------------- render ---------------------------------- */
     return (
@@ -291,7 +306,8 @@ export default function CalendarioTurnosFuncionarios({
                                             </Tooltip>
                                         }
                                     >
-                                        <span style={{ cursor: "pointer" }}>✔️</span>
+                                        {/*<span style={{ cursor: "pointer" }}>✔️</span>*/}
+                                        <span><Ticket servicio={p.turnosPorDia[d].rolRequerido} /></span>
                                     </OverlayTrigger>
                                 ) : null}
                             </td>

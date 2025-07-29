@@ -71,15 +71,6 @@ export default function ModificarAsignacionesUnidad() {
 
             setFuncionariosAportadosUnidad(normalizados);
             console.log("Slots: ", slotsUnidad);
-            console.log(
-                data.filter(s => s.fecha === "2025-07-01").map(s => ({
-                    id: s.id,
-                    nombre: s.nombreFuncionario,
-                    siglas: s.siglasUnidadFuncionario
-                }))
-            );
-
-
             setSlots(data);
 
             // Inicializar ubicaciones basadas en la fecha normalizada
