@@ -90,9 +90,11 @@ public class AsignacionFuncionariosService {
 
         // Aleatoriza el orden de funcionarios para repartir justo
         /*Collections.shuffle(funcionarios);*/
-
+        System.out.println("Pasando A");
         // --- 1. Prepara el contexto con días no disponibles ---
         Map<Integer, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
+        Map<Integer, Set<LocalDate>> diasNoDisponiblesPorAsignacion = new HashMap<>();
+
         for (FuncionarioAporte f : funcionarios) {
             if (f.getDiasNoDisponibles() != null) {
                 Set<LocalDate> fechas = f.getDiasNoDisponibles().stream()
@@ -101,7 +103,7 @@ public class AsignacionFuncionariosService {
                 diasNoDisponibles.put(f.getIdFuncionario(), fechas);
             }
         }
-
+        System.out.println("Pasando B");
         // Cargo los dias no disponibles por citacion o actividad del funcionario
         for (FuncionarioAporte f : funcionarios) {
             DiaNoDisponibleGlobalResponse globalResponse = diaNoDisponibleGlobalService.findByIdFuncionario(f.getIdFuncionario());
@@ -116,20 +118,27 @@ public class AsignacionFuncionariosService {
                         .addAll(fechasGlobales);
             }
         }
-
+        System.out.println("Pasando C");
         for (FuncionarioAporte f : funcionarios) {
-            DiaNoDisponibleGlobalResponse globalResponse = diaNoDisponibleGlobalService.findByIdFuncionarioDiaNoDisponible(f.getIdFuncionario());
-            if (globalResponse != null && globalResponse.getDias() != null) {
-                Set<LocalDate> fechasGlobales = globalResponse.getDias()
-                        .stream()
-                        .map(DiaNoDisponibleGlobalDTO::getFecha)
-                        .collect(Collectors.toSet());
+            try {
+                DiaNoDisponibleGlobalResponse globalResponse = diaNoDisponibleGlobalService.findByIdFuncionarioDiaNoDisponible(f);
+                if (globalResponse != null && globalResponse.getDias() != null) {
+                    Set<LocalDate> fechasGlobales = globalResponse.getDias()
+                            .stream()
+                            .map(DiaNoDisponibleGlobalDTO::getFecha)
+                            .collect(Collectors.toSet());
 
-                diasNoDisponibles
-                        .computeIfAbsent(f.getIdFuncionario(), k -> new HashSet<>())
-                        .addAll(fechasGlobales);
+                    diasNoDisponiblesPorAsignacion
+                            .computeIfAbsent(f.getIdFuncionario(), k -> new HashSet<>())
+                            .addAll(fechasGlobales);
+                }
+            } catch (Exception e) {
+                System.err.println("Error al obtener días no disponibles para funcionario ID " + f.getIdFuncionario());
+                e.printStackTrace();
             }
         }
+
+        System.out.println("Pasamos!");
 
         // Configuro el contexto de asignación
         ctx.setDiasNoDisponibles(diasNoDisponibles);
@@ -158,8 +167,15 @@ public class AsignacionFuncionariosService {
 
         // Limpio los días asignados al calendario por iniciarse una nueva asignación.
         System.out.println("Eliminando registros de no disponibles por asignacion");
-        noDisponibleRepository.deleteByCalendarioAndMotivo(calendario, "ASIGNADO_TURNO");
+        noDisponibleRepository.deleteAllByCalendarioIdAndMotivo(calendario.getId(), "ASIGNADO_TURNO");
+        noDisponibleRepository.flush();
         System.out.println("Registros eliminados");
+
+        List<FuncionarioAportadoDiasNoDisponible> bloqueosExistentes = noDisponibleRepository.findAllByCalendarioIdAndMotivo(
+                calendario.getId(), "ASIGNADO_TURNO"
+        );
+
+        System.out.println("Cantidad de bloqueos existentes: " + bloqueosExistentes.size());
 
         // Comienzo la asignación de funcionarios a los slots
         for(int i = 1; i <=2; i++) {
@@ -201,22 +217,24 @@ public class AsignacionFuncionariosService {
                         slot.setAntiguedadFuncionario(f.getAntiguedad());
                         slot.setSiglasUnidadFuncionario(f.getSiglasUnidad());
 
+                        FuncionarioAportadoDiasNoDisponible bloqueo = new FuncionarioAportadoDiasNoDisponible();
+                        bloqueo.setFuncionarioAporte(f);
+                        bloqueo.setFecha(slot.getFecha());
+                        bloqueo.setMotivo("ASIGNADO_TURNO");
+                        bloqueo.setDetalle("slotId:" + slot.getId());
+                        bloqueo.setCalendario(calendario); // << nuevo
+                        noDisponibleRepository.save(bloqueo);
+
                         // --- Dejo como no disponible el día asignado al funcionario para futuros calendarios en el mismo mes de la misma unidad ---
-                        boolean yaExiste = noDisponibleRepository.existsByFuncionarioAporte_IdAndFechaAndCalendario_IdAndMotivo(
+                        /*boolean yaExiste = noDisponibleRepository.existsByFuncionarioAporte_IdAndFechaAndCalendario_IdAndMotivo(
                                 f.getId(), slot.getFecha(), calendario.getId(), "ASIGNADO_TURNO"
                         );
 
                         if (!yaExiste) {
 
-                            FuncionarioAportadoDiasNoDisponible bloqueo = new FuncionarioAportadoDiasNoDisponible();
-                            bloqueo.setFuncionarioAporte(f);
-                            bloqueo.setFecha(slot.getFecha());
-                            bloqueo.setMotivo("ASIGNADO_TURNO");
-                            bloqueo.setDetalle("slotId:" + slot.getId());
-                            bloqueo.setCalendario(calendario); // << nuevo
-                            noDisponibleRepository.save(bloqueo);
 
-                        }
+
+                        }*/
 
 
                         // ---------------------------------------------------------------
