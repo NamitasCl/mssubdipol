@@ -38,6 +38,7 @@ export default function ModificarAsignacionesUnidad() {
     const [calendarioSeleccionado, setCalendarioSeleccionado] = useState(null);
     const [funcionariosAportadosUnidad, setFuncionariosAportadosUnidad] = useState([]);
     const [slots, setSlots] = useState([]);
+    const [asignaciones, setAsignaciones] = useState([]);
 
     /* ---------- Cargar calendarios según unidad ---------- */
     useEffect(() => {
@@ -53,6 +54,10 @@ export default function ModificarAsignacionesUnidad() {
             )
         );
     }, [user]);
+
+    useEffect(() => {
+        console.log("Asignaciones actuales:", asignaciones);
+    }, [asignaciones]);
 
     /* -------- Cargar slots del calendario seleccionado -------- */
     useEffect(() => {
@@ -95,12 +100,45 @@ export default function ModificarAsignacionesUnidad() {
         const { over, active } = event;
 
         if (over && active) {
-            setLocations((prev) => ({
-                ...prev,
-                [active.id]: over.id
-            }));
+            setLocations((prev) => {
+                const newLocs = {
+                    ...prev,
+                    [active.id]: over.id
+                };
+
+                // Extraer el id del slot/funcionario (depende de cómo armas el id del draggable)
+                const slotId = parseInt(active.id.split("-")[0], 10);
+
+                // Buscar el slot original en tu array de slots
+                const slot = slots.find(s => s.id === slotId);
+
+                if (!slot) return newLocs; // Seguridad
+
+                if (over.id !== "zoneA") {
+                    setAsignaciones(prevAsig => {
+                        // Filtra cualquier asignación previa de ese slot
+                        const filtradas = prevAsig.filter(a => a.id !== slot.id);
+                        return [
+                            ...filtradas,
+                            {
+                                ...slot, // todos los campos originales
+                                fecha: over.id // se actualiza la fecha
+                                // puedes cambiar otros campos aquí si lo necesitas
+                            }
+                        ];
+                    });
+                } else {
+                    // Si vuelve a zona disponible, elimina la asignación
+                    setAsignaciones(prevAsig =>
+                        prevAsig.filter(a => a.id !== slot.id)
+                    );
+                }
+
+                return newLocs;
+            });
         }
     };
+
 
     return (
         <>

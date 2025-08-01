@@ -22,6 +22,9 @@ public class FichaMemo {
     @Column(name = "\"fecha\"")
     private OffsetDateTime fecha;
 
+    @Column(name = "\"tipo\"")
+    private String tipo;
+
     @Column(name = "\"folioBrain\"")
     private String folioBrain;
 

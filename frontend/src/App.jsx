@@ -21,7 +21,6 @@ import ListaFormulariosDisponibles from "./pages/formularioDinamico/ListaFormula
 import FormBuilderApp from "./pages/formularioDinamico/FormBuilderApp.jsx";
 import FormularioDinamicoPage from "./pages/formularioDinamico/FormularioDinamicoPage.jsx";
 import VistaRegistrosFormulario from "./pages/formularioDinamico/VistaRegistrosFormulario.jsx";
-import GestionTurnosPage from "./pages/calendarios/GestionTurnosPage.jsx";
 import {UnitDepartmentManagement} from "./pages/turnos/UnitDepartmentManagement.jsx";
 import CalendarioPage from "./pages/calendarios/CalendarioPage.jsx";
 import MisCalendariosParaAportar from "./pages/calendarios/MisCalendariosParaAportar.jsx";
@@ -41,8 +40,6 @@ export default function App() {
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
                     <Route path="listas"></Route>
                     <Route path="aportefuncionarios" element={<PanelAdministracionAportes />} />
-
-
                 </Route>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />
