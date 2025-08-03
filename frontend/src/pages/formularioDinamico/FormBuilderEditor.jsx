@@ -45,6 +45,13 @@ export const SUBFORMULARIOS_CATALOGO = [
             { id: 1004, name: "funcionario", label: "Tripulante", type: "funcionario" },
             { id: 1005, name: "funcionario", label: "Tripulante", type: "funcionario" },
         ]
+    },
+    {
+        value: "delitosAsociados",
+        label: "Delito asociado a la orden de detención",
+        fields: [
+            { id: 1001, name: "delito", label: "Sigla carro", type: "text" },
+        ]
     }
 ];
 

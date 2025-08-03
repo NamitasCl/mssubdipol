@@ -1,33 +1,71 @@
+# Archivos de ayuda
 HELP.md
+
+# Carpetas de compilación Java
 target/
+build/
+
+# Maven wrapper: no ignores el jar
 !.mvn/wrapper/maven-wrapper.jar
+
+# No ignores target dentro de src (puede ser útil en pruebas específicas)
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# Directorios de configuración de IDEs
+### IntelliJ ###
+.idea/
+*.iml
+*.iws
+*.ipr
+
+### STS / Eclipse ###
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
 ### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
 
 ### VS Code ###
 .vscode/
+
+# Node (frontend)
+node_modules/
+frontend/node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos temporales
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+
+# Entornos (si no los estás cifrando con git-crypt)
+# Si los vas a versionar y cifrar, remueve estas líneas
+#.env
+#.env.*
+#frontend/.env
+#frontend/.env.*
+
+# Archivos sensibles (mejor cifrarlos con git-crypt que ignorarlos)
+# application.yml y similares, si vas a versionarlos cifrados
+
+# Docker (opcional)
+#**/.dockerignore
+#**/Dockerfile
+
+# Git-crypt no necesita ignorar sus archivos
+# .gitattributes sí debe ser versionado
