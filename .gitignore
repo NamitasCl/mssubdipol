@@ -81,3 +81,4 @@ coverage/
 *.test.ts
 *.spec.js
 *.spec.ts
+clave.key
