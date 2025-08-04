@@ -1,0 +1,16 @@
+auth/config/application.yml filter=git-crypt diff=git-crypt
+auth/src/main/resources/application.yml filter=git-crypt diff=git-crypt
+
+commonservices/src/main/resources/application.properties filter=git-crypt diff=git-crypt
+
+formularios/src/main/resources/application.yml filter=git-crypt diff=git-crypt
+
+nodos/src/main/resources/application.yml filter=git-crypt diff=git-crypt
+
+turnos/src/main/resources/application.properties filter=git-crypt diff=git-crypt
+
+frontend/.env*                        filter=git-crypt diff=git-crypt
+
+docker-compose.yml                   filter=git-crypt diff=git-crypt
+docker-compose.override.yml          filter=git-crypt diff=git-crypt
+docker-compose.prod.yml              filter=git-crypt diff=git-crypt
