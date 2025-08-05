@@ -53,7 +53,7 @@ export const SUBFORMULARIOS_CATALOGO = [
             { id: 1003, name: "funcion carro", label: "Función del carro", type: "select", opciones: "DECRETOS,FISCALIZACIONES,OTRO"},
             { id: 1004, name: "lugar", label: "Lugar", type: "text"},
             { id: 1005, name: "fecha inicio", label: "Fecha y Hora inicio servicio", type: "datetime-local"},
-            { id: 1006, name: "fecha inicio", label: "Fecha y Hora fin servicio", type: "datetime-local"},
+            { id: 1006, name: "fecha fin", label: "Fecha y Hora fin servicio", type: "datetime-local"},
             { id: 1007, name: "funcionario uno", label: "Nombre funcionario uno", type: "funcionario" },
             { id: 1007, name: "funcionario uno función", label: "Funcion dentro del carro", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
             { id: 1010, name: "telefono funcionario uno", label: "Teléfono", type: "text"},
