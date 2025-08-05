@@ -393,32 +393,34 @@ export default function VistaRegistrosFormulario() {
             <Modal
                 show={showSubform}
                 onHide={() => setShowSubform(false)}
-                size="lg"
+                size="xl"
                 centered
             >
                 <Modal.Header closeButton>
                     <Modal.Title>Detalle del subformulario</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    {subformData.length > 0 && (() => {
-                        const keys = [...new Set(subformData.flatMap((o) => Object.keys(o)))];
-                        return (
-                            <Table bordered hover size="sm">
-                                <thead>
-                                <tr>{keys.map((k) => <th key={k}>{k}</th>)}</tr>
-                                </thead>
-                                <tbody>
-                                {subformData.map((row, idx) => (
-                                    <tr key={idx}>
-                                        {keys.map((k) => (
-                                            <td key={k}>{renderCell(row[k])}</td>
-                                        ))}
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </Table>
-                        );
-                    })()}
+                <Modal.Body style={{width: "100%"}}>
+                    <div style={{overflow: "auto"}}>
+                        {subformData.length > 0 && (() => {
+                            const keys = [...new Set(subformData.flatMap((o) => Object.keys(o)))];
+                            return (
+                                <Table bordered hover size="sm">
+                                    <thead>
+                                    <tr>{keys.map((k) => <th key={k}>{k}</th>)}</tr>
+                                    </thead>
+                                    <tbody>
+                                    {subformData.map((row, idx) => (
+                                        <tr key={idx}>
+                                            {keys.map((k) => (
+                                                <td key={k}>{renderCell(row[k])}</td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </Table>
+                            );
+                        })()}
+                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowSubform(false)}>
