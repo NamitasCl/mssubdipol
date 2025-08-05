@@ -143,82 +143,145 @@ export default function VistaRegistrosFormulario() {
             return;
         }
 
-        const NOMBRE_CAMPO_ARRAY = "CARRO DESIGNADO";
-        const campoArray = campos.find(c => (c.etiqueta || c.nombre) === NOMBRE_CAMPO_ARRAY);
-        const campoArrayNombre = campoArray ? campoArray.nombre : null;
+        // --- Catálogo local de subformularios ---
+        const SUBFORMULARIOS_CATALOGO = [
+            {
+                value: "carroDesignado",
+                label: "Carro designado",
+                fields: [
+                    { id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text" },
+                    { id: 1002, name: "corporativo", label: "Es vehículo corporativo", type: "checkbox" },
+                    { id: 1003, name: "funcionario", label: "Jefe de máquina", type: "funcionario" },
+                    { id: 1004, name: "telefono", label: "Teléfono Jefe máquina", type: "text" },
+                ]
+            },
+            {
+                value: "carrosConTripulacion",
+                label: "Carro y tripulacion",
+                fields: [
+                    { id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text" },
+                    { id: 1002, name: "corporativo", label: "Es vehículo corporativo", type: "checkbox" },
+                    { id: 1003, name: "funcionario", label: "Jefe de máquina", type: "funcionario" },
+                    { id: 1004, name: "funcionario", label: "Tripulante", type: "funcionario" },
+                    { id: 1005, name: "funcionario", label: "Tripulante", type: "funcionario" },
+                ]
+            },
+            {
+                value: "carrosConTripulacionServicio",
+                label: "Carro y detalle",
+                fields: [
+                    { id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text" },
+                    { id: 1002, name: "corporativo", label: "Es carro corporativo", type: "checkbox" },
+                    { id: 1003, name: "funcion carro", label: "Función del carro", type: "select", opciones: "DECRETOS,FISCALIZACIONES,OTRO"},
+                    { id: 1004, name: "lugar", label: "Lugar", type: "text"},
+                    { id: 1005, name: "fecha inicio", label: "Fecha y Hora inicio servicio", type: "datetime-local"},
+                    { id: 1006, name: "fecha fin", label: "Fecha y Hora fin servicio", type: "datetime-local"},
+                    { id: 1007, name: "funcionario uno", label: "Nombre funcionario uno", type: "funcionario" },
+                    { id: 1007, name: "funcionario uno función", label: "Función dentro del carro", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
+                    { id: 1010, name: "telefono funcionario uno", label: "Teléfono funcionario uno", type: "text"},
+                    { id: 1008, name: "funcionario dos", label: "Nombre funcionario dos", type: "funcionario" },
+                    { id: 1007, name: "funcionario dos función funcion", label: "Función funcionario dos", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
+                    { id: 1010, name: "telefono funcionario dos", label: "Teléfono funcionario dos", type: "text"},
+                    { id: 1009, name: "funcionario tres", label: "Nombre funcionario tres", type: "funcionario" },
+                    { id: 1007, name: "funcionario tres función", label: "Función funcionario tres", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
+                    { id: 1010, name: "telefono funcionario tres", label: "Teléfono funcionario tres", type: "text"},
+                    { id: 1010, name: "observaciones", label: "Observaciones", type: "text"},
+                ]
+            }
+        ];
 
-        let rows = [];
-        registrosMostrados.forEach((r, i) => {
-            const carros = r.datos?.[campoArrayNombre];
+        // Utilidad: busca label por nombre en catálogo
+        function getLabel(name, camposCatalogo = []) {
+            const campo = camposCatalogo.find(f => f.nombre === name || f.etiqueta === name || f.name === name);
+            return campo ? (campo.etiqueta || campo.label || campo.nombre || campo.name) : name;
+        }
 
-            if (Array.isArray(carros) && carros.length) {
-                carros.forEach((carro, j) => {
-                    const fila = { "#": `${i + 1}.${j + 1}` };
-                    campos.forEach((c) => {
-                        if (c.nombre === campoArrayNombre) {
-                            // Extrae los campos individuales de cada carro
-                            fila["SIGLA CARRO"]        = carro.siglaCarro || "";
-                            fila["TELEFONO CARRO"]     = carro.telefono || "";
-                            fila["CORPORATIVO"]        = carro.corporativo === true ? "Sí" : (carro.corporativo === false ? "No" : "");
-                            fila["FUNCIONARIO CARRO"]  = carro.funcionario?.label || "";
-                            fila["ID FUNCIONARIO"]     = carro.funcionario?.value || "";
+        // Principal: aplana un registro según catálogo
+        function flattenRecordForExcel(json, campos, subformCatalogo) {
+            // Detecta el primer campo array
+            const arrayFieldName = Object.keys(json).find(
+                k => Array.isArray(json[k]) && json[k].length > 0 && typeof json[k][0] === "object"
+            );
+            const arrayData = json[arrayFieldName] || [];
+
+            // Encuentra info de subformulario (campos del sub)
+            const subformField = campos.find(c => c.nombre === arrayFieldName);
+            let subformFields = [];
+            if (subformField && subformField.subformulario) {
+                const subformDef = SUBFORMULARIOS_CATALOGO.find(sf => sf.value === subformField.subformulario);
+                if (subformDef) {
+                    subformFields = subformDef.fields;
+                }
+            }
+
+            // Campos planos principales (solo label, sin label/value)
+            const commonFields = Object.entries(json)
+                .filter(([k]) => k !== arrayFieldName)
+                .map(([k, v]) => {
+                    const label = getLabel(k, campos);
+                    if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
+                        // Por ejemplo: {label, value, siglasUnidad} → saca solo label
+                        if ('label' in v) {
+                            return [[label, v.label]];
                         } else {
-                            fila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
+                            // Saca el primer string si hay, o todo como JSON
+                            const val = Object.values(v).find(val => typeof val === "string") || JSON.stringify(v);
+                            return [[label, val]];
                         }
-                    });
-                    fila.Funcionario = r.nombreFuncionario
-                        ? `${r.nombreFuncionario} (${r.idFuncionario})`
-                        : r.idFuncionario;
-                    fila.Fecha = r.fechaRespuesta
-                        ? new Date(r.fechaRespuesta).toLocaleString()
-                        : "";
-                    rows.push(fila);
-                });
-            } else if (carros && typeof carros === "object") {
-                // Solo un objeto, no array
-                const carro = carros;
-                const fila = { "#": i + 1 };
-                campos.forEach((c) => {
-                    if (c.nombre === campoArrayNombre) {
-                        fila["SIGLA CARRO"]        = carro.siglaCarro || "";
-                        fila["TELEFONO CARRO"]     = carro.telefono || "";
-                        fila["CORPORATIVO"]        = carro.corporativo === true ? "Sí" : (carro.corporativo === false ? "No" : "");
-                        fila["FUNCIONARIO CARRO"]  = carro.funcionario?.label || "";
-                        fila["ID FUNCIONARIO"]     = carro.funcionario?.value || "";
                     } else {
-                        fila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
+                        return [[label, v]];
+                    }
+                })
+                .flat();
+
+            const commonObj = Object.fromEntries(commonFields);
+
+            if (!Array.isArray(arrayData) || arrayData.length === 0) {
+                return [commonObj];
+            }
+
+            // Subformulario: cada item del array es una fila (solo con label)
+            return arrayData.map(item => {
+                const flat = {};
+                Object.entries(item).forEach(([key, value]) => {
+                    const subLabel = getLabel(key, subformFields);
+                    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+                        // Por ejemplo funcionario: {label: "XX", ...} → solo label
+                        if ('label' in value) {
+                            flat[subLabel] = value.label;
+                        } else if ('nombreCompleto' in value) {
+                            flat[subLabel] = value.nombreCompleto;
+                        } else {
+                            // Saca el primer string, si existe
+                            const val = Object.values(value).find(val => typeof val === "string") || JSON.stringify(value);
+                            flat[subLabel] = val;
+                        }
+                    } else {
+                        flat[subLabel] = value;
                     }
                 });
+                return { ...commonObj, ...flat };
+            });
+        }
+
+        // --- Genera filas para Excel ---
+        let rows = [];
+        registrosMostrados.forEach((r, i) => {
+            const flatRows = flattenRecordForExcel(r.datos, campos, SUBFORMULARIOS_CATALOGO);
+            flatRows.forEach((fila) => {
                 fila.Funcionario = r.nombreFuncionario
                     ? `${r.nombreFuncionario} (${r.idFuncionario})`
                     : r.idFuncionario;
                 fila.Fecha = r.fechaRespuesta
-                    ? new Date(r.fechaRespuesta).toLocaleString()
+                    ? "'" + r.fechaRespuesta.replace("T", " ").split(".")[0]
                     : "";
+                console.log(fila.Fecha)
+                fila["#registro"] = i + 1;
                 rows.push(fila);
-            } else {
-                // Sin carro designado (ni array ni objeto)
-                const fila = { "#": i + 1 };
-                campos.forEach((c) => {
-                    fila[c.etiqueta || c.nombre] = toPlain(r.datos?.[c.nombre]);
-                });
-                fila.Funcionario = r.nombreFuncionario
-                    ? `${r.nombreFuncionario} (${r.idFuncionario})`
-                    : r.idFuncionario;
-                fila.Fecha = r.fechaRespuesta
-                    ? new Date(r.fechaRespuesta).toLocaleString()
-                    : "";
-                rows.push(fila);
-            }
+            });
         });
 
-        // Opcional: Elimina la columna original de CARRO DESIGNADO si no quieres que salga la versión en JSON
-        rows = rows.map(row => {
-            const newRow = { ...row };
-            delete newRow["CARRO DESIGNADO"];
-            return newRow;
-        });
-
+        // --- Exportar con XLSX ---
         const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Registros");
@@ -228,6 +291,8 @@ export default function VistaRegistrosFormulario() {
             `registros_form${formularioId}.xlsx`
         );
     };
+
+
 
 
     const renderCell = (v) => {
@@ -325,8 +390,8 @@ export default function VistaRegistrosFormulario() {
                         {campos.map((c) => (
                             <th key={c.nombre}>{c.etiqueta || c.nombre}</th>
                         ))}
-                        <th>Ingresado por</th>
-                        <th>Fecha</th>
+                        {/*<th>Ingresado por</th>
+                        <th>Fecha</th>*/}
                         <th>Acciones</th>
                     </tr>
                     </thead>
@@ -347,7 +412,7 @@ export default function VistaRegistrosFormulario() {
                                 {campos.map((c) => (
                                     <td key={c.nombre}>{renderCell(r.datos?.[c.nombre])}</td>
                                 ))}
-                                <td>
+                                {/*<td>
                                     {r.nombreFuncionario
                                         ? `${r.nombreFuncionario} (${r.idFuncionario})`
                                         : r.idFuncionario}
@@ -356,7 +421,7 @@ export default function VistaRegistrosFormulario() {
                                     {r.fechaRespuesta
                                         ? new Date(r.fechaRespuesta).toLocaleString()
                                         : "-"}
-                                </td>
+                                </td>*/}
                                 <td>
                                     {/* EDITAR/ELIMINAR: solo el dueño puede */}
                                     {r.idFuncionario === user.idFuncionario && (
