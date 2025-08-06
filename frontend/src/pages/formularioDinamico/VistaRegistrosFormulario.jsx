@@ -22,10 +22,40 @@ import FormularioDinamico from "./FormularioDinamico";
 const doradoPDI = "#FFC700";
 const azulPDI   = "#17355A";
 
+const unidadesAutorizadas = [
+    "PMSUBDIPOL",
+    "PM JENACROF",
+    "PMJENADEP",
+    "PM JENADEMA",
+    "JENADECO",
+    "PMREPOME",
+    "PM ACA",
+    "PM IQQ",
+    "PM ATF",
+    "PMCOPIAP",
+    "PM SNA",
+    "PM VPO",
+    "PM RGA",
+    "PM TCA",
+    "PMCHN",
+    "PM COC",
+    "PM TCO",
+    "PM VDV",
+    "PM PMO",
+    "PM COY",
+    "PM PAR",
+    "PMSUBDICOR",
+    "PM JENAMIG",
+    "JENACO"
+]
+
+
 export default function VistaRegistrosFormulario() {
     const { state } = useLocation();
     const navigate  = useNavigate();
     const { user }  = useAuth();
+
+    console.log(user);
 
     /* ------------ params recibidos ------------ */
     const formularioId       = state?.formularioId;
@@ -424,7 +454,9 @@ export default function VistaRegistrosFormulario() {
                                 </td>*/}
                                 <td>
                                     {/* EDITAR/ELIMINAR: solo el dueño puede */}
-                                    {r.idFuncionario === user.idFuncionario && (
+                                    {(unidadesAutorizadas.some(planaMayor => user.siglasUnidad.includes(planaMayor)) || r.idFuncionario === user.idFuncionario)
+
+                                        /*r.idFuncionario === user.idFuncionario*/ && (
                                         <>
                                             <Button
                                                 size="sm"
