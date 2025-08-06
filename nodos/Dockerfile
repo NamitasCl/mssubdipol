@@ -1,8 +1,6 @@
 # Stage 1: Builder
-FROM amazoncorretto:21 AS builder
-USER root
+FROM maven:3.9.7-amazoncorretto-21 AS builder
 WORKDIR /app
-RUN apk update && apk add maven # Instala Maven
 COPY pom.xml .
 RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -B
 COPY src ./src
