@@ -221,10 +221,25 @@ export default function VistaRegistrosFormulario() {
         ];
 
         // Utilidad: busca label por nombre en catálogo
+        function normalizeKey(key) {
+            return key
+                .toLowerCase()
+                .replace(/\s+/g, "")
+                .replace(/_/g, "")
+                .replace(/-/g, "");
+        }
+
         function getLabel(name, camposCatalogo = []) {
-            const campo = camposCatalogo.find(f => f.nombre === name || f.etiqueta === name || f.name === name);
+            const normName = normalizeKey(name);
+            const campo = camposCatalogo.find(f =>
+                [f.nombre, f.etiqueta, f.name, f.label]
+                    .filter(Boolean)
+                    .map(normalizeKey)
+                    .includes(normName)
+            );
             return campo ? (campo.etiqueta || campo.label || campo.nombre || campo.name) : name;
         }
+
 
         // Principal: aplana un registro según catálogo
         function flattenRecordForExcel(json, campos, subformCatalogo) {
