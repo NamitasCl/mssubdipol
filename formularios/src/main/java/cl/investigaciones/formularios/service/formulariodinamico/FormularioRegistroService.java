@@ -194,9 +194,9 @@ public class FormularioRegistroService {
     public void eliminarRegistroPropio(Long registroId, Integer usuarioId) {
         FormularioRegistro registro = registroRepo.findById(registroId)
                 .orElseThrow(() -> new RuntimeException("Registro no encontrado"));
-        if (!registro.getIdFuncionario().equals(usuarioId)) {
+        /*if (!registro.getIdFuncionario().equals(usuarioId)) {
             throw new RuntimeException("No autorizado para eliminar este registro");
-        }
+        }*/
         registroRepo.delete(registro);
     }
 
