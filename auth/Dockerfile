@@ -1,7 +1,8 @@
 # Stage 1: Builder
 FROM amazoncorretto:21-alpine AS builder
+USER root
 WORKDIR /app
-RUN apk update && apk add maven # Install Maven
+RUN apk update && apk add maven
 COPY pom.xml .
 RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -B
 COPY src ./src
