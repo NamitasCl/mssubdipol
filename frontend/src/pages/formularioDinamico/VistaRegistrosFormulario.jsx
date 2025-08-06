@@ -32,7 +32,7 @@ const unidadesAutorizadas = [
     "PM ACA",
     "PM IQQ",
     "PM ATF",
-    "PMCOPIAP",
+    "PM COPIAP",
     "PM SNA",
     "PM VPO",
     "PM RGA",
