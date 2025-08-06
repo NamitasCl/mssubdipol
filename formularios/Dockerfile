@@ -1,4 +1,5 @@
 FROM amazoncorretto:21-alpine AS builder
+USER root
 WORKDIR /app
 RUN apk update && apk add maven # Install Maven
 COPY pom.xml .
