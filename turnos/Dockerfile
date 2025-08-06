@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM amazoncorretto:21-alpine AS builder
+FROM amazoncorretto:21 AS builder
 USER root
 WORKDIR /app
 RUN apk update && apk add maven # Install Maven
