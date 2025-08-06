@@ -139,9 +139,9 @@ public class FormularioRegistroService {
         FormularioRegistro reg = registroRepo.findById(registroId)
                 .orElseThrow(() -> new EntityNotFoundException("Registro no encontrado"));
 
-        if (!reg.getIdFuncionario().equals(usuarioId)) {
+        /*if (!reg.getIdFuncionario().equals(usuarioId)) {
             throw new SecurityException("No puede editar registros de otro usuario.");
-        }
+        }*/
 
         // Actualiza solo los campos editables (ejemplo: datos)
         reg.setDatos(dto.getDatos());
