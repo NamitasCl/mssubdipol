@@ -468,14 +468,12 @@ export default function VistaRegistrosFormulario() {
                                         : "-"}
                                 </td>*/}
                                 <td>
-                                    {/* EDITAR/ELIMINAR: solo el dueño puede */}
-                                    {(unidadesAutorizadas.some(planaMayor => user.siglasUnidad.includes(planaMayor)) || r.idFuncionario === user.idFuncionario)
-
-                                        /*r.idFuncionario === user.idFuncionario*/ && (
+                                    {(unidadesAutorizadas.some(planaMayor => user.siglasUnidad.includes(planaMayor)) || r.idFuncionario === user.idFuncionario) && (
                                         <>
                                             <Button
                                                 size="sm"
                                                 variant="warning"
+                                                style={{ minWidth: 90 }} // Puedes ajustar el valor
                                                 className="me-2"
                                                 onClick={() => {
                                                     setRegistroEdit(r);
@@ -487,6 +485,7 @@ export default function VistaRegistrosFormulario() {
                                             <Button
                                                 size="sm"
                                                 variant="danger"
+                                                style={{ minWidth: 90 }} // Igual que el anterior
                                                 onClick={() => handleEliminar(r)}
                                             >
                                                 Eliminar
@@ -494,6 +493,7 @@ export default function VistaRegistrosFormulario() {
                                         </>
                                     )}
                                 </td>
+
                             </tr>
                         ))
                     )}
