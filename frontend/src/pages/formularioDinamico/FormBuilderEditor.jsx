@@ -13,12 +13,10 @@ export const FIELD_TYPES = [
     { value: "number", label: "Número" },
     { value: "select", label: "Selección" },
     { value: "checkbox", label: "Checkbox" },
-    { value: "radio", label: "Radio" },
     { value: "date", label: "Fecha" },
     { value: "datetime-local", label: "Fecha y Hora" },
     { value: "funcionario", label: "Funcionario" },
-    { value: "unidad", label: "Unidad" },
-    { value: "repol", label: "Región Policial" },
+    { value: "unidad", label: "Regiones / Prefecturas / Unidades" },
     { value: "group", label: "Bloque/Subformulario" }
 ];
 
@@ -47,10 +45,25 @@ export const SUBFORMULARIOS_CATALOGO = [
         ]
     },
     {
-        value: "delitosAsociados",
-        label: "Delito asociado a la orden de detención",
+        value: "carrosConTripulacionServicio",
+        label: "Carro y detalle",
         fields: [
-            { id: 1001, name: "delito", label: "Sigla carro", type: "text" },
+            { id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text" },
+            { id: 1002, name: "corporativo", label: "Es carro corporativo", type: "checkbox" },
+            { id: 1003, name: "funcion carro", label: "Función del carro", type: "select", opciones: "DECRETOS,FISCALIZACIONES,OTRO"},
+            { id: 1004, name: "lugar", label: "Lugar", type: "text"},
+            { id: 1005, name: "fecha inicio", label: "Fecha y Hora inicio servicio", type: "datetime-local"},
+            { id: 1006, name: "fecha fin", label: "Fecha y Hora fin servicio", type: "datetime-local"},
+            { id: 1007, name: "funcionario uno", label: "Nombre funcionario uno", type: "funcionario" },
+            { id: 1007, name: "funcionario uno función", label: "Funcion dentro del carro", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
+            { id: 1010, name: "telefono funcionario uno", label: "Teléfono", type: "text"},
+            { id: 1008, name: "funcionario dos", label: "Nombre funcionario dos", type: "funcionario" },
+            { id: 1007, name: "funcionario dos función funcion", label: "Funcion dentro del carro", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
+            { id: 1010, name: "telefono funcionario dos", label: "Teléfono", type: "text"},
+            { id: 1009, name: "funcionario tres", label: "Nombre funcionario tres", type: "funcionario" },
+            { id: 1007, name: "funcionario tres función", label: "Funcion dentro del carro", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
+            { id: 1010, name: "telefono funcionario tres", label: "Teléfono", type: "text"},
+            { id: 1010, name: "observaciones", label: "observaciones", type: "text"},
         ]
     }
 ];

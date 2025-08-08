@@ -139,9 +139,9 @@ public class FormularioRegistroService {
         FormularioRegistro reg = registroRepo.findById(registroId)
                 .orElseThrow(() -> new EntityNotFoundException("Registro no encontrado"));
 
-        if (!reg.getIdFuncionario().equals(usuarioId)) {
+        /*if (!reg.getIdFuncionario().equals(usuarioId)) {
             throw new SecurityException("No puede editar registros de otro usuario.");
-        }
+        }*/
 
         // Actualiza solo los campos editables (ejemplo: datos)
         reg.setDatos(dto.getDatos());
@@ -194,9 +194,9 @@ public class FormularioRegistroService {
     public void eliminarRegistroPropio(Long registroId, Integer usuarioId) {
         FormularioRegistro registro = registroRepo.findById(registroId)
                 .orElseThrow(() -> new RuntimeException("Registro no encontrado"));
-        if (!registro.getIdFuncionario().equals(usuarioId)) {
+        /*if (!registro.getIdFuncionario().equals(usuarioId)) {
             throw new RuntimeException("No autorizado para eliminar este registro");
-        }
+        }*/
         registroRepo.delete(registro);
     }
 
