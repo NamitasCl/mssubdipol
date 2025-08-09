@@ -405,7 +405,7 @@ export default function VistaRegistrosFormulario() {
         );
 
     return (
-        <div className="container py-4">
+        <div className="container-fluid py-4">
             {/* ---------------- Buttons top ---------------- */}
             <div className="d-flex justify-content-end gap-2 mb-2">
                 <Button variant="outline-secondary" onClick={() => navigate(-1)}>
@@ -430,14 +430,26 @@ export default function VistaRegistrosFormulario() {
             ) : (
                 <Table bordered hover responsive size="sm">
                     <thead>
-                    <tr style={{ background: doradoPDI }}>
-                        <th>#</th>
+                    <tr>
+                        <th style={{ height: 60 }}>
+                            <div style={{height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                #
+                            </div>
+                        </th>
                         {campos.map((c) => (
-                            <th key={c.nombre}>{c.etiqueta || c.nombre}</th>
+                            <th key={c.nombre} style={{ height: 60, textAlign: 'center' }}>
+                                <div style={{height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                    {c.etiqueta || c.nombre}
+                                </div>
+                            </th>
                         ))}
                         {/*<th>Ingresado por</th>
                         <th>Fecha</th>*/}
-                        <th>Acciones</th>
+                        <th style={{ height: 60 }}>
+                            <div style={{height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                Acciones
+                            </div>
+                        </th>
                     </tr>
                     </thead>
                     <tbody>
@@ -453,9 +465,17 @@ export default function VistaRegistrosFormulario() {
                     ) : (
                         registrosMostrados.map((r, i) => (
                             <tr key={r.id}>
-                                <td>{i + 1}</td>
+                                <td style={{ height: '50px'}}>
+                                    <div style={{height: '100%', display: 'flex', alignItems: 'center'}}>
+                                        {i + 1}
+                                    </div>
+                                </td>
                                 {campos.map((c) => (
-                                    <td key={c.nombre}>{renderCell(r.datos?.[c.nombre])}</td>
+                                    <td style={{height: '50px'}} key={c.nombre}>
+                                        <div style={{height:'100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                            {renderCell(r.datos?.[c.nombre])}
+                                        </div>
+                                    </td>
                                 ))}
                                 {/*<td>
                                     {r.nombreFuncionario
@@ -467,9 +487,9 @@ export default function VistaRegistrosFormulario() {
                                         ? new Date(r.fechaRespuesta).toLocaleString()
                                         : "-"}
                                 </td>*/}
-                                <td>
+                                <td style={{ height: '50px'}}>
                                     {(unidadesAutorizadas.some(planaMayor => user.siglasUnidad.includes(planaMayor)) || r.idFuncionario === user.idFuncionario) && (
-                                        <>
+                                        <div style={{height:'100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                                             <Button
                                                 size="sm"
                                                 variant="warning"
@@ -490,7 +510,7 @@ export default function VistaRegistrosFormulario() {
                                             >
                                                 Eliminar
                                             </Button>
-                                        </>
+                                        </div>
                                     )}
                                 </td>
 
@@ -546,6 +566,7 @@ export default function VistaRegistrosFormulario() {
                 show={showEditModal}
                 onHide={() => setShowEditModal(false)}
                 centered
+                size={'lg'}
             >
                 <Modal.Header closeButton>
                     <Modal.Title>Editar Registro</Modal.Title>
