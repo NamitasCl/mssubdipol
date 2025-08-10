@@ -9,4 +9,5 @@ import lombok.Setter;
 public class CupoServicioPlantillaDTO {
     private RolServicio rol;
     private int cantidad;
+    private boolean puedeConducir;
 }

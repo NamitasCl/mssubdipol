@@ -16,4 +16,5 @@ public class CupoServicioPlantilla {
     @Enumerated(EnumType.STRING)
     private RolServicio rol;      // Ej: Encargado, Ayudante
     private int cantidad;    // Ej: 1 encargado, 2 ayudantes
+    private boolean puedeConducir;
 }

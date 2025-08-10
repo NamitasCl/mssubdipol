@@ -14,7 +14,17 @@ const defaultRoles = [
     { value: "JEFE_DE_RONDA", label: "Jefe de ronda" },
     { value: "GUARDIA_ARMADO", label: "Guardia armado" },
     { value: "REFUERZO_DE_GUARDIA", label: "Refuerzo de guardia" },
+    { value: "CHOFER", label: "Chofer" }
 ];
+
+// Arriba en tu componente o incluso en un archivo aparte:
+const opcionesTurno = [
+    { value: "JEFE_DE_SERVICIO", label: "Jefe de Servicio" },
+    { value: "GUARDIA", label: "Guardia" },
+    { value: "PROCEPOL", label: "Procepol" },
+    { value: "RONDA", label: "Ronda" }
+];
+
 
 export default function PlantillaTurnoBuilder() {
     const [nombre, setNombre] = useState("");
@@ -60,6 +70,28 @@ export default function PlantillaTurnoBuilder() {
             },
         ]);
     };
+    const addServicioCarro = () => {
+        setServicios(prev => ([
+            ...prev,
+            {
+                nombreServicio: "Carro policial",
+                turno: "",
+                horaInicio: "",
+                horaFin: "",
+                recintos: [{ nombre: "", orden: 1 }],
+                cupos: [
+                    { rol: "JEFE_DE_MAQUINA", cantidad: 1, puedeConducir: false },
+                    { rol: "TRIPULANTE", cantidad: 2, puedeConducir: false }, // uno de estos podría ser conductor
+                    // O si quieres “tripulante y chofer” explícitos:
+                    // { rol: "TRIPULANTE", cantidad: 1, puedeConducir: false },
+                    // { rol: "CHOFER", cantidad: 1, puedeConducir: true },
+                ],
+                _esCarro: true, // flag de UI para validación especial
+            }
+        ]));
+    };
+
+
 
     const updateServicio = (index, field, value) => {
         const updated = [...servicios];
@@ -69,7 +101,7 @@ export default function PlantillaTurnoBuilder() {
 
     const addCupo = (servicioIndex) => {
         const updated = [...servicios];
-        updated[servicioIndex].cupos.push({ rol: "", cantidad: 1 });
+        updated[servicioIndex].cupos.push({ rol: "", cantidad: 1, puedeConducir: false });
         setServicios(updated);
     };
 
@@ -100,11 +132,50 @@ export default function PlantillaTurnoBuilder() {
             }
         }
 
+        for (const [i, s] of servicios.entries()) {
+            if (s._esCarro) {
+                const total = (s.cupos || []).reduce((acc, c) => acc + (Number(c.cantidad) || 0), 0);
+                const jefe = (s.cupos || []).find(c => c.rol === "JEFE_DE_MAQUINA");
+                const cantJefe = jefe ? Number(jefe.cantidad) : 0;
+
+                // ¿Hay al menos un conductor? (CHOFER o alguien marcado como puedeConducir)
+                const hayConductor = (s.cupos || []).some(c =>
+                    c.rol === "CHOFER" || Boolean(c.puedeConducir)
+                );
+
+                if (total !== 3) {
+                    alert(`Servicio CARRO #${i + 1}: Debe tener exactamente 3 personas.`);
+                    return;
+                }
+                if (cantJefe !== 1) {
+                    alert(`Servicio CARRO #${i + 1}: Debe haber exactamente 1 JEFE_DE_MAQUINA.`);
+                    return;
+                }
+                if (!hayConductor) {
+                    alert(`Servicio CARRO #${i + 1}: Debe haber al menos un conductor (Chofer o alguien que pueda conducir).`);
+                    return;
+                }
+            }
+        }
+
+
         const payload = {
             nombre,
             descripcion,
-            servicios,
+            servicios: servicios.map(s => ({
+                nombreServicio: s.nombreServicio,
+                turno: s.turno,
+                horaInicio: s.horaInicio,
+                horaFin: s.horaFin,
+                recintos: s.recintos,
+                cupos: s.cupos.map(c => ({
+                    rol: c.rol,
+                    cantidad: c.cantidad,
+                    puedeConducir: !!c.puedeConducir,
+                })),
+            })),
         };
+
         console.log("Plantilla creada:", payload);
         try {
             await crearPlantilla(payload);
@@ -147,8 +218,9 @@ export default function PlantillaTurnoBuilder() {
                     {servicios.map((servicio, idx) => (
                         <Card className="mb-3 p-3" key={idx}>
                             <h5>Servicio #{idx + 1}</h5>
-                            <Row>
-                                <Col md={6}>
+
+                            <Row className="g-2">
+                                <Col md={5}>
                                     <Form.Group className="mb-2">
                                         <Form.Label>Nombre del Servicio</Form.Label>
                                         <Form.Control
@@ -157,16 +229,25 @@ export default function PlantillaTurnoBuilder() {
                                         />
                                     </Form.Group>
                                 </Col>
+
                                 <Col md={3}>
                                     <Form.Group className="mb-2">
                                         <Form.Label>Turno</Form.Label>
-                                        <Form.Control
+                                        <Form.Select
                                             value={servicio.turno}
                                             onChange={(e) => updateServicio(idx, "turno", e.target.value)}
-                                        />
+                                        >
+                                            <option value="">Seleccione opción</option>
+                                            {opcionesTurno.map(op => (
+                                                <option key={op.value} value={op.value}>
+                                                    {op.label}
+                                                </option>
+                                            ))}
+                                        </Form.Select>
                                     </Form.Group>
                                 </Col>
-                                <Col md={3}>
+
+                                <Col md={2}>
                                     <Form.Group className="mb-2">
                                         <Form.Label>Hora Inicio</Form.Label>
                                         <Form.Control
@@ -176,7 +257,8 @@ export default function PlantillaTurnoBuilder() {
                                         />
                                     </Form.Group>
                                 </Col>
-                                <Col md={3}>
+
+                                <Col md={2}>
                                     <Form.Group className="mb-2">
                                         <Form.Label>Hora Fin</Form.Label>
                                         <Form.Control
@@ -233,7 +315,16 @@ export default function PlantillaTurnoBuilder() {
                                     <Col md={5}>
                                         <Form.Select
                                             value={cupo.rol}
-                                            onChange={(e) => updateCupo(idx, cIdx, "rol", e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                // Si elige CHOFER, forzamos puedeConducir = true
+                                                const updated = [...servicios];
+                                                updated[idx].cupos[cIdx].rol = value;
+                                                if (value === "CHOFER") {
+                                                    updated[idx].cupos[cIdx].puedeConducir = true;
+                                                }
+                                                setServicios(updated);
+                                            }}
                                         >
                                             <option value="">Seleccione rol</option>
                                             {defaultRoles.map((rol) => (
@@ -243,6 +334,7 @@ export default function PlantillaTurnoBuilder() {
                                             ))}
                                         </Form.Select>
                                     </Col>
+
                                     <Col md={3}>
                                         <Form.Control
                                             type="number"
@@ -251,7 +343,18 @@ export default function PlantillaTurnoBuilder() {
                                             onChange={(e) => updateCupo(idx, cIdx, "cantidad", parseInt(e.target.value))}
                                         />
                                     </Col>
-                                    <Col md={2}>
+
+                                    <Col md={3}>
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Puede conducir"
+                                            checked={!!cupo.puedeConducir}
+                                            disabled={cupo.rol === "CHOFER"} // CHOFER siempre conduce
+                                            onChange={(e) => updateCupo(idx, cIdx, "puedeConducir", e.target.checked)}
+                                        />
+                                    </Col>
+
+                                    <Col md={1}>
                                         <Button variant="danger" size="sm" onClick={() => removeCupo(idx, cIdx)}>
                                             Eliminar
                                         </Button>
@@ -264,13 +367,11 @@ export default function PlantillaTurnoBuilder() {
                         </Card>
                     ))}
 
-                    <Button className="me-2" onClick={addServicio}>
-                        + Agregar Servicio
+                    <Button className="me-2" onClick={addServicio}>+ Agregar Servicio</Button>
+                    <Button className="me-2" variant="outline-primary" onClick={addServicioCarro}>
+                        + Agregar servicio CARRO (3 plazas)
                     </Button>
-
-                    <Button variant="primary" onClick={handleSubmit}>
-                        Guardar Plantilla
-                    </Button>
+                    <Button variant="primary" onClick={handleSubmit}>Guardar Plantilla</Button>
                 </Form>
             </Card>
         </Container>
