@@ -29,7 +29,7 @@ public class PlantillaTurnoMapper {
     public static ServicioPlantilla toServicioEntity(ServicioPlantillaDTO dto) {
         ServicioPlantilla entity = new ServicioPlantilla();
         entity.setNombreServicio(dto.getNombreServicio());
-        entity.setTurno(dto.getTurno());
+        entity.setTipoServicio(dto.getTipoServicio());
         entity.setHoraInicio(dto.getHoraInicio());
         entity.setHoraFin(dto.getHoraFin());
 
@@ -84,7 +84,7 @@ public class PlantillaTurnoMapper {
     public static ServicioPlantillaDTO toServicioDto(ServicioPlantilla entity) {
         ServicioPlantillaDTO dto = new ServicioPlantillaDTO();
         dto.setNombreServicio(entity.getNombreServicio());
-        dto.setTurno(entity.getTurno());
+        dto.setTipoServicio(entity.getTipoServicio());
         dto.setHoraInicio(entity.getHoraInicio());
         dto.setHoraFin(entity.getHoraFin());
 

@@ -6,6 +6,10 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entidad inicial para crear plantillas de turnos.
+ * */
+
 @Entity
 @Table(name = "plantilla_turno")
 @Data

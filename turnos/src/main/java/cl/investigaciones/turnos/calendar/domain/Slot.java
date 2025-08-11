@@ -1,10 +1,12 @@
 package cl.investigaciones.turnos.calendar.domain;
 
 import cl.investigaciones.turnos.plantilla.domain.RolServicio;
+import cl.investigaciones.turnos.plantilla.domain.TipoServicio;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "slot")
@@ -20,6 +22,13 @@ public class Slot {
     private String nombreServicio;
 
     @Enumerated(EnumType.STRING)
+    private TipoServicio tipoServicio;
+
+    private LocalTime horaInicio;
+    private LocalTime horaFin;
+
+
+    @Enumerated(EnumType.STRING)
     private RolServicio rolRequerido;
 
     private String recinto; // opcional: si quieres diferenciar por cantidadRecintos
@@ -31,5 +40,9 @@ public class Slot {
     private String nombreFuncionario; // se rellena más tarde
     private Integer antiguedadFuncionario; // se rellena más tarde
     private String siglasUnidadFuncionario; // se rellena más tarde
+    private Boolean puedeConducir = false; // se rellena más tarde
+
+    // Vehículo que se utilizará en el servicio
+    private String siglaCarroServicio;
 }
 

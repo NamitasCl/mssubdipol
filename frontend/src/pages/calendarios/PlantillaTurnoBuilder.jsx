@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Form, Button, Card, Col, Row, InputGroup, Container } from "react-bootstrap";
 import { crearPlantilla } from "../../api/plantillaApi.js";
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/flatpickr.css';              // base
+import 'flatpickr/dist/themes/airbnb.css';
 
 const defaultRoles = [
     { value: "JEFE_DE_SERVICIO", label: "Jefe de Servicio" },
@@ -18,7 +21,7 @@ const defaultRoles = [
 ];
 
 // Arriba en tu componente o incluso en un archivo aparte:
-const opcionesTurno = [
+const opcionestipoServicio = [
     { value: "JEFE_DE_SERVICIO", label: "Jefe de Servicio" },
     { value: "GUARDIA", label: "Guardia" },
     { value: "PROCEPOL", label: "Procepol" },
@@ -26,7 +29,7 @@ const opcionesTurno = [
 ];
 
 
-export default function PlantillaTurnoBuilder() {
+export default function PlantillatipoServicioBuilder() {
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [servicios, setServicios] = useState([]);
@@ -62,7 +65,9 @@ export default function PlantillaTurnoBuilder() {
             ...servicios,
             {
                 nombreServicio: "",
-                turno: "",
+                tipoServicio: "",
+                rondaCantidadSemana: 0,
+                rondaCantidadFds: 0,
                 horaInicio: "",
                 horaFin: "",
                 cupos: [],
@@ -70,28 +75,6 @@ export default function PlantillaTurnoBuilder() {
             },
         ]);
     };
-    const addServicioCarro = () => {
-        setServicios(prev => ([
-            ...prev,
-            {
-                nombreServicio: "Carro policial",
-                turno: "",
-                horaInicio: "",
-                horaFin: "",
-                recintos: [{ nombre: "", orden: 1 }],
-                cupos: [
-                    { rol: "JEFE_DE_MAQUINA", cantidad: 1, puedeConducir: false },
-                    { rol: "TRIPULANTE", cantidad: 2, puedeConducir: false }, // uno de estos podría ser conductor
-                    // O si quieres “tripulante y chofer” explícitos:
-                    // { rol: "TRIPULANTE", cantidad: 1, puedeConducir: false },
-                    // { rol: "CHOFER", cantidad: 1, puedeConducir: true },
-                ],
-                _esCarro: true, // flag de UI para validación especial
-            }
-        ]));
-    };
-
-
 
     const updateServicio = (index, field, value) => {
         const updated = [...servicios];
@@ -99,9 +82,19 @@ export default function PlantillaTurnoBuilder() {
         setServicios(updated);
     };
 
+    const removeServicio = (index) => {
+        /*if (servicios.length <= 1) {
+            alert("Debe existir al menos un servicio.");
+            return;
+        }*/
+        if (!window.confirm("¿Eliminar este servicio?")) return;
+        setServicios(prev => prev.filter((_, i) => i !== index));
+    };
+
+
     const addCupo = (servicioIndex) => {
         const updated = [...servicios];
-        updated[servicioIndex].cupos.push({ rol: "", cantidad: 1, puedeConducir: false });
+        updated[servicioIndex].cupos.push({ rol: "", cantidad: 1 });
         setServicios(updated);
     };
 
@@ -120,58 +113,40 @@ export default function PlantillaTurnoBuilder() {
     const handleSubmit = async () => {
         // Valida que todos los recintos tengan nombre
         for (const [i, servicio] of servicios.entries()) {
-            if (!servicio.recintos || servicio.recintos.length === 0) {
-                alert(`Debes agregar al menos un recinto en el Servicio #${i + 1}`);
-                return;
-            }
-            for (const [j, recinto] of servicio.recintos.entries()) {
-                if (!recinto.nombre || !recinto.nombre.trim()) {
-                    alert(`El recinto #${j + 1} en el Servicio #${i + 1} debe tener un nombre.`);
+            if (servicio.tipoServicio === "RONDA") {
+                if ((servicio.rondaCantidadSemana ?? 0) < 1 || (servicio.rondaCantidadFds ?? 0) < 1) {
+                    alert(`Servicio RONDA #${i + 1}: define cantidades ≥ 1 para semana y fin de semana.`);
                     return;
                 }
             }
-        }
-
-        for (const [i, s] of servicios.entries()) {
-            if (s._esCarro) {
-                const total = (s.cupos || []).reduce((acc, c) => acc + (Number(c.cantidad) || 0), 0);
-                const jefe = (s.cupos || []).find(c => c.rol === "JEFE_DE_MAQUINA");
-                const cantJefe = jefe ? Number(jefe.cantidad) : 0;
-
-                // ¿Hay al menos un conductor? (CHOFER o alguien marcado como puedeConducir)
-                const hayConductor = (s.cupos || []).some(c =>
-                    c.rol === "CHOFER" || Boolean(c.puedeConducir)
-                );
-
-                if (total !== 3) {
-                    alert(`Servicio CARRO #${i + 1}: Debe tener exactamente 3 personas.`);
+            if (servicio.tipoServicio !== "RONDA") {
+                if (!servicio.recintos || servicio.recintos.length === 0) {
+                    alert(`Debes agregar al menos un recinto en el Servicio #${i + 1}`);
                     return;
                 }
-                if (cantJefe !== 1) {
-                    alert(`Servicio CARRO #${i + 1}: Debe haber exactamente 1 JEFE_DE_MAQUINA.`);
-                    return;
-                }
-                if (!hayConductor) {
-                    alert(`Servicio CARRO #${i + 1}: Debe haber al menos un conductor (Chofer o alguien que pueda conducir).`);
-                    return;
+                for (const [j, recinto] of servicio.recintos.entries()) {
+                    if (!recinto.nombre || !recinto.nombre.trim()) {
+                        alert(`El recinto #${j + 1} en el Servicio #${i + 1} debe tener un nombre.`);
+                        return;
+                    }
                 }
             }
         }
-
 
         const payload = {
             nombre,
             descripcion,
             servicios: servicios.map(s => ({
                 nombreServicio: s.nombreServicio,
-                turno: s.turno,
+                tipoServicio: s.tipoServicio,
                 horaInicio: s.horaInicio,
+                rondaCantidadSemana: s.rondaCantidadSemana ?? 0,
+                rondaCantidadFds: s.rondaCantidadFds ?? 0,
                 horaFin: s.horaFin,
                 recintos: s.recintos,
                 cupos: s.cupos.map(c => ({
                     rol: c.rol,
-                    cantidad: c.cantidad,
-                    puedeConducir: !!c.puedeConducir,
+                    cantidad: c.cantidad
                 })),
             })),
         };
@@ -192,7 +167,7 @@ export default function PlantillaTurnoBuilder() {
     return (
         <Container style={{ width: 1200 }}>
             <Card className="p-4">
-                <h3>Crear Plantilla de Turno</h3>
+                <h3>Crear Plantilla de Servicio</h3>
                 <Form>
                     <Form.Group className="mb-3">
                         <Form.Label>Nombre de la plantilla</Form.Label>
@@ -217,7 +192,16 @@ export default function PlantillaTurnoBuilder() {
 
                     {servicios.map((servicio, idx) => (
                         <Card className="mb-3 p-3" key={idx}>
-                            <h5>Servicio #{idx + 1}</h5>
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <h5 className="mb-0">Servicio #{idx + 1}</h5>
+                                <Button
+                                    variant="outline-danger"
+                                    size="sm"
+                                    onClick={() => removeServicio(idx)}
+                                >
+                                    Eliminar servicio
+                                </Button>
+                            </div>
 
                             <Row className="g-2">
                                 <Col md={5}>
@@ -232,13 +216,13 @@ export default function PlantillaTurnoBuilder() {
 
                                 <Col md={3}>
                                     <Form.Group className="mb-2">
-                                        <Form.Label>Turno</Form.Label>
+                                        <Form.Label>Tipo de servicio</Form.Label>
                                         <Form.Select
-                                            value={servicio.turno}
-                                            onChange={(e) => updateServicio(idx, "turno", e.target.value)}
+                                            value={servicio.tipoServicio}
+                                            onChange={(e) => updateServicio(idx, "tipoServicio", e.target.value)}
                                         >
                                             <option value="">Seleccione opción</option>
-                                            {opcionesTurno.map(op => (
+                                            {opcionestipoServicio.map(op => (
                                                 <option key={op.value} value={op.value}>
                                                     {op.label}
                                                 </option>
@@ -250,79 +234,141 @@ export default function PlantillaTurnoBuilder() {
                                 <Col md={2}>
                                     <Form.Group className="mb-2">
                                         <Form.Label>Hora Inicio</Form.Label>
-                                        <Form.Control
-                                            type="time"
+                                        <Flatpickr
+                                            options={{
+                                                enableTime: true,
+                                                noCalendar: true,
+                                                dateFormat: "H:i",
+                                                time_24hr: true
+                                            }}
                                             value={servicio.horaInicio}
-                                            onChange={(e) => updateServicio(idx, "horaInicio", e.target.value)}
+                                            onChange={([dt]) => {
+                                                if (!dt) { updateServicio(idx, "horaInicio", ""); return; }
+                                                const hh = String(dt.getHours()).padStart(2,'0');
+                                                const mm = String(dt.getMinutes()).padStart(2,'0');
+                                                updateServicio(idx, "horaInicio", `${hh}:${mm}`);
+                                            }}
+                                            className="form-control"
                                         />
+
                                     </Form.Group>
                                 </Col>
 
                                 <Col md={2}>
                                     <Form.Group className="mb-2">
                                         <Form.Label>Hora Fin</Form.Label>
-                                        <Form.Control
-                                            type="time"
+                                        <Flatpickr
+                                            options={{
+                                                enableTime: true,
+                                                noCalendar: true,
+                                                dateFormat: "H:i",
+                                                time_24hr: true
+                                            }}
                                             value={servicio.horaFin}
-                                            onChange={(e) => updateServicio(idx, "horaFin", e.target.value)}
+                                            onChange={([dt]) => {
+                                                // dt es un Date; lo pasamos a "HH:mm" para tu backend (LocalTime)
+                                                if (!dt) { updateServicio(idx, "horaFin", ""); return; }
+                                                const hh = String(dt.getHours()).padStart(2,'0');
+                                                const mm = String(dt.getMinutes()).padStart(2,'0');
+                                                updateServicio(idx, "horaFin", `${hh}:${mm}`);
+                                            }}
+                                            className="form-control"
                                         />
                                     </Form.Group>
                                 </Col>
                             </Row>
 
-                            <h6 className="mt-3">Recintos</h6>
-                            {servicio.recintos?.map((recinto, rIdx) => (
-                                <Row key={rIdx} className="mb-2 align-items-center">
-                                    <Col md={8}>
-                                        <Form.Control
-                                            value={recinto.nombre}
-                                            placeholder={`Nombre recinto #${rIdx + 1}`}
-                                            onChange={e => updateRecinto(idx, rIdx, "nombre", e.target.value)}
-                                        />
-                                    </Col>
-                                    <Col md={2}>
-                                        <Form.Control
-                                            type="number"
-                                            value={recinto.orden}
-                                            min={1}
-                                            readOnly
-                                        />
-                                    </Col>
-                                    <Col md={2}>
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            onClick={() => removeRecinto(idx, rIdx)}
-                                            disabled={servicio.recintos.length === 1}
-                                        >
-                                            Eliminar
-                                        </Button>
-                                    </Col>
-                                </Row>
-                            ))}
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                className="mb-2"
-                                onClick={() => addRecinto(idx)}
-                            >
-                                + Agregar Recinto
-                            </Button>
+                            {servicio.tipoServicio !== "RONDA" && (
+                                <>
+                                    <h6 className="mt-3">Recintos</h6>
+                                    {servicio.recintos?.map((recinto, rIdx) => (
+                                        <Row key={rIdx} className="mb-2 align-items-center">
+                                            <Col md={3}>
+                                                <Form.Control
+                                                    value={recinto.nombre}
+                                                    placeholder={`Nombre recinto #${rIdx + 1}`}
+                                                    onChange={(e) =>
+                                                        updateRecinto(idx, rIdx, "nombre", e.target.value)
+                                                    }
+                                                />
+                                            </Col>
+                                            <Col md={1}>
+                                                <Form.Control
+                                                    type="number"
+                                                    value={recinto.orden}
+                                                    min={1}
+                                                    readOnly
+                                                />
+                                            </Col>
+                                            <Col md={2}>
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    onClick={() => removeRecinto(idx, rIdx)}
+                                                    disabled={servicio.recintos.length === 1}
+                                                >
+                                                    Eliminar
+                                                </Button>
+                                            </Col>
+                                        </Row>
+                                    ))}
+
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        className="mb-2"
+                                        onClick={() => addRecinto(idx)}
+                                    >
+                                        + Agregar Recinto
+                                    </Button>
+                                </>
+                            )}
+
+                            {servicio.tipoServicio === "RONDA" && (
+                                <>
+                                    <Row className="mt-2 mb-2">
+                                        <Col md={4}>
+                                            <Form.Group>
+                                                <Form.Label>Cantidad de funcionarios Lunes a Viernes</Form.Label>
+                                                <Form.Control
+                                                    type={"number"}
+                                                    min={1}
+                                                    style={{width: "30%"}}
+                                                    value={servicio.rondaCantidadSemana}
+                                                    onChange={(e) => updateServicio(idx, "rondaCantidadSemana", Number(e.target.value))}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                        <Col md={4}>
+                                            <Form.Group>
+                                                <Form.Label>Cantidad de funcionarios Sabados y Domingos</Form.Label>
+                                                <Form.Control
+                                                    type={"number"}
+                                                    min={1}
+                                                    style={{width: "30%"}}
+                                                    value={servicio.rondaCantidadFds}
+                                                    onChange={(e) => updateServicio(idx, "rondaCantidadFds", Number(e.target.value))}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                </>
+
+                            )}
+
 
                             <h6 className="mt-3">Cupos por Rol</h6>
                             {servicio.cupos.map((cupo, cIdx) => (
                                 <Row key={cIdx} className="mb-2 align-items-center">
-                                    <Col md={5}>
+                                    <Col md={3}>
                                         <Form.Select
                                             value={cupo.rol}
                                             onChange={(e) => {
                                                 const value = e.target.value;
-                                                // Si elige CHOFER, forzamos puedeConducir = true
                                                 const updated = [...servicios];
                                                 updated[idx].cupos[cIdx].rol = value;
-                                                if (value === "CHOFER") {
-                                                    updated[idx].cupos[cIdx].puedeConducir = true;
-                                                }
                                                 setServicios(updated);
                                             }}
                                         >
@@ -335,7 +381,7 @@ export default function PlantillaTurnoBuilder() {
                                         </Form.Select>
                                     </Col>
 
-                                    <Col md={3}>
+                                    <Col md={1}>
                                         <Form.Control
                                             type="number"
                                             min={1}
@@ -343,17 +389,6 @@ export default function PlantillaTurnoBuilder() {
                                             onChange={(e) => updateCupo(idx, cIdx, "cantidad", parseInt(e.target.value))}
                                         />
                                     </Col>
-
-                                    <Col md={3}>
-                                        <Form.Check
-                                            type="checkbox"
-                                            label="Puede conducir"
-                                            checked={!!cupo.puedeConducir}
-                                            disabled={cupo.rol === "CHOFER"} // CHOFER siempre conduce
-                                            onChange={(e) => updateCupo(idx, cIdx, "puedeConducir", e.target.checked)}
-                                        />
-                                    </Col>
-
                                     <Col md={1}>
                                         <Button variant="danger" size="sm" onClick={() => removeCupo(idx, cIdx)}>
                                             Eliminar
@@ -368,9 +403,6 @@ export default function PlantillaTurnoBuilder() {
                     ))}
 
                     <Button className="me-2" onClick={addServicio}>+ Agregar Servicio</Button>
-                    <Button className="me-2" variant="outline-primary" onClick={addServicioCarro}>
-                        + Agregar servicio CARRO (3 plazas)
-                    </Button>
                     <Button variant="primary" onClick={handleSubmit}>Guardar Plantilla</Button>
                 </Form>
             </Card>

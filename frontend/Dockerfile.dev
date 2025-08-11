@@ -1,21 +1,17 @@
 # Dockerfile.dev
-FROM node:18-alpine
-
-# Crear directorio de trabajo
+FROM node:20-alpine
 WORKDIR /app
 
-# Copiar solo package.json y lock para cachear deps
-COPY package.json ./
-# COPY package-lock.json ./   ← solo si lo usas
+# copia lock + package para cache estable
+COPY package*.json ./
+RUN npm ci   # usa el lock exacto (mejor que npm install)
 
-# Instalar dependencias
-RUN npm install
-
-# Copiar todo el código (podrías omitir esto y usar bind mount)
+# copia el resto del código
 COPY . .
 
-# Exponer puerto de Vite
-EXPOSE 5173
+# (opcional) usuario no-root
+# RUN adduser -D appuser && chown -R appuser:appuser /app
+# USER appuser
 
-# Comando por defecto (modo desarrollo)
-CMD ["npm", "run", "dev"]
+EXPOSE 5173
+CMD ["npm","run","dev","--","--host"]

@@ -106,7 +106,8 @@ const restriccionesDisponibles = [
 
 const tipos = [
     { value: "UNIDAD", label: "Unidad" },
-    { value: "COMPLEJO", label: "Complejo" }
+    { value: "COMPLEJO", label: "Complejo" },
+    { value: "RONDA", label: "Servicio de Ronda" },
 ];
 
 export default function GestionTurnosPage({ onSeleccionar }) {
@@ -371,9 +372,9 @@ export default function GestionTurnosPage({ onSeleccionar }) {
 
                                     <Form.Group style={{ width: 600 }}>
                                         <Form.Label>
-                                            {form.tipo === "COMPLEJO" ? "Nombre Complejo" : "Unidad"}
+                                            {form.tipo === "COMPLEJO" ? "Nombre Complejo": form.tipo === "UNIDAD" ? "Unidad" : ""}
                                         </Form.Label>
-                                        {form.tipo === "COMPLEJO" ? (
+                                        {form.tipo === "COMPLEJO" && (
                                             <Form.Control
                                                 name="nombreComplejo"
                                                 value={form.nombreComplejo}
@@ -381,8 +382,12 @@ export default function GestionTurnosPage({ onSeleccionar }) {
                                                 placeholder="Escribe el nombre del complejo"
                                                 required
                                             />
-                                        ) : (
+                                        )}
+                                        {form.tipo === "UNIDAD" && (
                                             <UnidadSelect value={unidadSeleccionada} onChange={handleUnidadChange} />
+                                        )}
+                                        {form.tipo === "RONDA" && (
+                                            ""
                                         )}
                                     </Form.Group>
                                 </Col>

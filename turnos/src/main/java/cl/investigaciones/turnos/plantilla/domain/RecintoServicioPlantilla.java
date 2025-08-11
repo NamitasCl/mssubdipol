@@ -4,6 +4,12 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+
+/**
+ * Entidad que representa la ubicación (recinto)
+ * En un lugar fisico pueden existir varios lugares donde se presta un servicio
+ * Ej.: En un edificio pueden existir varios recintos (Frontis, Principal, Estacionamiento, etc.)
+ * */
 @Entity
 @Table(name = "recinto_servicio_plantilla")
 @Getter

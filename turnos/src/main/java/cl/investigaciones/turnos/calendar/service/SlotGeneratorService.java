@@ -4,16 +4,15 @@ import cl.investigaciones.turnos.calendar.domain.Calendario;
 import cl.investigaciones.turnos.calendar.domain.Slot;
 import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
 import cl.investigaciones.turnos.calendar.repository.SlotRepository;
-import cl.investigaciones.turnos.plantilla.domain.CupoServicioPlantilla;
-import cl.investigaciones.turnos.plantilla.domain.PlantillaTurno;
-import cl.investigaciones.turnos.plantilla.domain.RecintoServicioPlantilla;
-import cl.investigaciones.turnos.plantilla.domain.ServicioPlantilla;
+import cl.investigaciones.turnos.plantilla.domain.*;
 import cl.investigaciones.turnos.plantilla.repository.PlantillaTurnoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.YearMonth;
 
 @Service
@@ -26,13 +25,9 @@ public class SlotGeneratorService {
     private final SlotRepository slotRepo;
 
     public void generarSlotsParaCalendario(Long idCalendario) {
-
-        log.info("Iniciando slot generados para calendario: "  + idCalendario);
+        log.info("Iniciando generación de slots para calendario: {}", idCalendario);
         Calendario calendario = calendarioRepo.findById(idCalendario)
                 .orElseThrow(() -> new RuntimeException("Calendario no encontrado"));
-
-
-        System.out.println("Plantillas: " + calendario.getIdPlantillasUsadas());
 
         YearMonth yearMonth = YearMonth.of(calendario.getAnio(), calendario.getMes());
 
@@ -41,42 +36,68 @@ public class SlotGeneratorService {
                     .orElseThrow(() -> new RuntimeException("Plantilla no encontrada"));
 
             for (ServicioPlantilla servicio : plantilla.getServicios()) {
-                System.out.println("Servicio: " + servicio.getNombreServicio());
+
                 for (int dia = 1; dia <= yearMonth.lengthOfMonth(); dia++) {
                     LocalDate fecha = yearMonth.atDay(dia);
+                    DayOfWeek dow = fecha.getDayOfWeek();
 
-                    for (RecintoServicioPlantilla recinto : servicio.getRecintos()) {
-                        System.out.println("Recinto: " + recinto.getNombre());
-                        for (CupoServicioPlantilla cupo : servicio.getCupos()) {
-                            System.out.println("Cupo: " + cupo.getCantidad());
-                            for (int i = 0; i < cupo.getCantidad(); i++) {
-                                Slot slot = new Slot();
-                                System.out.println("Uno");
-                                slot.setIdCalendario(calendario.getId());
-                                System.out.println("Dos");
-                                slot.setFecha(fecha);
-                                System.out.println("Tres");
-                                slot.setNombreServicio(servicio.getNombreServicio());
-                                System.out.println("Cuatro");
-                                slot.setRolRequerido(cupo.getRol());
-                                System.out.println("Cinco");
-                                slot.setRecinto(recinto.getNombre()); // o guarda el ID si quieres
-                                System.out.println("Seis");
-                                slot.setCubierto(false);
-                                log.info("Guardando slot para fecha={}, servicio={}, recinto={}, rol={}, cantidad={}",
-                                        fecha, servicio.getNombreServicio(), recinto.getNombre(), cupo.getRol(), cupo.getCantidad());
+                    if (servicio.getTipoServicio() == TipoServicio.RONDA) {
 
-                                slotRepo.save(slot);
+                        if (dow.getValue() >= 1 && dow.getValue() <= 5) { // Lunes-Viernes
+                            generarSlotsRonda(calendario.getId(), fecha,
+                                    LocalTime.of(20, 0), LocalTime.of(8, 0),
+                                    servicio.getRondaCantidadSemana(), servicio);
+                        } else { // Sábado-Domingo
+                            // Tramo 1: 08:00 → 20:00
+                            generarSlotsRonda(calendario.getId(), fecha,
+                                    LocalTime.of(8, 0), LocalTime.of(20, 0),
+                                    servicio.getRondaCantidadFds(), servicio);
+                            // Tramo 2: 20:00 → 08:00 siguiente día
+                            generarSlotsRonda(calendario.getId(), fecha,
+                                    LocalTime.of(20, 0), LocalTime.of(8, 0),
+                                    servicio.getRondaCantidadFds(), servicio);
+                        }
 
-                                log.info("Slot guardado (id pendiente de generación)");
-
+                    } else {
+                        // Lógica original para servicios normales
+                        for (RecintoServicioPlantilla recinto : servicio.getRecintos()) {
+                            for (CupoServicioPlantilla cupo : servicio.getCupos()) {
+                                for (int i = 0; i < cupo.getCantidad(); i++) {
+                                    Slot slot = new Slot();
+                                    slot.setIdCalendario(calendario.getId());
+                                    slot.setFecha(fecha);
+                                    slot.setNombreServicio(servicio.getNombreServicio());
+                                    slot.setTipoServicio(servicio.getTipoServicio());
+                                    slot.setHoraInicio(servicio.getHoraInicio());
+                                    slot.setHoraFin(servicio.getHoraFin());
+                                    slot.setRolRequerido(cupo.getRol());
+                                    slot.setRecinto(recinto.getNombre());
+                                    slot.setCubierto(false);
+                                    slotRepo.save(slot);
+                                }
                             }
                         }
                     }
-
                 }
             }
         }
     }
+
+    private void generarSlotsRonda(Long idCalendario, LocalDate fecha, LocalTime inicio, LocalTime fin, int cantidad, ServicioPlantilla servicio) {
+        for (int i = 0; i < cantidad; i++) {
+            Slot slot = new Slot();
+            slot.setIdCalendario(idCalendario);
+            slot.setFecha(fecha);
+            slot.setNombreServicio(servicio.getNombreServicio());
+            slot.setTipoServicio(servicio.getTipoServicio());
+            slot.setHoraInicio(inicio);
+            slot.setHoraFin(fin);
+            slot.setRolRequerido(RolServicio.JEFE_DE_RONDA); // o lo que corresponda en tu plantilla
+            slot.setRecinto(null); // Rondas no tienen recinto
+            slot.setCubierto(false);
+            slotRepo.save(slot);
+        }
+    }
+
 }
 
