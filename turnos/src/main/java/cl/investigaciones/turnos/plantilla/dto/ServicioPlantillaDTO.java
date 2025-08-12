@@ -16,6 +16,14 @@ public class ServicioPlantillaDTO {
     private Integer rondaCantidadFds;
     private LocalTime horaInicio;
     private LocalTime horaFin;
+
+    private LocalTime rondaLvInicio;
+    private LocalTime rondaLvFin;
+    private LocalTime rondaFdsDiaInicio;
+    private LocalTime rondaFdsDiaFin;
+    private LocalTime rondaFdsNocheInicio;
+    private LocalTime rondaFdsNocheFin;
+
     private List<CupoServicioPlantillaDTO> cupos;
 
     // Nuevo:

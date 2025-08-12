@@ -33,6 +33,16 @@ public class PlantillaTurnoMapper {
         entity.setHoraInicio(dto.getHoraInicio());
         entity.setHoraFin(dto.getHoraFin());
 
+        entity.setRondaCantidadSemana(dto.getRondaCantidadSemana());
+        entity.setRondaCantidadFds(dto.getRondaCantidadFds());
+
+        entity.setRondaLvInicio(dto.getRondaLvInicio());
+        entity.setRondaLvFin(dto.getRondaLvFin());
+        entity.setRondaFdsDiaInicio(dto.getRondaFdsDiaInicio());
+        entity.setRondaFdsDiaFin(dto.getRondaFdsDiaFin());
+        entity.setRondaFdsNocheInicio(dto.getRondaFdsNocheInicio());
+        entity.setRondaFdsNocheFin(dto.getRondaFdsNocheFin());
+
         // --- cupos ---
         List<CupoServicioPlantilla> cupos = dto.getCupos().stream()
                 .map(PlantillaTurnoMapper::toCupoEntity)
@@ -87,6 +97,16 @@ public class PlantillaTurnoMapper {
         dto.setTipoServicio(entity.getTipoServicio());
         dto.setHoraInicio(entity.getHoraInicio());
         dto.setHoraFin(entity.getHoraFin());
+
+        dto.setRondaCantidadSemana(entity.getRondaCantidadSemana());
+        dto.setRondaCantidadFds(entity.getRondaCantidadFds());
+
+        dto.setRondaLvInicio(entity.getRondaLvInicio());
+        dto.setRondaLvFin(entity.getRondaLvFin());
+        dto.setRondaFdsDiaInicio(entity.getRondaFdsDiaInicio());
+        dto.setRondaFdsDiaFin(entity.getRondaFdsDiaFin());
+        dto.setRondaFdsNocheInicio(entity.getRondaFdsNocheInicio());
+        dto.setRondaFdsNocheFin(entity.getRondaFdsNocheFin());
 
         // Mapear recintos
         if (entity.getRecintos() != null) {

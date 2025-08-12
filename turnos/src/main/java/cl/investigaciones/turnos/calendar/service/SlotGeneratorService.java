@@ -42,22 +42,25 @@ public class SlotGeneratorService {
                     DayOfWeek dow = fecha.getDayOfWeek();
 
                     if (servicio.getTipoServicio() == TipoServicio.RONDA) {
+                        LocalTime lvIni   = firstNonNull(servicio.getRondaLvInicio(),       LocalTime.of(20, 0));
+                        LocalTime lvFin   = firstNonNull(servicio.getRondaLvFin(),          LocalTime.of(8, 0));
+                        LocalTime fdsDIni = firstNonNull(servicio.getRondaFdsDiaInicio(),   LocalTime.of(8, 0));
+                        LocalTime fdsDFin = firstNonNull(servicio.getRondaFdsDiaFin(),      LocalTime.of(20, 0));
+                        LocalTime fdsNIni = firstNonNull(servicio.getRondaFdsNocheInicio(), LocalTime.of(20, 0));
+                        LocalTime fdsNFin = firstNonNull(servicio.getRondaFdsNocheFin(),    LocalTime.of(8, 0));
 
-                        if (dow.getValue() >= 1 && dow.getValue() <= 5) { // Lunes-Viernes
-                            generarSlotsRonda(calendario.getId(), fecha,
-                                    LocalTime.of(20, 0), LocalTime.of(8, 0),
-                                    servicio.getRondaCantidadSemana(), servicio);
-                        } else { // Sábado-Domingo
-                            // Tramo 1: 08:00 → 20:00
-                            generarSlotsRonda(calendario.getId(), fecha,
-                                    LocalTime.of(8, 0), LocalTime.of(20, 0),
-                                    servicio.getRondaCantidadFds(), servicio);
-                            // Tramo 2: 20:00 → 08:00 siguiente día
-                            generarSlotsRonda(calendario.getId(), fecha,
-                                    LocalTime.of(20, 0), LocalTime.of(8, 0),
-                                    servicio.getRondaCantidadFds(), servicio);
+                        int cantLv  = servicio.getRondaCantidadSemana() != null ? servicio.getRondaCantidadSemana() : 0;
+                        int cantFds = servicio.getRondaCantidadFds() != null ? servicio.getRondaCantidadFds() : 0;
+
+                        int cantDia   = (cantFds + 1) / 2; // redondea hacia arriba para día
+                        int cantNoche =  cantFds / 2;      // resto para noche
+
+                        if (dow.getValue() >= 1 && dow.getValue() <= 5) {
+                            generarSlotsRonda(calendario.getId(), fecha, lvIni, lvFin, cantLv, servicio);
+                        } else {
+                            generarSlotsRonda(calendario.getId(), fecha, fdsDIni, fdsDFin, cantDia, servicio);
+                            generarSlotsRonda(calendario.getId(), fecha, fdsNIni, fdsNFin, cantNoche, servicio);
                         }
-
                     } else {
                         // Lógica original para servicios normales
                         for (RecintoServicioPlantilla recinto : servicio.getRecintos()) {
@@ -98,6 +101,8 @@ public class SlotGeneratorService {
             slotRepo.save(slot);
         }
     }
+
+    private static <T> T firstNonNull(T val, T def) { return val != null ? val : def; }
 
 }
 

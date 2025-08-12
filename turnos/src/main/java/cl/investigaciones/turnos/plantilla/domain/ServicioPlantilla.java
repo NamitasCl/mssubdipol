@@ -32,6 +32,14 @@ public class ServicioPlantilla {
     private Integer rondaCantidadSemana; //Cantidad de rondas por semana
     private Integer rondaCantidadFds; //Cantidad de rondas por fin de semana
 
+    // Horarios de RONDA (opcionales; si son null, usaremos defaults)
+    private LocalTime rondaLvInicio;         // ej: 20:00
+    private LocalTime rondaLvFin;            // ej: 08:00
+    private LocalTime rondaFdsDiaInicio;     // ej: 08:00
+    private LocalTime rondaFdsDiaFin;        // ej: 20:00
+    private LocalTime rondaFdsNocheInicio;   // ej: 20:00
+    private LocalTime rondaFdsNocheFin;      // ej: 08:00
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "servicio_plantilla_id")
     private List<CupoServicioPlantilla> cupos = new ArrayList<>();
