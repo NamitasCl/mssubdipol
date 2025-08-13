@@ -37,6 +37,9 @@ export default function MisCalendariosParaAportar() {
                         a => a.idUnidad === user.idUnidad
                     );
                 }
+                if (c.tipo === "RONDA") {
+                    return (user.roles).some(r => r === "ROLE_TURNOS_RONDA")
+                }
                 return false;
             });
             console.log("Mis calendarios: ", mios);
@@ -109,7 +112,8 @@ export default function MisCalendariosParaAportar() {
                     const puedeAportar =
                         user.roles.includes('ROLE_JEFE') ||
                         user.roles.includes('ROLE_SUBJEFE') ||
-                        user.roles.includes('ROLE_TURNOS');
+                        user.roles.includes('ROLE_TURNOS') ||
+                        user.roles.includes("ROLE_TURNOS_RONDA");
 
 
                     if(cal.tipo === "COMPLEJO" && !puedeAportar) {

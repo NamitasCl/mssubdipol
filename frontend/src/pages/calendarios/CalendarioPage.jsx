@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import CalendarioList from "./CalendarioList";
 import CalendarioDetalle from "./CalendarioDetalle";
-import GestionTurnosPage from "./GestionTurnosPage.jsx";
+import CreadorCalendarios from "./CreadorCalendarios.jsx";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 export default function CalendarioPage() {
@@ -14,7 +14,7 @@ export default function CalendarioPage() {
     return (
         <div>
             {!detalleId ? (
-                <GestionTurnosPage onSeleccionar={setDetalleId} />
+                <CreadorCalendarios onSeleccionar={setDetalleId} />
             ) : (
                 <CalendarioDetalle id={detalleId} onVolver={() => setDetalleId(null)} />
             )}

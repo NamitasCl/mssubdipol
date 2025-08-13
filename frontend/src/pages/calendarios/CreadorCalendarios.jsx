@@ -105,12 +105,12 @@ const restriccionesDisponibles = [
 /* ======================================= */
 
 const tipos = [
-    { value: "UNIDAD", label: "Unidad" },
-    { value: "COMPLEJO", label: "Complejo" },
-    { value: "RONDA", label: "Servicio de Ronda" },
+    { value: "UNIDAD", label: "Unidad", rolesAutorizados: ["ROLE_TURNOS", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"] },
+    { value: "COMPLEJO", label: "Complejo", rolesAutorizados: ["ROLE_TURNOS", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"] },
+    { value: "RONDA", label: "Servicio de Ronda", rolesAutorizados: ["ROLE_ADMINISTRADOR", "ROLE_TURNOS_RONDA"] },
 ];
 
-export default function GestionTurnosPage({ onSeleccionar }) {
+export default function CreadorCalendarios({ onSeleccionar }) {
     const { user } = useAuth();
 
     /* ---------- estado general ---------- */
@@ -293,6 +293,8 @@ export default function GestionTurnosPage({ onSeleccionar }) {
         setEliminarId(null);
     };
 
+
+
     /* ---------- render ---------- */
     return (
         <div className="container">
@@ -361,7 +363,8 @@ export default function GestionTurnosPage({ onSeleccionar }) {
                                                     key={t.value}
                                                     value={t.value}
                                                     disabled={
-                                                        t.value === "COMPLEJO" && !user.roles.includes("ROLE_TURNOS")
+                                                        t.value === "COMPLEJO" && !user.roles.includes("ROLE_TURNOS") ||
+                                                        t.value === "RONDA" && !user.roles.includes("ROLE_TURNOS_RONDA")
                                                     }
                                                 >
                                                     {t.label}

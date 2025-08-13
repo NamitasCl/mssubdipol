@@ -4,6 +4,7 @@ import cl.investigaciones.turnos.calendar.domain.Calendario;
 import cl.investigaciones.turnos.calendar.domain.Slot;
 import cl.investigaciones.turnos.calendar.repository.CalendarioRepository;
 import cl.investigaciones.turnos.calendar.repository.SlotRepository;
+import cl.investigaciones.turnos.calendar.utils.FeriadoServiceImpl;
 import cl.investigaciones.turnos.plantilla.domain.*;
 import cl.investigaciones.turnos.plantilla.repository.PlantillaTurnoRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class SlotGeneratorService {
     private final CalendarioRepository calendarioRepo;
     private final PlantillaTurnoRepository plantillaRepo;
     private final SlotRepository slotRepo;
+    private final FeriadoServiceImpl feriadoService;
 
     public void generarSlotsParaCalendario(Long idCalendario) {
         log.info("Iniciando generación de slots para calendario: {}", idCalendario);
@@ -36,10 +38,15 @@ public class SlotGeneratorService {
                     .orElseThrow(() -> new RuntimeException("Plantilla no encontrada"));
 
             for (ServicioPlantilla servicio : plantilla.getServicios()) {
-
                 for (int dia = 1; dia <= yearMonth.lengthOfMonth(); dia++) {
                     LocalDate fecha = yearMonth.atDay(dia);
                     DayOfWeek dow = fecha.getDayOfWeek();
+
+                    // Nuevo: si es feriado, se trata como fin de semana
+                    boolean esFinDeSemana = (dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY);
+                    boolean esFeriado = feriadoService.esFeriado(fecha);
+                    boolean tratarComoFds = esFinDeSemana || esFeriado;
+
 
                     if (servicio.getTipoServicio() == TipoServicio.RONDA) {
                         LocalTime lvIni   = firstNonNull(servicio.getRondaLvInicio(),       LocalTime.of(20, 0));
@@ -55,7 +62,7 @@ public class SlotGeneratorService {
                         int cantDia   = (cantFds + 1) / 2; // redondea hacia arriba para día
                         int cantNoche =  cantFds / 2;      // resto para noche
 
-                        if (dow.getValue() >= 1 && dow.getValue() <= 5) {
+                        if (!tratarComoFds) {
                             generarSlotsRonda(calendario.getId(), fecha, lvIni, lvFin, cantLv, servicio);
                         } else {
                             generarSlotsRonda(calendario.getId(), fecha, fdsDIni, fdsDFin, cantDia, servicio);

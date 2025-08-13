@@ -47,7 +47,7 @@ const navConfig = [
     },
     {
         label: "Gestión de Turnos",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN],
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN, ROLES.JEFE],
         submenu: [
             { label: "Crear Calendario", to: "/layout/calendarios" },
             { label: "Añadir personal", to: "/layout/asignacionunidad"},

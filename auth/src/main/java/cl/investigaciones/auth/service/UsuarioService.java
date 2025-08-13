@@ -131,6 +131,7 @@ public class UsuarioService {
             FuncionarioConRolesDTO dto = new FuncionarioConRolesDTO();
             dto.setNombreCompleto(usuario.getNombre() + " " + usuario.getApellidoPaterno() + " " + usuario.getApellidoMaterno());
             dto.setRoles(usuario.getRoles().stream().map(Rol::getNombre).toList());
+            dto.setIdFuncionario(usuario.getIdFun());
             return dto;
         }).toList();
     }
