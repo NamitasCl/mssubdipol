@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import { listarCalendarios } from "../../api/calendarApi.js";
-import { getSlotsByCalendario } from "../../api/slotApi.js";
+import { getSlotsByCalendario, swapSlots } from "../../api/slotApi.js";
 import {addHours, eachDayOfInterval, endOfMonth, format, parseISO} from "date-fns";
 
 /* ------------------- Estilos básicos ------------------- */
@@ -96,46 +96,54 @@ export default function ModificarAsignacionesUnidad() {
         })
         : [];
 
-    const handleDragEnd = (event) => {
+    const handleDragEnd = async (event) => {
         const { over, active } = event;
 
-        if (over && active) {
+        if (!(over && active)) return;
+
+        const sourceSlotId = parseInt(active.id.split("-")[0], 10);
+        const sourceSlot = slots.find(s => s.id === sourceSlotId);
+        if (!sourceSlot) return;
+
+        const targetDate = over.id; // formato yyyy-MM-dd
+        // Encontrar un slot de la unidad en esa fecha con el mismo rol para intercambiar
+        const candidate = funcionariosAportadosUnidad.find(f => locations[`${f.id}-item`] === targetDate && f.rolRequerido === sourceSlot.rolRequerido && f.id !== sourceSlot.id);
+
+        if (!candidate) {
+            alert("No hay un funcionario con el mismo rol en ese día para intercambiar.");
+            // Revertir visualmente
+            setLocations((prev) => ({ ...prev }));
+            return;
+        }
+
+        try {
+            await swapSlots(sourceSlot.id, candidate.id);
+
+            // Actualizar ubicaciones locales: intercambiar las fechas de ambos elementos
             setLocations((prev) => {
-                const newLocs = {
+                const prevSourceLoc = prev[`${sourceSlot.id}-item`];
+                const prevTargetLoc = prev[`${candidate.id}-item`];
+                return {
                     ...prev,
-                    [active.id]: over.id
+                    [`${sourceSlot.id}-item`]: prevTargetLoc,
+                    [`${candidate.id}-item`]: prevSourceLoc
                 };
-
-                // Extraer el id del slot/funcionario (depende de cómo armas el id del draggable)
-                const slotId = parseInt(active.id.split("-")[0], 10);
-
-                // Buscar el slot original en tu array de slots
-                const slot = slots.find(s => s.id === slotId);
-
-                if (!slot) return newLocs; // Seguridad
-
-                if (over.id !== "zoneA") {
-                    setAsignaciones(prevAsig => {
-                        // Filtra cualquier asignación previa de ese slot
-                        const filtradas = prevAsig.filter(a => a.id !== slot.id);
-                        return [
-                            ...filtradas,
-                            {
-                                ...slot, // todos los campos originales
-                                fecha: over.id // se actualiza la fecha
-                                // puedes cambiar otros campos aquí si lo necesitas
-                            }
-                        ];
-                    });
-                } else {
-                    // Si vuelve a zona disponible, elimina la asignación
-                    setAsignaciones(prevAsig =>
-                        prevAsig.filter(a => a.id !== slot.id)
-                    );
-                }
-
-                return newLocs;
             });
+
+            // Reflejar también en asignaciones locales (opcional/simple)
+            setAsignaciones((prevAsig) => {
+                const sinAmbos = prevAsig.filter(a => a.id !== sourceSlot.id && a.id !== candidate.id);
+                return [
+                    ...sinAmbos,
+                    { ...sourceSlot, fecha: targetDate },
+                    { ...candidate, fecha: prevAsig.find(a => a.id === sourceSlot.id)?.fecha || locations[`${sourceSlot.id}-item`] }
+                ];
+            });
+        } catch (e) {
+            console.error(e);
+            alert("No se pudo realizar el intercambio: " + (e?.response?.data?.message || e.message));
+            // Revertir visualmente
+            setLocations((prev) => ({ ...prev }));
         }
     };
 
@@ -162,15 +170,6 @@ export default function ModificarAsignacionesUnidad() {
 
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                 <div style={{ display: "flex", gap: "40px", padding: "10px" }}>
-                    {/* Zona de personal disponible */}
-                    <Droppable id="zoneA" label="Personal disponible" style={styleDisponible}>
-                        {funcionariosAportadosUnidad
-                            .filter((f) => locations[`${f.id}-item`] === "zoneA")
-                            .map((f) => (
-                                <Draggable key={f.id} id={`${f.id}-item`} funcionario={f} />
-                            ))}
-                    </Droppable>
-
                     {/* Zona calendario: una columna por día */}
                     <div
                         style={{
