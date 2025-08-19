@@ -3,6 +3,7 @@ package cl.investigaciones.turnos.calendar.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
@@ -16,7 +17,7 @@ public class FuncionarioAporteResponseDTO {
     private String grado;
     private int antiguedad;
     private Integer creadoPor; // ID del usuario que creó el registro
-    private LocalDateTime fechaCreacion;
+    private OffsetDateTime fechaCreacion;
     private boolean disponible;
     private List<DiaNoDisponibleDTO> diasNoDisponibles;
 }

@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,7 +32,6 @@ public class FuncionarioAporteService {
 
     @Transactional
     public FuncionarioAporteResponseDTO guardar(FuncionarioAporteRequestDTO dto, Integer agregadoPor) {
-        // Busca si ya existe
         Optional<FuncionarioAporte> existente = repo.findByIdCalendarioAndIdUnidadAndIdFuncionario(
                 dto.getIdCalendario(), dto.getIdUnidad(), dto.getIdFuncionario());
 
@@ -41,52 +42,42 @@ public class FuncionarioAporteService {
             if (!entity.isDisponible()) {
                 entity.setDisponible(true);
                 entity.setModificadoPor(agregadoPor);
-                entity.setFechaModificacion(java.time.LocalDateTime.now());
+                entity.setFechaModificacion(OffsetDateTime.now(ZoneId.of("America/Santiago")));
                 entity.setNombreCompleto(dto.getNombreCompleto());
                 entity.setGrado(dto.getGrado());
                 entity.setAntiguedad(dto.getAntiguedad());
                 entity.setSiglasUnidad(dto.getSiglasUnidad());
 
-                // Elimina los días no disponibles previos para este registro
-                diasRepo.deleteByFuncionarioAporte(entity);
+                // ✅ reemplaza deleteBy... por limpiar colección (orphanRemoval borra en DB)
+                entity.getDiasNoDisponibles().clear();
 
-                // Registra los nuevos días no disponibles
                 if (dto.getDiasNoDisponibles() != null) {
-                    for (DiaNoDisponibleDTO diaDto : dto.getDiasNoDisponibles()) {
-                        FuncionarioAportadoDiasNoDisponible dia = new FuncionarioAportadoDiasNoDisponible();
+                    for (DiaNoDisponibleDTO d : dto.getDiasNoDisponibles()) {
+                        var dia = new FuncionarioAportadoDiasNoDisponible();
+                        dia.setFecha(d.getFecha());
+                        dia.setMotivo(d.getMotivo());
+                        dia.setDetalle(d.getDetalle());
+                        // mantener relación bidireccional
                         dia.setFuncionarioAporte(entity);
-                        dia.setFecha(diaDto.getFecha());
-                        dia.setMotivo(diaDto.getMotivo());
-                        dia.setDetalle(diaDto.getDetalle());
-                        diasRepo.save(dia);
+                        entity.getDiasNoDisponibles().add(dia);
                     }
                 }
 
+                repo.save(entity); // cascade persiste hijos
             } else {
                 throw new IllegalArgumentException("Este funcionario ya ha sido registrado para este calendario y unidad.");
             }
         } else {
+            // ✅ el mapper ya arma la colección + relación inversa
             entity = FuncionarioAporteMapper.toEntity(dto, agregadoPor);
-            entity = repo.save(entity);
+            entity = repo.save(entity); // cascade persiste hijos
 
-            // Guarda los días no disponibles asociados a este nuevo registro
-            if (dto.getDiasNoDisponibles() != null) {
-                for (DiaNoDisponibleDTO diaDto : dto.getDiasNoDisponibles()) {
-                    FuncionarioAportadoDiasNoDisponible dia = new FuncionarioAportadoDiasNoDisponible();
-                    dia.setFuncionarioAporte(entity);
-                    dia.setFecha(diaDto.getFecha());
-                    dia.setMotivo(diaDto.getMotivo());
-                    dia.setDetalle(diaDto.getDetalle());
-                    diasRepo.save(dia);
-                }
-            }
+            // ❌ NO guardar nuevamente con diasRepo.save(...) (causa duplicados)
         }
 
-        // Recarga los días no disponibles (por si el mapper los requiere)
-        List<FuncionarioAportadoDiasNoDisponible> dias = diasRepo.findByFuncionarioAporte(entity);
-
-        return FuncionarioAporteMapper.toDto(entity, dias);
+        return FuncionarioAporteMapper.toDto(entity);
     }
+
 
     public List<FuncionarioAporteResponseDTO> listarPorCalendarioYUnidad(Long idCalendario, Long idUnidad) {
         List<FuncionarioAporte> aportes = repo.findByIdCalendarioAndIdUnidadAndDisponibleTrue(idCalendario, idUnidad);
@@ -119,10 +110,11 @@ public class FuncionarioAporteService {
                 .orElseThrow(() -> new IllegalArgumentException("No existe funcionario aporte con ese ID."));
         entity.setDisponible(false);
         entity.setModificadoPor(modificadoPor);
-        entity.setFechaModificacion(java.time.LocalDateTime.now());
+        entity.setFechaModificacion(OffsetDateTime.now(ZoneId.of("America/Santiago")));
 
         // (Opcional) Elimina los días no disponibles relacionados, o déjalos para trazabilidad
-        diasRepo.deleteByFuncionarioAporte(entity);
+        //diasRepo.deleteByFuncionarioAporte(entity);
+        entity.getDiasNoDisponibles().clear();
 
         repo.save(entity);
     }

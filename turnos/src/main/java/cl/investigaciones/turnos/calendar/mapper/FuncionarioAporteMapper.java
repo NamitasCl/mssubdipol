@@ -6,6 +6,9 @@ import cl.investigaciones.turnos.calendar.dto.DiaNoDisponibleDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteRequestDTO;
 import cl.investigaciones.turnos.calendar.dto.FuncionarioAporteResponseDTO;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 public class FuncionarioAporteMapper {
@@ -23,7 +26,7 @@ public class FuncionarioAporteMapper {
 
         // Auditoría
         entity.setCreadoPor(agregadoPor);
-        entity.setFechaCreacion(java.time.LocalDateTime.now());
+        entity.setFechaCreacion(OffsetDateTime.now(ZoneId.of("America/Santiago")));
 
         // Mapear días no disponibles, si existen en el DTO
         if (dto.getDiasNoDisponibles() != null) {

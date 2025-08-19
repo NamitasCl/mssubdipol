@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +52,7 @@ public class CalendarioServiceImpl implements CalendarioService {
         System.out.println("Calendario que llega: " + req);
         Calendario entity = CalendarioMapper.toEntity(req);
         entity.setCreadoPor(idFuncionario);
-        entity.setFechaCreacion(LocalDateTime.now());
+        entity.setFechaCreacion(OffsetDateTime.now(ZoneId.of("America/Santiago")));
         entity.setEstado(CalendarState.ABIERTO);
         entity.setModificadoPor(null);
         System.out.println("Creando calendario: " + entity);
@@ -112,7 +114,7 @@ public class CalendarioServiceImpl implements CalendarioService {
         return repo.findById(id).filter(c -> !c.isEliminado()).map(c -> {
             CalendarioMapper.updateEntity(c, req);
             c.setModificadoPor(usuario);
-            c.setFechaModificacion(LocalDateTime.now());
+            c.setFechaModificacion(OffsetDateTime.now(ZoneId.of("America/Santiago")));
             return CalendarioMapper.toDto(repo.save(c));
         });
     }
@@ -122,7 +124,7 @@ public class CalendarioServiceImpl implements CalendarioService {
             c.setEliminado(true);
             c.setEstado(CalendarState.ELIMINADO);
             c.setModificadoPor(usuario);
-            c.setFechaModificacion(LocalDateTime.now());
+            c.setFechaModificacion(OffsetDateTime.now(ZoneId.of("America/Santiago")));
             repo.save(c);
             return true;
         }).orElse(false);
@@ -132,7 +134,7 @@ public class CalendarioServiceImpl implements CalendarioService {
         return repo.findById(id).filter(c -> !c.isEliminado()).map(c -> {
             c.setEstado(nuevoEstado);
             c.setModificadoPor(usuario);
-            c.setFechaModificacion(LocalDateTime.now());
+            c.setFechaModificacion(OffsetDateTime.now(ZoneId.of("America/Santiago")));
             return CalendarioMapper.toDto(repo.save(c));
         });
     }
