@@ -82,6 +82,7 @@ public class UnidadesService {
                     unidadDto.setNombreRegion(unidad.getNombreRegion());
                     unidadDto.setNombreUnidadReporta(unidad.getNombreUnidadReporta());
                     unidadDto.setRegionPolicial(unidad.getNombreUnidadPertenece());
+                    unidadDto.setOperativa(unidad.getOperativa());
                     unidadesRepository.save(unidadDto);
 
                 } else {
@@ -94,6 +95,7 @@ public class UnidadesService {
                     unidadDto.setNombreUnidadReporta(unidad.getNombreUnidadReporta());
                     unidadDto.setIdUnidad(unidad.getIdUnidad());
                     unidadDto.setRegionPolicial(unidad.getNombreUnidadPertenece());
+                    unidadDto.setOperativa(unidad.getOperativa());
                     unidadesRepository.save(unidadDto);
 
                 }

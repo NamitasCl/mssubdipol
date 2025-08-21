@@ -24,6 +24,7 @@ public class Unidad {
     private String nombreRegion;
     private String nombreUnidadReporta;
     private String regionPolicial;
+    private Integer operativa;
 
     //@ManyToOne(fetch = FetchType.LAZY)
     //@JoinColumn(name = "id_unidad_padre", referencedColumnName = "id")

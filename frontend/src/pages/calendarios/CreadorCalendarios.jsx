@@ -108,6 +108,7 @@ const tipos = [
     { value: "UNIDAD", label: "Unidad", rolesAutorizados: ["ROLE_TURNOS", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"] },
     { value: "COMPLEJO", label: "Complejo", rolesAutorizados: ["ROLE_TURNOS", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"] },
     { value: "RONDA", label: "Servicio de Ronda", rolesAutorizados: ["ROLE_ADMINISTRADOR", "ROLE_TURNOS_RONDA"] },
+    { value: "PROCEPOL", label: "Procedimientos Policiales", rolesAutorizados: ["ROLE_ADMINISTRADOR", "ROLE_TURNOS_PROCEPOL"]}
 ];
 
 export default function CreadorCalendarios({ onSeleccionar }) {
@@ -350,7 +351,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
 
                             <Row className="mt-3 mb-3">
                                 <Col md={12} className="d-flex gap-3">
-                                    <Form.Group style={{ width: 200 }}>
+                                    <Form.Group style={{ width: 300 }}>
                                         <Form.Label>Tipo</Form.Label>
                                         <Form.Control
                                             as="select"
@@ -396,57 +397,67 @@ export default function CreadorCalendarios({ onSeleccionar }) {
                                 </Col>
                             </Row>
 
-                            {/* === Restricciones === */}
-                            <div className="mt-4 mb-2">
-                                <b>Restricciones de calendario</b>
-                                <div className="border rounded p-2 bg-white">
-                                    {restriccionesDisponibles.map(r => (
-                                        <Overlay key={r.key} mensaje={r.descripcion}>
-                                            <div className="mb-2 d-flex align-items-center flex-wrap gap-2">
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    id={r.key}
-                                                    label={r.label}
-                                                    checked={!!restricciones[r.key]?.activa}
-                                                    onChange={e => handleCheckRestriccion(r.key, e.target.checked)}
-                                                    className="me-2"
-                                                />
+                            {
+                                form.tipo !== "PROCEPOL" && (
+                                    <>
+                                        {/* === Restricciones === */}
+                                        <div className="mt-4 mb-2">
+                                            <b>Restricciones de calendario</b>
+                                            <div className="border rounded p-2 bg-white">
+                                                {restriccionesDisponibles.map(r => (
+                                                    <Overlay key={r.key} mensaje={r.descripcion}>
+                                                        <div className="mb-2 d-flex align-items-center flex-wrap gap-2">
+                                                            <Form.Check
+                                                                type="checkbox"
+                                                                id={r.key}
+                                                                label={r.label}
+                                                                checked={!!restricciones[r.key]?.activa}
+                                                                onChange={e => handleCheckRestriccion(r.key, e.target.checked)}
+                                                                className="me-2"
+                                                            />
 
-                                                {r.requiereValor && restricciones[r.key]?.activa && (
-                                                    <Form.Control
-                                                        style={{ width: 100 }}
-                                                        type={r.tipoValor}
-                                                        value={restricciones[r.key]?.valor ?? ""}
-                                                        min={r.tipoValor === "number" ? 1 : undefined}
-                                                        onChange={e => handleValorRestriccion(r.key, e.target.value)}
-                                                        placeholder={r.valorPlaceholder}
-                                                    />
-                                                )}
+                                                            {r.requiereValor && restricciones[r.key]?.activa && (
+                                                                <Form.Control
+                                                                    style={{ width: 100 }}
+                                                                    type={r.tipoValor}
+                                                                    value={restricciones[r.key]?.valor ?? ""}
+                                                                    min={r.tipoValor === "number" ? 1 : undefined}
+                                                                    onChange={e => handleValorRestriccion(r.key, e.target.value)}
+                                                                    placeholder={r.valorPlaceholder}
+                                                                />
+                                                            )}
 
-                                                {restricciones[r.key]?.activa && (
-                                                    <Form.Check
-                                                        type="checkbox"
-                                                        id={`${r.key}_fuerte`}
-                                                        label="Fuerte"
-                                                        checked={!!restricciones[r.key]?.fuerte}
-                                                        onChange={e => handleFuerteRestriccion(r.key, e.target.checked)}
-                                                        className="ms-2"
-                                                    />
-                                                )}
+                                                            {restricciones[r.key]?.activa && (
+                                                                <Form.Check
+                                                                    type="checkbox"
+                                                                    id={`${r.key}_fuerte`}
+                                                                    label="Fuerte"
+                                                                    checked={!!restricciones[r.key]?.fuerte}
+                                                                    onChange={e => handleFuerteRestriccion(r.key, e.target.checked)}
+                                                                    className="ms-2"
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    </Overlay>
+                                                ))}
                                             </div>
-                                        </Overlay>
-                                    ))}
-                                </div>
-                                <small className="text-muted">
-                                    Marca las restricciones y define si son <b>fuertes</b> o sólo sugerencia.
-                                </small>
-                            </div>
+                                            <small className="text-muted">
+                                                Marca las restricciones y define si son <b>fuertes</b> o sólo sugerencia.
+                                            </small>
+                                        </div>
+                                    </>
+                                )
+                            }
 
                             {/* === Botones === */}
                             <div className="mt-3 d-flex flex-wrap gap-2 align-items-center">
-                                <Button type="button" onClick={() => setShowAgregarPlantillas(true)}>
-                                    + Agregar Servicios
-                                </Button>
+                                {
+                                    form.tipo !== "PROCEPOL" && (
+                                        <Button type="button" onClick={() => setShowAgregarPlantillas(true)}>
+                                            + Agregar Servicios
+                                        </Button>
+                                    )
+                                }
 
                                 <Button variant="success" type="submit" disabled={saving}>
                                     {saving ? <Spinner size="sm" /> : editarCalendario ? "Actualizar" : "Crear"}
@@ -520,7 +531,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
                         </td>
                         <td>{cal.estado}</td>
                         <td>
-                            {cal.tipo === "COMPLEJO" && (
+                            {(cal.tipo === "COMPLEJO" || cal.tipo === "PROCEPOL") && (
                                 <Button
                                     variant="info"
                                     size="sm"

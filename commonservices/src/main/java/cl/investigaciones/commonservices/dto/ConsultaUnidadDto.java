@@ -17,6 +17,7 @@ public class ConsultaUnidadDto {
     private String nombreRegion;
     private String nombreUnidadReporta;
     private String nombreUnidadPertenece;
+    private Integer operativa;
 
 
 }
