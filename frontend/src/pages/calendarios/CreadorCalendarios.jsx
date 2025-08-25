@@ -258,7 +258,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
         e.preventDefault();
         setFormError(null);
 
-        if (!form.nombre.trim() || plantillasSeleccionadas.length === 0) {
+        if (!form.tipo === "PROCEPOL" && (!form.nombre.trim() || plantillasSeleccionadas.length === 0)) {
             setFormError("Debe completar nombre y seleccionar al menos una plantilla.");
             return;
         }

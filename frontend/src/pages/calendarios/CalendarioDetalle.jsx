@@ -40,21 +40,30 @@ export default function CalendarioDetalle({ id, onVolver }) {
                 {(cal.tipo === "COMPLEJO" || cal.tipo === "PROCEPOL") && (
                     <>
                         <div className={ "d-flex gap-2 align-items-center"}>
-                            <Button
-                                variant="primary"
-                                className="mt-3"
-                                onClick={() => setShowAportes(true)}
-                            >
-                                Configurar unidades colaboradoras
-                            </Button>
 
-                            <Button
-                                variant="primary"
-                                className="mt-3"
-                                onClick={() => setShowAporteProcepol(true)}
-                            >
-                                Configurar unidades para PROCEPOL
-                            </Button>
+                            {/*Botón para configurar unidades colaboradoras*/}
+
+                            {cal.tipo === "COMPLEJO" && (
+                                <Button
+                                    variant="primary"
+                                    className="mt-3"
+                                    onClick={() => setShowAportes(true)}
+                                >
+                                    Configurar unidades colaboradoras
+                                </Button>
+                            )}
+
+                            {/*Botón para configurar unidades para PROCEPOL*/}
+
+                            {cal.tipo === "PROCEPOL" && (
+                                <Button
+                                    variant="primary"
+                                    className="mt-3"
+                                    onClick={() => setShowAporteProcepol(true)}
+                                >
+                                    Configurar unidades para PROCEPOL
+                                </Button>
+                            )}
                         </div>
                         {/* Aquí va el modal */}
                         <ConfigurarUnidadesAportantesModal
