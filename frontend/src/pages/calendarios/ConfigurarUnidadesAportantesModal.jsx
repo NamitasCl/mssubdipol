@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect";
-import { agregarAporteUnidad, getAportesPorCalendario } from "../../api/aporteApi";
+import { agregarAporteUnidad, getAportesPorCalendario } from "../../api/aporteTurnosGuardiasApi.js";
 import { getResumenSlots } from "../../api/slotApi";
 import { Modal, Button, Table, Form, Spinner, Alert } from "react-bootstrap";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Row, Col, Card, Alert, ListGroup, Spinner, Button, Table, Form } from "react-bootstrap";
 import Select from "react-select";
 import { listarCalendarios } from "../../api/calendarApi.js";
-import { getAportesPorCalendario } from "../../api/aporteApi.js";
+import { getAportesPorCalendario } from "../../api/aporteTurnosGuardiasApi.js";
 import { listarFuncionariosAportadosPaginado } from "../../api/diasNoDisponiblesGlobalesApi.js";
 import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect.jsx";
 import { agregarFuncionarioAportado } from "../../api/funcionariosAporteApi";
