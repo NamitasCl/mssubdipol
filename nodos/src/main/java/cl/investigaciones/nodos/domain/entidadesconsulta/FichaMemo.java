@@ -1,5 +1,6 @@
 package cl.investigaciones.nodos.domain.entidadesconsulta;
 
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaUnidad;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Immutable;
@@ -54,4 +55,8 @@ public class FichaMemo {
 
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
     private List<FichaVehiculo> fichaVehiculos;
+
+    @ManyToOne
+    @JoinColumn(name = "\"unidad_id\"")
+    private ListaUnidad unidad;
 }

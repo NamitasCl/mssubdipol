@@ -14,5 +14,6 @@ public class AporteUnidadItemProcepolDTO {
     private Integer cantidadSabado;
     private Integer cantidadDomingo;
     private Integer cantidadFestivo;
+    private Boolean isTercero;
 
 }

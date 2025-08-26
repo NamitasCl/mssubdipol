@@ -32,8 +32,7 @@ public class ConsultaUnidadesController {
             System.out.println("[getUnidadByIdUnidad] IdUnidad: " + idUnidad);
             ConsultaUnidadDto unidad = unidadesService.getUnidadByIdUnidad(idUnidad);
             return ResponseEntity.ok(unidad);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body("Error al consultar unidad: " + e.getMessage());
         }
     }
@@ -43,8 +42,7 @@ public class ConsultaUnidadesController {
         try {
             ConsultaUnidadDto unidad = unidadesService.getUnidadBySiglasUnidad(siglasUnidad);
             return ResponseEntity.ok(unidad);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body("Error al consultar unidad: " + e.getMessage());
         }
     }
@@ -64,4 +62,6 @@ public class ConsultaUnidadesController {
     public List<String> getRegionesPolicialesUnicas() {
         return unidadesService.getRegionesPolicialesUnicas();
     }
+
+
 }

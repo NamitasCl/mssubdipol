@@ -2,6 +2,7 @@ package cl.investigaciones.turnos.calendar.controller;
 
 import cl.investigaciones.turnos.calendar.dto.SlotUpdateDTO;
 import cl.investigaciones.turnos.calendar.service.SlotService;
+import cl.investigaciones.turnos.plantilla.domain.TipoServicio;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +38,9 @@ public class SlotController {
         try {
             int response = slotService.getCantidadTotalSlotsByCalendar(idCalendario);
             Map<String, Integer> cantidadSlots = new HashMap<>();
-            cantidadSlots.put("totalSlots",  response);
+            cantidadSlots.put("totalSlots", response);
             return new ResponseEntity<>(cantidadSlots, HttpStatus.OK);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error obteniendo cantidad slots: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -80,17 +81,15 @@ public class SlotController {
         }
     }
 
-    @GetMapping("/funcionarios-por-unidad/{siglasUnidad}")
-    public ResponseEntity<?> getFuncionariosByUnidad(@PathVariable String siglasUnidad) {
+    @GetMapping("/funcionarios-por-unidad/{siglasUnidad}/{tipoServicio}")
+    public ResponseEntity<?> getFuncionariosByUnidad(@PathVariable String siglasUnidad, @PathVariable TipoServicio tipoServicio) {
         try {
-            return new ResponseEntity<>(slotService.getFuncionariosByUnidad(siglasUnidad), HttpStatus.OK);
+            return new ResponseEntity<>(slotService.getFuncionariosByUnidadAndTipoServicio(siglasUnidad, tipoServicio), HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error obteniendo funcionarios por unidad: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
-
 
 
 }

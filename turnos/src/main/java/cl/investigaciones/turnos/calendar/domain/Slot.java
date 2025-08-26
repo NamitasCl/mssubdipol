@@ -40,9 +40,7 @@ public class Slot {
     private String nombreFuncionario; // se rellena más tarde
     private Integer antiguedadFuncionario; // se rellena más tarde
     private String siglasUnidadFuncionario; // se rellena más tarde
-    private Boolean puedeConducir = false; // se rellena más tarde
-
-    // Vehículo que se utilizará en el servicio
-    private String siglaCarroServicio;
+    private String siglasunidad;
+    
 }
 

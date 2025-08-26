@@ -1,4 +1,5 @@
 import axios from "axios";
+
 const API_URL = `${import.meta.env.VITE_TURNOS_API_URL}/slots`;
 
 // Trae un resumen del total de slots de un calendario (ajusta endpoint a tu backend)
@@ -26,12 +27,12 @@ export async function updateSlots(slotsData) {
 
 // Intercambiar asignaciones entre dos slots (mismo rol)
 export async function swapSlots(slotIdA, slotIdB) {
-    const res = await axios.put(`${API_URL}/swap`, { slotIdA, slotIdB });
+    const res = await axios.put(`${API_URL}/swap`, {slotIdA, slotIdB});
     return res.data;
 }
 
 // Obtener funcionarios por unidad
-export async function getFuncionariosByUnidad(siglasUnidad) {
-    const res = await axios.get(`${API_URL}/funcionarios-por-unidad/${siglasUnidad}`);
+export async function getFuncionariosByUnidad(siglasUnidad, tipoServicio) {
+    const res = await axios.get(`${API_URL}/funcionarios-por-unidad/${siglasUnidad}/${tipoServicio}`);
     return res.data;
 }

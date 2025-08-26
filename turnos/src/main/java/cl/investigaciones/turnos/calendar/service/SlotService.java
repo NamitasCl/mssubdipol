@@ -5,11 +5,11 @@ import cl.investigaciones.turnos.calendar.dto.SlotUpdateDTO;
 import cl.investigaciones.turnos.calendar.dto.SlotsResponseDTO;
 import cl.investigaciones.turnos.calendar.mapper.SlotMapper;
 import cl.investigaciones.turnos.calendar.repository.SlotRepository;
+import cl.investigaciones.turnos.plantilla.domain.TipoServicio;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -114,10 +114,10 @@ public class SlotService {
                 .collect(Collectors.toList());
     }
 
-    public List<Slot> getFuncionariosByUnidad(String siglasUnidad) {
+    public List<Slot> getFuncionariosByUnidadAndTipoServicio(String siglasUnidad, TipoServicio tipoServicio) {
         // Este método podría necesitar una consulta más específica
         // dependiendo de cómo quieras filtrar los funcionarios por unidad
-        return slotRepository.findAllBySiglasUnidadFuncionario(siglasUnidad);
+        return slotRepository.findAllBySiglasUnidadFuncionarioAndTipoServicio(siglasUnidad, tipoServicio);
     }
 
 }

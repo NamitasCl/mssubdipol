@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Layout from "./Layout";
 import Dashboard from "./Dashboard.jsx";
 import AsignacionTurnosMensual from "./pages/turnos/AsignacionTurnosMensual.jsx";
@@ -28,41 +28,44 @@ import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import PlantillaTurnoBuilder from "./pages/calendarios/PlantillaTurnoBuilder.jsx";
 import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
 import PanelAdministracionAportes from "./pages/admin/PanelAdministracionAportes.jsx";
-
+import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemos.jsx";
 
 
 export default function App() {
     return (
         <Router basename="/turnos">
             <Routes>
-                <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout /></RestrictedAreaAdmin>}>
-                    <Route index element={<Admin />} />
-                    <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
+                <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout/></RestrictedAreaAdmin>}>
+                    <Route index element={<Admin/>}/>
+                    <Route path="plantillas" element={<PlantillaTurnoBuilder/>}/>
                     <Route path="listas"></Route>
-                    <Route path="aportefuncionarios" element={<PanelAdministracionAportes />} />
+                    <Route path="aportefuncionarios" element={<PanelAdministracionAportes/>}/>
                 </Route>
-                <Route path="/login" element={<LoginForm />} />
-                <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />
-                <Route path="/" element={<AuthGuard><DashboardPrincipal /></AuthGuard>} />
-                <Route path="/formularios" element={<AuthGuard><ServiciosEspecialesLayout /></AuthGuard>}>
-                    <Route index element={<ListaFormulariosDisponibles />} />
-                    <Route path="crear-formulario" element={<FormBuilderApp />} />
-                    <Route path="formulario/:id" element={<FormularioDinamicoPage />} />
-                    <Route path="verregistros" element={<VistaRegistrosFormulario />} />
+                <Route path="/auditoria" element={<AuditoriaMemos/>}/>
+                <Route path="/login" element={<LoginForm/>}/>
+                <Route path="/enconstruccion" element={<PaginaEnConstruccion/>}/>
+                <Route path="/" element={<AuthGuard><DashboardPrincipal/></AuthGuard>}/>
+                <Route path="/formularios" element={<AuthGuard><ServiciosEspecialesLayout/></AuthGuard>}>
+                    <Route index element={<ListaFormulariosDisponibles/>}/>
+                    <Route path="crear-formulario" element={<FormBuilderApp/>}/>
+                    <Route path="formulario/:id" element={<FormularioDinamicoPage/>}/>
+                    <Route path="verregistros" element={<VistaRegistrosFormulario/>}/>
                 </Route>
-                <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
-                    <Route index element={<Dashboard />} />
-                    <Route path="configuraunidades" element={<RestrictedAreaSecuin component={UnitDepartmentManagement} />} />
-                    <Route path="gestion" element={<RestrictedAreaSecuin component={CalendarioPage} />} />
-                    <Route path="asignacionunidad" element={<MisCalendariosParaAportar />} />
-                    <Route path="modificaturnosunidad" element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
-                    <Route path="calendario" element={<VistaCalendarioTurnosFiltros />} />
-                    <Route path="calendarios" element={<CalendarioPage />} />
-                    <Route path="disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual} />} />
-                    <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
-                    <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
+                <Route path="/layout" element={<AuthGuard><Layout/></AuthGuard>}>
+                    <Route index element={<Dashboard/>}/>
+                    <Route path="configuraunidades"
+                           element={<RestrictedAreaSecuin component={UnitDepartmentManagement}/>}/>
+                    <Route path="gestion" element={<RestrictedAreaSecuin component={CalendarioPage}/>}/>
+                    <Route path="asignacionunidad" element={<MisCalendariosParaAportar/>}/>
+                    <Route path="modificaturnosunidad"
+                           element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad}/>}/>
+                    <Route path="calendario" element={<VistaCalendarioTurnosFiltros/>}/>
+                    <Route path="calendarios" element={<CalendarioPage/>}/>
+                    <Route path="disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual}/>}/>
+                    <Route path="jefe" element={<RestrictedAreaJefe component={Jefe}/>}/>
+                    <Route path="plantillas" element={<PlantillaTurnoBuilder/>}/>
                 </Route>
-                <Route path="/grafos" element={<GrafoIndex />} />
+                <Route path="/grafos" element={<GrafoIndex/>}/>
             </Routes>
         </Router>
     );
