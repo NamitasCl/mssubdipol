@@ -1,50 +1,49 @@
-// src/api/commonserviceApi.js
+// src/api/commonServicesApi.js
 import axios from "axios";
 
-// Define aquí la URL base (ajústala a tu entorno)
-const API_BASE_URL = import.meta?.env?.VITE_COMMONSERVICES_API_URL || "http://localhost:8080/api/common/funcionarios";
+/* Base común con fallback */
+const COMMON_BASE =
+    import.meta?.env?.VITE_COMMON_SERVICES_API_URL ||
+    "http://localhost:8011/api/common";
 
-/**
- * Busca funcionarios por término de búsqueda (nombre, etc.)
- * @param {string} term
- * @returns {Promise<Array>}
- */
+/* Subrutas */
+const FUNCIONARIOS_BASE = `${COMMON_BASE}/funcionarios`;
+const UNIDADES_BASE = `${COMMON_BASE}/unidades`;
+
+/* -------- Funcionarios -------- */
 export async function searchFuncionarios(term) {
-    const { data } = await axios.get(`${API_BASE_URL}/search`, {
-        params: { term }
-    });
+    const {data} = await axios.get(`${FUNCIONARIOS_BASE}/search`, {params: {term}});
     return data;
 }
 
-/**
- * Busca funcionarios de una unidad, opcionalmente filtrados por nombre/term
- * @param {string} unidad
- * @param {string} term
- * @returns {Promise<Array>}
- */
 export async function searchFuncionariosPorUnidad(unidad, term = "") {
-    const params = { unidad };
+    const params = {unidad};
     if (term) params.term = term;
-    const { data } = await axios.get(`${API_BASE_URL}/porunidad`, { params });
+    const {data} = await axios.get(`${FUNCIONARIOS_BASE}/porunidad`, {params});
     return data;
 }
 
-/**
- * Obtiene un funcionario por idFun
- * @param {number} idFun
- * @returns {Promise<Object>}
- */
 export async function getFuncionarioByIdFun(idFun) {
-    const { data } = await axios.get(`${API_BASE_URL}/${idFun}`);
+    const {data} = await axios.get(`${FUNCIONARIOS_BASE}/${idFun}`);
     return data;
 }
 
-/**
- * Llama al endpoint para actualizar los funcionarios
- * @returns {Promise<boolean>}
- */
 export async function testFuncionariosCron() {
-    const { data } = await axios.get(`${API_BASE_URL}/test-cron`);
+    const {data} = await axios.get(`${FUNCIONARIOS_BASE}/test-cron`);
+    return data;
+}
+
+/* -------- Unidades / Regiones -------- */
+export async function getRegionesUnidades() {
+    const {data} = await axios.get(`${UNIDADES_BASE}/regiones`);
+    return data; // <- OJO: retorna el arreglo directo
+}
+
+/**
+ * Obtengo las unidades asociadas a una region
+ * */
+export async function getUnidadesByRegion(region) {
+    const {data} = await axios.post(`${UNIDADES_BASE}/region`, {region});
     return data;
 }
 
@@ -52,5 +51,6 @@ export default {
     searchFuncionarios,
     searchFuncionariosPorUnidad,
     getFuncionarioByIdFun,
-    testFuncionariosCron
+    testFuncionariosCron,
+    getRegionesUnidades,
 };

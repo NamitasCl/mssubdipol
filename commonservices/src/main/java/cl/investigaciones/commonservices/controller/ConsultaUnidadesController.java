@@ -1,6 +1,7 @@
 package cl.investigaciones.commonservices.controller;
 
 import cl.investigaciones.commonservices.dto.ConsultaUnidadDto;
+import cl.investigaciones.commonservices.dto.UnidadPorRegionRequestDTO;
 import cl.investigaciones.commonservices.service.UnidadesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +62,32 @@ public class ConsultaUnidadesController {
     @GetMapping("/regiones-policiales")
     public List<String> getRegionesPolicialesUnicas() {
         return unidadesService.getRegionesPolicialesUnicas();
+    }
+
+    /**
+     * Obtiene distinct de regiones de las unidades registradas
+     */
+    @GetMapping("/regiones")
+    public ResponseEntity<?> getRegionesUnicas() {
+        try {
+            List<String> regiones = unidadesService.getRegionesUnicas();
+            return ResponseEntity.ok(regiones);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al obtener regiones: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Obtiene las unidades asociadas a una region
+     */
+    @PostMapping("/region")
+    public ResponseEntity<?> getUnidadesPorRegion(@RequestBody UnidadPorRegionRequestDTO region) {
+        try {
+            List<ConsultaUnidadDto> unidades = unidadesService.getUnidadesPorRegion(region.getRegion());
+            return ResponseEntity.ok(unidades);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al obtener regiones: " + e.getMessage());
+        }
     }
 
 

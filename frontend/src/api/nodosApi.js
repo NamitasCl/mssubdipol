@@ -1,5 +1,7 @@
 import axios from "axios";
-const API_URL = import.meta.env.VITE_NODOS_CONSULTA_API_URL;
+
+const API_URL = `${import.meta.env.VITE_NODOS_CONSULTA_API_URL}/consulta`;
+const API_SERVICIOS_ESPECIALES = `${import.meta.env.VITE_NODOS_CONSULTA_API_URL}/servicios-especiales`;
 
 // Consulta por RUT (formateado)
 export async function consultaPorRutFormateado(rutFormateado) {
@@ -23,5 +25,11 @@ export async function consultaPorPatente(patente) {
 export async function consultaPorCaracteristicasVehiculo(caracteristicas) {
     // características es un objeto: { marca, modelo, color, anio, vin }
     const res = await axios.post(`${API_URL}/vehiculo/caracteristicas`, caracteristicas);
+    return res.data;
+}
+
+// Consulta de memos para servicios especiales
+export async function consultaMemosServiciosEspeciales(consulta) {
+    const res = await axios.post(`${API_SERVICIOS_ESPECIALES}`, consulta);
     return res.data;
 }

@@ -159,4 +159,23 @@ public class UnidadesService {
         dto.setIdUnidad(unidadEncontrada.getIdUnidad());
         return dto;
     }
+
+    public List<String> getRegionesUnicas() {
+        return unidadesRepository.findDistinctNombreRegion();
+    }
+
+    public List<ConsultaUnidadDto> getUnidadesPorRegion(String region) {
+        List<Unidad> unidades = unidadesRepository.uniadesPorRegionOperativas(region);
+        return unidades.stream()
+                .map(unidad -> {
+                    ConsultaUnidadDto consultaUnidadDto = new ConsultaUnidadDto();
+                    consultaUnidadDto.setIdUnidad(unidad.getIdUnidad());
+                    consultaUnidadDto.setNombreUnidad(unidad.getNombreUnidad());
+                    consultaUnidadDto.setSiglasUnidad(unidad.getSiglasUnidad());
+                    consultaUnidadDto.setNombreComuna(unidad.getNombreComuna());
+                    consultaUnidadDto.setNombreRegion(unidad.getNombreRegion());
+                    consultaUnidadDto.setOperativa(unidad.getOperativa());
+                    return consultaUnidadDto;
+                }).toList();
+    }
 }

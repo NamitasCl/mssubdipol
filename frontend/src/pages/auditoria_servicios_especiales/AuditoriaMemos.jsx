@@ -1,6 +1,8 @@
 // AuditoriaMemos.jsx
-import React, {useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Badge, Button, Col, Container, Form, ListGroup, Modal, Row, Tab, Table, Tabs,} from "react-bootstrap";
+import {getRegionesUnidades, getUnidadesByRegion} from "../../api/commonServicesApi.js";
+import {consultaMemosServiciosEspeciales} from "../../api/nodosApi.js";
 
 // -------------------
 // Datos Mock
@@ -8,6 +10,8 @@ import {Badge, Button, Col, Container, Form, ListGroup, Modal, Row, Tab, Table, 
 const MOCK_MEMOS = [
     {
         id: 1,
+        // Si tu backend trae fecha UTC como ISO con Z, puedes agregar:
+        // fechaUtc: "2025-08-20T16:00:00Z",
         fecha: "2025-08-20",
         tipo: "Detención",
         folioBrain: "FB123",
@@ -24,22 +28,13 @@ const MOCK_MEMOS = [
         drogas: [],
         vehiculos: [{id: 30, patente: "ABCD12", marca: "Toyota"}],
         issues: [
-            {
-                id: 100,
-                severidad: "ERROR",
-                codigo: "FALTA_UNIDAD",
-                detalle: "El memo no tiene unidad asociada",
-            },
-            {
-                id: 101,
-                severidad: "WARN",
-                codigo: "RUT_FORMATO",
-                detalle: "RUT con formato inválido: 22.333.444-5",
-            },
+            {id: 100, severidad: "ERROR", codigo: "FALTA_UNIDAD", detalle: "El memo no tiene unidad asociada"},
+            {id: 101, severidad: "WARN", codigo: "RUT_FORMATO", detalle: "RUT con formato inválido: 22.333.444-5"},
         ],
     },
     {
         id: 2,
+        // fechaUtc: "2025-08-21T02:00:00Z",
         fecha: "2025-08-21",
         tipo: "Incautación",
         folioBrain: "FB999",
@@ -64,8 +59,105 @@ const estadoColors = {
     RECHAZADO: "danger",
 };
 
+const tipoMemos = [
+    {value: "MEMORANDO DILIGENCIAS"},
+    {value: "CONCURRENCIAS HOMICIDIOS"},
+    {value: "MEMORANDO CONCURRENCIAS"},
+    {value: "DILIGENCIAS HOMICIDIOS"},
+];
+
 export default function AuditoriaMemos() {
     const [selected, setSelected] = useState(null);
+    const [regiones, setRegiones] = useState([]);
+    const [unidades, setUnidades] = useState([]);
+    const [regionSeleccionada, setRegionSeleccionada] = useState("");
+
+    const [payload, setPayload] = useState({
+        region: "",
+        unidad: "",
+        fechaInicio: "",
+        fechaTermino: "",
+    });
+
+    // Helpers de fecha/hora (UTC-safe)
+    const localInputToUTC = (str) => (str ? new Date(str) : null); // "2025-08-27T12:00" (local) -> Date (UTC epoch)
+    const toUTCISO = (str) => (str ? new Date(str).toISOString() : null); // para enviar a backend
+
+    /** Obtiene el instante UTC del memo:
+     * - Si trae fechaUtc / fechaHoraUtc (ISO con Z/offset) => úsalo
+     * - Si solo trae 'fecha' (YYYY-MM-DD), asumimos 00:00:00Z
+     */
+    const memoUTC = (m) => {
+        if (m.fechaUtc) return new Date(m.fechaUtc);
+        if (m.fechaHoraUtc) return new Date(m.fechaHoraUtc);
+        if (m.fecha) return new Date(`${m.fecha}T00:00:00Z`);
+        return null;
+    };
+
+    // Carga de regiones (corrigiendo Ñuble solo en label)
+    useEffect(() => {
+        getRegionesUnidades().then((res) => {
+            const corregido = res.map((r) => ({
+                value: r,
+                label: r === "REGIÓN DEL ÑUBLE" ? "REGIÓN DE ÑUBLE" : r,
+            }));
+            setRegiones(corregido);
+        });
+    }, []);
+
+    // Carga de unidades según región
+    useEffect(() => {
+        if (regionSeleccionada) {
+            getUnidadesByRegion(regionSeleccionada)
+                .then((lista) => setUnidades(lista || []))
+                .catch(() => setUnidades([]));
+        } else {
+            setUnidades([]);
+        }
+    }, [regionSeleccionada]);
+
+    // Handler genérico para inputs nativos
+    const handleChange = (e) => {
+        const {name, value} = e.target;
+        setPayload((prev) => ({...prev, [name]: value}));
+    };
+
+    // Filtrado (en vivo) por región, unidad y rango de fecha-hora (UTC)
+    const memosFiltrados = useMemo(() => {
+        const inicio = localInputToUTC(payload.fechaInicio);   // Date (UTC epoch)
+        const termino = localInputToUTC(payload.fechaTermino); // Date (UTC epoch)
+
+        // Normaliza rango si viene invertido
+        const [desde, hasta] =
+            inicio && termino && inicio > termino ? [termino, inicio] : [inicio, termino];
+
+        return MOCK_MEMOS.filter((m) => {
+            if (payload.region && m.region !== payload.region) return false;
+            if (payload.unidad && m.unidad !== payload.unidad) return false;
+
+            if (desde || hasta) {
+                const f = memoUTC(m); // instante UTC del memo
+                if (!f) return false;
+                if (desde && f < desde) return false; // inclusivo en el límite inferior
+                if (hasta && f > hasta) return false; // inclusivo en el límite superior
+            }
+            return true;
+        });
+    }, [payload]);
+
+    // (Opcional) Acción del botón Filtrar: ejemplo payload listo para backend (UTC ISO)
+    const handleFiltrar = () => {
+        const filtros = {
+            region: payload.region || null,
+            unidad: payload.unidad || null,
+            fechaInicioUtc: toUTCISO(payload.fechaInicio),   // ej "2025-08-27T16:00:00.000Z"
+            fechaTerminoUtc: toUTCISO(payload.fechaTermino), // idem
+        };
+        console.log("Payload filtros para backend (UTC):", filtros);
+        consultaMemosServiciosEspeciales(filtros).then(console.log);
+        // Aquí podrías llamar a tu API real:
+        // buscarMemos(filtros).then(setMemos);  // si reemplazas los MOCK_MEMOS
+    };
 
     return (
         <Container fluid className="p-4">
@@ -74,36 +166,74 @@ export default function AuditoriaMemos() {
             {/* -------- Filtros -------- */}
             <Row className="mb-3">
                 <Col md={2}>
-                    <Form.Select>
-                        <option>-- Región --</option>
-                        <option>Valparaíso</option>
-                        <option>Tarapacá</option>
+                    <Form.Select
+                        name="region"
+                        value={payload.region}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setRegionSeleccionada(value); // dispara carga de unidades
+                            setPayload((prev) => ({...prev, region: value, unidad: ""})); // resetea unidad
+                        }}
+                    >
+                        <option value="">-- Región --</option>
+                        {regiones.map((r) => (
+                            <option key={r.value} value={r.value}>
+                                {r.label}
+                            </option>
+                        ))}
                     </Form.Select>
                 </Col>
+
                 <Col md={2}>
-                    <Form.Control placeholder="Unidad"/>
-                </Col>
-                <Col md={2}>
-                    <Form.Select>
-                        <option>-- Tipo --</option>
-                        <option>Detención</option>
-                        <option>Incautación</option>
+                    <Form.Select
+                        name="unidad"
+                        value={payload.unidad}
+                        onChange={handleChange}
+                        disabled={!payload.region}
+                    >
+                        <option value="">-- Unidad --</option>
+                        {unidades.map((u) => (
+                            <option key={u.idUnidad} value={u.nombreUnidad}>
+                                {u.nombreUnidad}
+                            </option>
+                        ))}
                     </Form.Select>
                 </Col>
+
                 <Col md={2}>
-                    <Form.Select>
-                        <option>-- Estado --</option>
-                        <option>PENDIENTE</option>
-                        <option>APROBADO</option>
-                        <option>OBSERVADO</option>
-                        <option>RECHAZADO</option>
+                    <Form.Select aria-label="Tipo de memo">
+                        {tipoMemos.map((t) => (
+                            <option key={t.value} value={t.value}>
+                                {t.value}
+                            </option>
+                        ))}
                     </Form.Select>
                 </Col>
+
                 <Col md={2}>
-                    <Form.Control type="date"/>
+                    <Form.Control
+                        type="datetime-local"
+                        name="fechaInicio"
+                        value={payload.fechaInicio}
+                        onChange={handleChange}
+                        placeholder="Fecha inicio"
+                        step="60"
+                    />
                 </Col>
+
                 <Col md={2}>
-                    <Button variant="primary" className="w-100">
+                    <Form.Control
+                        type="datetime-local"
+                        name="fechaTermino"
+                        value={payload.fechaTermino}
+                        onChange={handleChange}
+                        placeholder="Fecha término"
+                        step="60"
+                    />
+                </Col>
+
+                <Col md={2}>
+                    <Button variant="primary" className="w-100" onClick={handleFiltrar}>
                         Filtrar
                     </Button>
                 </Col>
@@ -126,7 +256,7 @@ export default function AuditoriaMemos() {
                 </tr>
                 </thead>
                 <tbody>
-                {MOCK_MEMOS.map((m) => (
+                {memosFiltrados.map((m) => (
                     <tr key={m.id}>
                         <td>{m.id}</td>
                         <td>{m.fecha}</td>
@@ -140,26 +270,24 @@ export default function AuditoriaMemos() {
                             <Badge bg={estadoColors[m.estado]}>{m.estado}</Badge>
                         </td>
                         <td>
-                            <Button
-                                size="sm"
-                                variant="outline-primary"
-                                onClick={() => setSelected(m)}
-                            >
+                            <Button size="sm" variant="outline-primary" onClick={() => setSelected(m)}>
                                 Ver Detalle
                             </Button>
                         </td>
                     </tr>
                 ))}
+                {memosFiltrados.length === 0 && (
+                    <tr>
+                        <td colSpan={10} className="text-center">
+                            Sin resultados.
+                        </td>
+                    </tr>
+                )}
                 </tbody>
             </Table>
 
             {/* -------- Modal Detalle -------- */}
-            <Modal
-                show={!!selected}
-                onHide={() => setSelected(null)}
-                size="lg"
-                fullscreen="lg-down"
-            >
+            <Modal show={!!selected} onHide={() => setSelected(null)} size="lg" fullscreen="lg-down">
                 {selected && (
                     <>
                         <Modal.Header closeButton>
@@ -170,8 +298,7 @@ export default function AuditoriaMemos() {
                         <Modal.Body>
                             <p>
                                 <strong>Fecha:</strong> {selected.fecha} <br/>
-                                <strong>Unidad:</strong> {selected.unidad} ({selected.region} -{" "}
-                                {selected.comuna})
+                                <strong>Unidad:</strong> {selected.unidad} ({selected.region} - {selected.comuna})
                             </p>
 
                             <Tabs defaultActiveKey="personas" className="mb-3">
@@ -255,25 +382,13 @@ export default function AuditoriaMemos() {
                             </Tabs>
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button
-                                variant="success"
-                                onClick={() => alert("Aprobado ✅")}
-                                size="sm"
-                            >
+                            <Button variant="success" onClick={() => alert("Aprobado ✅")} size="sm">
                                 Aprobar
                             </Button>
-                            <Button
-                                variant="warning"
-                                onClick={() => alert("Observado ⚠️")}
-                                size="sm"
-                            >
+                            <Button variant="warning" onClick={() => alert("Observado ⚠️")} size="sm">
                                 Observar
                             </Button>
-                            <Button
-                                variant="danger"
-                                onClick={() => alert("Rechazado ❌")}
-                                size="sm"
-                            >
+                            <Button variant="danger" onClick={() => alert("Rechazado ❌")} size="sm">
                                 Rechazar
                             </Button>
                         </Modal.Footer>
