@@ -35,6 +35,7 @@ export async function testFuncionariosCron() {
 export async function getRegionesUnidades() {
     const {data} = await axios.get(`${UNIDADES_BASE}/regiones`);
     console.log(data)
+    console.log("URL unidades: ", UNIDADES_BASE)
     return data; // <- OJO: retorna el arreglo directo
 }
 
