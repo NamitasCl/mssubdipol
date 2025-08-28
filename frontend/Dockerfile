@@ -10,7 +10,7 @@ RUN npm ci
 COPY . .
 
 # Build (Vite genera /dist)
-RUN npm run build
+RUN npm run build -- --mode production
 
 # Stage 2: Nginx
 FROM nginx:alpine

@@ -19,3 +19,4 @@ dist/ # Si tu build genera en 'dist'
 
 # Ignora archivos temporales o de sistema operativo
 .DS_Store
+!.env.production
