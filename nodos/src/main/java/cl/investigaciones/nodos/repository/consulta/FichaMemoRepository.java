@@ -8,4 +8,7 @@ import java.util.List;
 
 public interface FichaMemoRepository extends JpaRepository<FichaMemo, Long> {
     List<FichaMemo> findByFechaBetween(OffsetDateTime fechaInicio, OffsetDateTime fechaTermino);
+
+    List<FichaMemo> findByFormularioAndFechaBetweenAndUnidadId(String formulario, OffsetDateTime fechaInicio, OffsetDateTime fechaTermino, Long idUnidad);
+
 }

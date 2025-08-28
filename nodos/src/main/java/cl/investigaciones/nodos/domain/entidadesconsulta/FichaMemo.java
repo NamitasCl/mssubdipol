@@ -23,6 +23,9 @@ public class FichaMemo {
     @Column(name = "\"fecha\"")
     private OffsetDateTime fecha;
 
+    @Column(name = "\"created_at\"")
+    private OffsetDateTime createdAt;
+
     @Column(name = "\"tipo\"")
     private String tipo;
 

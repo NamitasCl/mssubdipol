@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class FichaMemoRequestDTO {
     private LocalDateTime fechaInicioUtc;
     private LocalDateTime fechaTerminoUtc;
+    private String tipoMemo;
     private String region;
     private String unidad;
 }

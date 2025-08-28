@@ -13,6 +13,7 @@ public class FichaMemoDTO {
     private String folioBrain;
     private String ruc;
     private String modusDescripcion;
+    private ListaUnidadDTO unidad;
 
     private List<FichaPersonaSimpleDTO> fichaPersonas;
     private List<FichaArmaDTO> fichaArmas;

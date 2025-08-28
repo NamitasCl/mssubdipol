@@ -4,6 +4,7 @@ import cl.investigaciones.nodos.domain.entidadesconsulta.FichaMemo;
 import cl.investigaciones.nodos.dto.consulta.*;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
 import cl.investigaciones.nodos.repository.consulta.FichaMemoRepository;
+import cl.investigaciones.nodos.repository.consulta.ListaUnidadRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -14,16 +15,24 @@ import java.util.List;
 public class ServiciosEspecialesService {
 
     private final FichaMemoRepository memoRepo;
+    private final ListaUnidadRepository unidadRepo;
 
-    public ServiciosEspecialesService(FichaMemoRepository memoRepo) {
+    public ServiciosEspecialesService(FichaMemoRepository memoRepo,
+                                      ListaUnidadRepository unidadRepo) {
         this.memoRepo = memoRepo;
+        this.unidadRepo = unidadRepo;
     }
 
     public List<FichaMemoDTO> listarMemos(FichaMemoRequestDTO solicitud) {
         OffsetDateTime fechaInicio = solicitud.getFechaInicioUtc().atOffset(ZoneOffset.UTC);
         OffsetDateTime fechaTermino = solicitud.getFechaTerminoUtc().atOffset(ZoneOffset.UTC);
+        String unidad = solicitud.getUnidad();
 
-        List<FichaMemo> memos = memoRepo.findByFechaBetween(fechaInicio, fechaTermino);
+        Long idUnidad = unidadRepo.findByNombreUnidad(unidad).getId();
+        String tipoMemo = solicitud.getTipoMemo();
+
+
+        List<FichaMemo> memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadId(tipoMemo, fechaInicio, fechaTermino, idUnidad);
         if (memos.isEmpty()) {
             return List.of();
         }
@@ -37,6 +46,13 @@ public class ServiciosEspecialesService {
                     dto.setFolioBrain(registro.getFolioBrain());
                     dto.setRuc(registro.getRuc());
                     dto.setModusDescripcion(registro.getModusDescripcion());
+
+                    if (registro.getUnidad() != null) {
+                        ListaUnidadDTO unidadDto = new ListaUnidadDTO();
+                        unidadDto.setId(registro.getUnidad().getId());
+                        unidadDto.setNombreUnidad(registro.getUnidad().getNombreUnidad());
+                        dto.setUnidad(unidadDto);
+                    }
 
                     if (registro.getFichaPersonas() != null) {
                         dto.setFichaPersonas(registro.getFichaPersonas().stream()
@@ -124,7 +140,6 @@ public class ServiciosEspecialesService {
                                 }).toList()
                         );
                     }
-
 
                     return dto;
                 })
