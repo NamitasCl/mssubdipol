@@ -18,4 +18,4 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/dist /usr/share/nginx/html/turnos/
 EXPOSE 80
-ENTRYPOINT ["nginx", "-g", "daemon off;"]git 
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
