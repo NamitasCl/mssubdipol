@@ -111,6 +111,9 @@ const normalizeMemo = (m) => {
 /* ------------------ Componente principal ------------------ */
 
 export default function AuditoriaMemos() {
+
+    console.log(import.meta.env.VITE_MODE_ACTUAL)
+
     const [selected, setSelected] = useState(null);
     const [regiones, setRegiones] = useState([]);
     const [unidades, setUnidades] = useState([]);

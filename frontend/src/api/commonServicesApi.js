@@ -2,9 +2,7 @@
 import axios from "axios";
 
 /* Base común con fallback */
-const COMMON_BASE =
-    import.meta?.env?.VITE_COMMON_SERVICES_API_URL ||
-    "http://localhost:8011/api/common";
+const COMMON_BASE = import.meta?.env?.VITE_COMMON_SERVICES_API_URL;
 
 /* Subrutas */
 const FUNCIONARIOS_BASE = `${COMMON_BASE}/funcionarios`;
