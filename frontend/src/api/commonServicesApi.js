@@ -47,6 +47,11 @@ export async function getUnidadesByRegion(region) {
     return data;
 }
 
+export async function getJefaturasNacionalesPrefecturas() {
+    const {data} = await axios.get(`${UNIDADES_BASE}/jefaturasnacionalesprefecturas`);
+    return data;
+}
+
 export default {
     searchFuncionarios,
     searchFuncionariosPorUnidad,

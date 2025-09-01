@@ -33,3 +33,8 @@ export async function consultaMemosServiciosEspeciales(consulta) {
     const res = await axios.post(`${API_SERVICIOS_ESPECIALES}`, consulta);
     return res.data;
 }
+
+export async function consultarMemosPorIds(ids) {
+    const res = await axios.post(`${API_SERVICIOS_ESPECIALES}/ids`, ids);
+    return res.data;
+}

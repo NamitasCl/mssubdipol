@@ -90,5 +90,15 @@ public class ConsultaUnidadesController {
         }
     }
 
+    @GetMapping("/jefaturasnacionalesprefecturas")
+    public ResponseEntity<?> getJefaturasNacionalesPrefecturas() {
+        try {
+            List<String> unidades = unidadesService.getJefaturasNacionalesPrefecturas();
+            return ResponseEntity.ok(unidades);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al obtener regiones: " + e.getMessage());
+        }
+    }
+
 
 }

@@ -25,4 +25,7 @@ public interface UnidadesRepository extends JpaRepository<Unidad, Long> {
             "where lower(u.nombreRegion) like lower(concat('%', :region, '%')) " +
             "and u.operativa = 1")
     List<Unidad> uniadesPorRegionOperativas(@Param("region") String region);
+
+    @Query("select distinct u.nombreUnidadReporta from Unidad u where u.nombreUnidadReporta is not null order by u.nombreUnidadReporta asc")
+    List<String> findDistinctNombreUnidadReporta();
 }

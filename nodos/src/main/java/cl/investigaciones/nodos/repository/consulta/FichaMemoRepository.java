@@ -11,4 +11,19 @@ public interface FichaMemoRepository extends JpaRepository<FichaMemo, Long> {
 
     List<FichaMemo> findByFormularioAndFechaBetweenAndUnidadId(String formulario, OffsetDateTime fechaInicio, OffsetDateTime fechaTermino, Long idUnidad);
 
+    // para varias unidades:
+    List<FichaMemo> findByFormularioAndFechaBetweenAndUnidadIdIn(
+            String formulario,
+            OffsetDateTime desde,
+            OffsetDateTime hasta,
+            List<Long> unidadIds
+    );
+
+    // fallback sin unidad (todas las unidades):
+    List<FichaMemo> findByFormularioAndFechaBetween(
+            String formulario,
+            OffsetDateTime desde,
+            OffsetDateTime hasta
+    );
+
 }

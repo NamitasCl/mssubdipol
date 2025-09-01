@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/nodos/servicios-especiales")
 public class ServiciosEspecialesController {
@@ -22,6 +24,16 @@ public class ServiciosEspecialesController {
     public ResponseEntity<?> listar(@RequestBody FichaMemoRequestDTO req) {
         try {
             return ResponseEntity.ok(serviciosEspecialesService.listarMemos(req));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/ids")
+    public ResponseEntity<?> listarMemosPorIds(@RequestBody FichaMemoRequestDTO req) {
+        try {
+            List<Long> ids = req.getMemoIds();
+            return ResponseEntity.ok(serviciosEspecialesService.listarMemosPorId(ids));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

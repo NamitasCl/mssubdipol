@@ -178,4 +178,10 @@ public class UnidadesService {
                     return consultaUnidadDto;
                 }).toList();
     }
+
+
+    public List<String> getJefaturasNacionalesPrefecturas() {
+        List<String> jefaturasPrefecturas = unidadesRepository.findDistinctNombreUnidadReporta();
+        return jefaturasPrefecturas;
+    }
 }

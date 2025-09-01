@@ -4,6 +4,7 @@ import {
     Alert,
     Badge,
     Button,
+    ButtonGroup,
     Card,
     Col,
     Container,
@@ -17,8 +18,10 @@ import {
     Table,
     Tabs,
 } from "react-bootstrap";
-import {getRegionesUnidades, getUnidadesByRegion} from "../../api/commonServicesApi.js";
-import {consultaMemosServiciosEspeciales} from "../../api/nodosApi.js";
+import {getRegionesUnidades} from "../../api/commonServicesApi.js";
+import {consultaMemosServiciosEspeciales, consultarMemosPorIds} from "../../api/nodosApi.js";
+import UnidadesAsyncMulti from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
+import AsyncMultiMemoIdsSelect from "../../components/ComponentesAsyncSelect/AsyncMultiMemoIdsSelect.jsx";
 
 /* ------------------ Config UI y helpers ------------------ */
 
@@ -37,20 +40,13 @@ const tipoMemos = [
 ];
 
 const toUTCISO = (str) => (str ? new Date(str).toISOString() : null);
-
 const clamp2 = {
     display: "-webkit-box",
     WebkitLineClamp: 2,
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
 };
-
-const stickyTh = {
-    position: "sticky",
-    top: 0,
-    background: "var(--bs-body-bg)",
-    zIndex: 1,
-};
+const stickyTh = {position: "sticky", top: 0, background: "var(--bs-body-bg)", zIndex: 1};
 
 /* ------------------ Normalización de datos ------------------ */
 
@@ -83,7 +79,10 @@ const normalizeMemo = (m) => {
         marca: [v.marca, v.modelo].filter(Boolean).join(" "),
     }));
 
-    const relatoPlano = (m.modusDescripcion || "").replace(/\r?\n/g, " ").replace(/\s+/g, " ").trim();
+    const relatoPlano = (m.modusDescripcion || "")
+        .replace(/\r?\n/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
     return {
         id: m.id,
@@ -95,7 +94,6 @@ const normalizeMemo = (m) => {
         unidad: m.unidad?.nombreUnidad || "—",
         estado: m.estado || "PENDIENTE",
         relato: relatoPlano,
-
         personas,
         drogas,
         funcionarios,
@@ -111,78 +109,107 @@ const normalizeMemo = (m) => {
 /* ------------------ Componente principal ------------------ */
 
 export default function AuditoriaMemos() {
-
-    console.log(import.meta.env.VITE_MODE_ACTUAL)
+    const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
 
     const [selected, setSelected] = useState(null);
     const [regiones, setRegiones] = useState([]);
-    const [unidades, setUnidades] = useState([]);
-    const [regionSeleccionada, setRegionSeleccionada] = useState("");
+    const [regionSeleccionada, setRegionSeleccionada] = useState(""); // para acotar el buscador de unidades
     const [memos, setMemos] = useState([]);
 
+    // Filtros comunes y por modo
     const [payload, setPayload] = useState({
-        region: "",
-        unidad: "",
-        tipoMemo: "MEMORANDO DILIGENCIAS",
         fechaInicio: "",
         fechaTermino: "",
+        tipoMemo: "MEMORANDO DILIGENCIAS",
+        folio: "",
     });
+
+    const [unidadesSeleccionadas, setUnidadesSeleccionadas] = useState([]); // [{label,value}]
+    const [memoIds, setMemoIds] = useState([]); // [{label, value}]
 
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState(null);
 
-    // UI state
-    const [showFilters, setShowFilters] = useState(true);
+    // UI tabla
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [sort, setSort] = useState({by: "_fechaSort", dir: "desc"}); // default: fecha desc
+    const [sort, setSort] = useState({by: "_fechaSort", dir: "desc"});
 
     /* ------------------ Efectos de carga ------------------ */
 
     useEffect(() => {
-        getRegionesUnidades().then((res) => {
-            const corregido = (res || []).map((r) => ({
-                value: r,
-                label: r === "REGIÓN DEL ÑUBLE" ? "REGIÓN DE ÑUBLE" : r,
-            }));
-            setRegiones(corregido);
-        });
+        getRegionesUnidades()
+            .then((res) => {
+                const lista = Array.isArray(res) ? res : [];
+                const corregido = lista.map((r) => ({
+                    value: r,
+                    label: r === "REGIÓN DEL ÑUBLE" ? "REGIÓN DE ÑUBLE" : r,
+                }));
+                setRegiones(corregido);
+            })
+            .catch(() => setRegiones([]));
     }, []);
-
-    useEffect(() => {
-        if (regionSeleccionada) {
-            getUnidadesByRegion(regionSeleccionada)
-                .then((lista) => setUnidades(lista || []))
-                .catch(() => setUnidades([]));
-        } else {
-            setUnidades([]);
-        }
-    }, [regionSeleccionada]);
 
     /* ------------------ Handlers ------------------ */
 
-    const handleChange = (e) => {
-        const {name, value} = e.target;
-        setPayload((prev) => ({...prev, [name]: value}));
+    const buildFilters = () => {
+        const base = {
+            fechaInicioUtc: toUTCISO(payload.fechaInicio),
+            fechaTerminoUtc: toUTCISO(payload.fechaTermino),
+            tipoMemo: payload.tipoMemo || null,
+        };
+
+        if (searchMode === "unidades") {
+            const unidades = (unidadesSeleccionadas || []).map((o) => o.value);
+            return {
+                modo: "unidades",
+                ...base,
+                unidades, // array completo
+                unidad: unidades[0] || null, // compat con backend si espera uno
+            };
+        }
+
+        // modo folio (IDs de memos)
+        return {
+            modo: "folio",
+            ...base,
+            memoIds: (memoIds || []).map((o) => o.value),
+        };
     };
 
     const handleFiltrar = async () => {
-        const filtros = {
-            region: payload.region || null,
-            unidad: payload.unidad || null,
-            tipoMemo: payload.tipoMemo || null,
-            fechaInicioUtc: toUTCISO(payload.fechaInicio),
-            fechaTerminoUtc: toUTCISO(payload.fechaTermino),
-        };
+        // Variables iniciales
+        let data = null; //la busqueda de memos
+
+        setErr(null);
+
+        // Validaciones mínimas por modo
+        if (searchMode === "unidades") {
+            if (!(unidadesSeleccionadas?.length > 0)) {
+                setErr("Debes seleccionar al menos una unidad.");
+                return;
+            }
+        } else if (searchMode === "folio") {
+            if (!(memoIds?.length > 0)) {
+                setErr("Debes ingresar al menos un ID de memo.");
+                return;
+            }
+        }
+
+        const filtros = buildFilters();
+        console.log("👉 Consulta enviada (payload):", filtros);
 
         setLoading(true);
-        setErr(null);
         setSelected(null);
-        console.log(filtros)
+
         try {
-            const data = await consultaMemosServiciosEspeciales(filtros);
-            const normalizados = (data || []).map(normalizeMemo);
+            if (searchMode === "unidades") {
+                data = await consultaMemosServiciosEspeciales(filtros);
+            } else if (searchMode === "folio") {
+                data = await consultarMemosPorIds(filtros);
+            }
+            const normalizados = (Array.isArray(data) ? data : []).map(normalizeMemo);
             setMemos(normalizados);
             setPage(1);
         } catch (e) {
@@ -195,22 +222,27 @@ export default function AuditoriaMemos() {
     };
 
     const clearFilters = () => {
-        setPayload({region: "", unidad: "", tipoMemo: "MEMORANDO DILIGENCIAS", fechaInicio: "", fechaTermino: ""});
+        setSearchMode("unidades");
+        setPayload({
+            fechaInicio: "",
+            fechaTermino: "",
+            tipoMemo: "MEMORANDO DILIGENCIAS",
+            folio: "",
+        });
         setRegionSeleccionada("");
+        setUnidadesSeleccionadas([]);
+        setMemoIds([]);
         setSearch("");
         setMemos([]);
         setPage(1);
         setSelected(null);
+        setErr(null);
     };
 
     const toggleSort = (by) => {
-        setSort((prev) => {
-            if (prev.by === by) {
-                // alterna asc/desc
-                return {by, dir: prev.dir === "asc" ? "desc" : "asc"};
-            }
-            return {by, dir: "asc"};
-        });
+        setSort((prev) =>
+            prev.by === by ? {by, dir: prev.dir === "asc" ? "desc" : "asc"} : {by, dir: "asc"}
+        );
     };
 
     const exportCsv = () => {
@@ -225,7 +257,12 @@ export default function AuditoriaMemos() {
             m.estado,
             m.relato?.replace(/"/g, '""') || "",
         ]);
-        const csv = [headers.join(","), ...rows.map((r) => r.map((c) => (typeof c === "string" && c.includes(",") ? `"${c}"` : c)).join(","))].join("\n");
+        const csv = [
+            headers.join(","),
+            ...rows.map((r) =>
+                r.map((c) => (typeof c === "string" && c.includes(",") ? `"${c}"` : c)).join(",")
+            ),
+        ].join("\n");
         const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -238,8 +275,7 @@ export default function AuditoriaMemos() {
     const copy = async (text) => {
         try {
             await navigator.clipboard.writeText(text);
-        } catch (_) {
-            /* noop */
+        } catch {
         }
     };
 
@@ -247,7 +283,7 @@ export default function AuditoriaMemos() {
 
     const filteredSorted = useMemo(() => {
         const q = search.trim().toLowerCase();
-        let arr = memos;
+        let arr = Array.isArray(memos) ? memos.slice() : [];
 
         if (q) {
             arr = arr.filter((m) => {
@@ -262,7 +298,7 @@ export default function AuditoriaMemos() {
             });
         }
 
-        arr = arr.slice().sort((a, b) => {
+        arr.sort((a, b) => {
             const dir = sort.dir === "asc" ? 1 : -1;
             const va = a[sort.by] ?? "";
             const vb = b[sort.by] ?? "";
@@ -288,122 +324,152 @@ export default function AuditoriaMemos() {
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <div>
                     <h4 className="mb-0">📋 Auditoría de Memos</h4>
-                    <small className="text-muted">Revisa, busca y gestiona memos filtrados por región, unidad y rango de
-                        fechas.</small>
+                    <small className="text-muted">
+                        Busca por <strong>Unidades</strong> o por <strong>Folio</strong>. Las fechas y el{" "}
+                        <strong>Tipo de memo</strong> aplican a ambos modos.
+                    </small>
                 </div>
                 <div className="d-flex gap-2">
-                    <Button variant={showFilters ? "outline-secondary" : "secondary"} size="sm"
-                            onClick={() => setShowFilters((s) => !s)}>
-                        {showFilters ? "Ocultar filtros" : "Mostrar filtros"}
+                    <Button variant={!!memos.length ? "outline-secondary" : "secondary"} size="sm"
+                            onClick={clearFilters}>
+                        Limpiar
                     </Button>
-                    <Button variant="outline-secondary" size="sm" onClick={clearFilters}>Limpiar</Button>
-                    <Button variant="primary" size="sm" onClick={handleFiltrar}>Filtrar</Button>
+                    <Button variant="primary" size="sm" onClick={handleFiltrar}>
+                        Filtrar
+                    </Button>
                 </div>
             </div>
 
-            {showFilters && (
-                <Card className="mb-3">
-                    <Card.Body>
-                        <Row className="g-2">
-                            <Col md={3}>
-                                <Form.Label className="mb-1">Región</Form.Label>
-                                <Form.Select
-                                    name="region"
-                                    value={payload.region}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setRegionSeleccionada(value);
-                                        setPayload((prev) => ({...prev, region: value, unidad: ""}));
+            <Card className="mb-3">
+                <Card.Body>
+                    {/* Selector de modo */}
+                    <div className="d-flex flex-wrap align-items-center gap-3">
+                        <div className="d-flex align-items-center gap-2">
+                            <span className="text-muted small">Modo de búsqueda:</span>
+                            <ButtonGroup>
+                                <Button
+                                    size="sm"
+                                    variant={searchMode === "unidades" ? "primary" : "outline-primary"}
+                                    onClick={() => {
+                                        setSearchMode("unidades");
+                                        setMemoIds([]); // limpiar IDs cuando pasas a unidades
                                     }}
                                 >
-                                    <option value="">— Región —</option>
-                                    {regiones.map((r) => (
-                                        <option key={r.value} value={r.value}>
-                                            {r.label}
-                                        </option>
-                                    ))}
-                                </Form.Select>
-                            </Col>
-
-                            <Col md={3}>
-                                <Form.Label className="mb-1">Unidad</Form.Label>
-                                <Form.Select
-                                    name="unidad"
-                                    value={payload.unidad}
-                                    onChange={(e) => setPayload((p) => ({...p, unidad: e.target.value}))}
-                                    disabled={!payload.region}
+                                    Por Unidades
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant={searchMode === "folio" ? "primary" : "outline-primary"}
+                                    onClick={() => {
+                                        setSearchMode("folio");
+                                        setUnidadesSeleccionadas([]); // limpiar unidades cuando pasas a folio
+                                    }}
                                 >
-                                    <option value="">— Unidad —</option>
-                                    {unidades.map((u) => (
-                                        <option key={u.idUnidad} value={u.nombreUnidad}>
-                                            {u.nombreUnidad}
-                                        </option>
-                                    ))}
-                                </Form.Select>
-                            </Col>
+                                    Por Folio
+                                </Button>
+                            </ButtonGroup>
+                        </div>
 
-                            <Col md={3}>
-                                <Form.Label className="mb-1">Tipo de memo</Form.Label>
-                                <Form.Select name="tipoMemo" value={payload.tipoMemo}
-                                             onChange={(e) => setPayload((p) => ({...p, tipoMemo: e.target.value}))}>
-                                    {tipoMemos.map((t) => (
-                                        <option key={t.value} value={t.value}>
-                                            {t.value}
-                                        </option>
-                                    ))}
-                                </Form.Select>
-                            </Col>
+                        {/* Controles comunes: fechas + tipo de memo */}
+                        <div className="w-100 d-flex flex-wrap align-items-center gap-2">
+                            <Form.Label className="mb-0 small text-muted">Fecha inicio</Form.Label>
+                            <Form.Control
+                                size="sm"
+                                type="datetime-local"
+                                step="60"
+                                style={{maxWidth: 220}}
+                                value={payload.fechaInicio}
+                                onChange={(e) => setPayload((p) => ({...p, fechaInicio: e.target.value}))}
 
-                            <Col md={3}>
-                                <Form.Label className="mb-1">Búsqueda rápida</Form.Label>
-                                <InputGroup>
-                                    <InputGroup.Text>🔎</InputGroup.Text>
-                                    <Form.Control
-                                        placeholder="ID, folio, RUC, unidad o texto del relato…"
-                                        value={search}
-                                        onChange={(e) => {
-                                            setSearch(e.target.value);
-                                            setPage(1);
-                                        }}
-                                    />
-                                </InputGroup>
-                            </Col>
+                            />
+                            <Form.Label className="mb-0 small text-muted ms-2">Fecha término</Form.Label>
+                            <Form.Control
+                                size="sm"
+                                type="datetime-local"
+                                step="60"
+                                style={{maxWidth: 220}}
+                                value={payload.fechaTermino}
+                                onChange={(e) => setPayload((p) => ({...p, fechaTermino: e.target.value}))}
+                            />
+                            <Form.Label className="mb-0 small text-muted ms-2">Tipo de memo</Form.Label>
+                            <Form.Select
+                                size="sm"
+                                style={{maxWidth: 280}}
+                                value={payload.tipoMemo}
+                                onChange={(e) => setPayload((p) => ({...p, tipoMemo: e.target.value}))}
+                            >
+                                {tipoMemos.map((t) => (
+                                    <option key={t.value} value={t.value}>
+                                        {t.value}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                        </div>
+                    </div>
 
-                            <Col md={3}>
-                                <Form.Label className="mb-1">Fecha inicio</Form.Label>
-                                <Form.Control
-                                    type="datetime-local"
-                                    name="fechaInicio"
-                                    value={payload.fechaInicio}
-                                    onChange={(e) => setPayload((p) => ({...p, fechaInicio: e.target.value}))}
-                                    step="60"
+                    {/* Contenido por modo */}
+                    <Row className="g-3 mt-2">
+                        {searchMode === "unidades" && (
+                            <Col md={12}>
+                                <Form.Label className="mb-1">Unidades</Form.Label>
+                                <UnidadesAsyncMulti
+                                    value={unidadesSeleccionadas}
+                                    onChange={setUnidadesSeleccionadas}
+                                    regionSeleccionada={regionSeleccionada}
+                                    comunaSeleccionada={""}
                                 />
+                                {!!unidadesSeleccionadas.length && (
+                                    <div
+                                        className="small text-muted mt-1">Seleccionadas: {unidadesSeleccionadas.length}.</div>
+                                )}
                             </Col>
+                        )}
 
-                            <Col md={3}>
-                                <Form.Label className="mb-1">Fecha término</Form.Label>
-                                <Form.Control
-                                    type="datetime-local"
-                                    name="fechaTermino"
-                                    value={payload.fechaTermino}
-                                    onChange={(e) => setPayload((p) => ({...p, fechaTermino: e.target.value}))}
-                                    step="60"
-                                />
+                        {searchMode === "folio" && (
+                            <Col md={8}>
+                                <Form.Label className="mb-1">IDs de Memo</Form.Label>
+                                <AsyncMultiMemoIdsSelect value={memoIds} onChange={setMemoIds}/>
+                                {!!memoIds.length && (
+                                    <div className="small text-muted mt-1">IDs seleccionados: {memoIds.length}</div>
+                                )}
                             </Col>
-                        </Row>
-                    </Card.Body>
-                </Card>
-            )}
+                        )}
+                    </Row>
+                </Card.Body>
+            </Card>
+
+            {/* Búsqueda rápida local */}
+            <div
+                className="d-flex justify-content-between align-items-center m-2 bg-secondary bg-opacity-25 p-2 rounded-3 shadow-sm mb-4">
+                <div className="d-flex align-items-center gap-2">
+                    <InputGroup>
+                        <InputGroup.Text>🔎</InputGroup.Text>
+                        <Form.Control
+                            placeholder="Búsqueda rápida local (ID, folio, RUC, unidad o texto del relato)…"
+                            value={search}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                setPage(1);
+                            }}
+                        />
+                    </InputGroup>
+                    <small className="text-muted">Este buscador filtra solo los resultados obtenidos.</small>
+                </div>
+            </div>
 
             <div className="d-flex align-items-center justify-content-between mb-2">
                 <div className="d-flex align-items-center gap-2">
                     <Badge bg="dark" pill>
                         {total} resultado{total === 1 ? "" : "s"}
                     </Badge>
-                    <Form.Select size="sm" value={pageSize} onChange={(e) => {
-                        setPageSize(Number(e.target.value));
-                        setPage(1);
-                    }}>
+                    <Form.Select
+                        size="sm"
+                        value={pageSize}
+                        onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setPage(1);
+                        }}
+                    >
                         {[10, 20, 50].map((n) => (
                             <option key={n} value={n}>
                                 {n} por página
@@ -411,6 +477,7 @@ export default function AuditoriaMemos() {
                         ))}
                     </Form.Select>
                 </div>
+
                 <div className="d-flex gap-2">
                     <Button size="sm" variant="outline-secondary" onClick={handleFiltrar} disabled={loading}>
                         {loading ? <Spinner size="sm" animation="border"/> : "Refrescar"}
@@ -471,14 +538,21 @@ export default function AuditoriaMemos() {
                                 <td className="text-nowrap">{m.id}</td>
                                 <td className="text-nowrap">{m.fecha}</td>
                                 <td>
-                                    <Badge bg="info" className="text-dark">{m.tipo}</Badge>
+                                    <Badge bg="info" className="text-dark">
+                                        {m.tipo}
+                                    </Badge>
                                 </td>
                                 <td className="text-nowrap">
                                     <div className="d-flex align-items-center gap-2">
                                         <span>{m.folio}</span>
                                         {m.folio !== "—" && (
-                                            <Button size="sm" variant="link" className="p-0"
-                                                    onClick={() => copy(String(m.folio))} title="Copiar folio">
+                                            <Button
+                                                size="sm"
+                                                variant="link"
+                                                className="p-0"
+                                                onClick={() => copy(String(m.folio))}
+                                                title="Copiar folio"
+                                            >
                                                 📋
                                             </Button>
                                         )}
@@ -488,8 +562,13 @@ export default function AuditoriaMemos() {
                                     <div className="d-flex align-items-center gap-2">
                                         <span>{m.ruc}</span>
                                         {m.ruc !== "—" && (
-                                            <Button size="sm" variant="link" className="p-0"
-                                                    onClick={() => copy(String(m.ruc))} title="Copiar RUC">
+                                            <Button
+                                                size="sm"
+                                                variant="link"
+                                                className="p-0"
+                                                onClick={() => copy(String(m.ruc))}
+                                                title="Copiar RUC"
+                                            >
                                                 📋
                                             </Button>
                                         )}
@@ -515,24 +594,29 @@ export default function AuditoriaMemos() {
                 </Table>
             </div>
 
-            {/* Paginación simple */}
             {totalPages > 1 && (
                 <div className="d-flex justify-content-end align-items-center gap-2 mt-2">
-                    <Button size="sm" variant="outline-secondary" disabled={page === 1}
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                    <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        disabled={page === 1}
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    >
                         ← Anterior
                     </Button>
-                    <span className="small">
-            Página {page} de {totalPages}
-          </span>
-                    <Button size="sm" variant="outline-secondary" disabled={page === totalPages}
-                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                    <span className="small">Página {page} de {totalPages}</span>
+                    <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        disabled={page === totalPages}
+                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    >
                         Siguiente →
                     </Button>
                 </div>
             )}
 
-            {/* -------- Modal Detalle -------- */}
+            {/* Modal Detalle */}
             <Modal show={!!selected} onHide={() => setSelected(null)} size="xl" fullscreen="lg-down" centered>
                 {selected && (
                     <>
@@ -561,10 +645,14 @@ export default function AuditoriaMemos() {
                                                 <div className="d-flex align-items-center gap-3">
                                                     <span><strong>Folio:</strong> {selected.folio}</span>
                                                     <Button size="sm" variant="link" className="p-0"
-                                                            onClick={() => copy(String(selected.folio))}>📋</Button>
+                                                            onClick={() => copy(String(selected.folio))}>
+                                                        📋
+                                                    </Button>
                                                     <span><strong>RUC:</strong> {selected.ruc}</span>
                                                     <Button size="sm" variant="link" className="p-0"
-                                                            onClick={() => copy(String(selected.ruc))}>📋</Button>
+                                                            onClick={() => copy(String(selected.ruc))}>
+                                                        📋
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </Card.Body>
@@ -577,11 +665,10 @@ export default function AuditoriaMemos() {
                                                 <div className="text-muted small">Relato</div>
                                             </div>
                                             {selected.relato ? (
-                                                <div className="border rounded p-3" style={{
-                                                    whiteSpace: "pre-line",
-                                                    maxHeight: 240,
-                                                    overflowY: "auto"
-                                                }}>
+                                                <div
+                                                    className="border rounded p-3"
+                                                    style={{whiteSpace: "pre-line", maxHeight: 240, overflowY: "auto"}}
+                                                >
                                                     {selected.relato}
                                                 </div>
                                             ) : (
@@ -607,7 +694,6 @@ export default function AuditoriaMemos() {
                                         </ListGroup>
                                     )}
                                 </Tab>
-
                                 <Tab eventKey="drogas" title={`Drogas (${selected.drogas.length})`}>
                                     {selected.drogas.length === 0 ? (
                                         <p className="text-muted">No hay drogas.</p>
@@ -624,7 +710,6 @@ export default function AuditoriaMemos() {
                                         </ListGroup>
                                     )}
                                 </Tab>
-
                                 <Tab eventKey="funcionarios" title={`Funcionarios (${selected.funcionarios.length})`}>
                                     {selected.funcionarios.length === 0 ? (
                                         <p className="text-muted">No hay funcionarios asociados.</p>
@@ -640,7 +725,6 @@ export default function AuditoriaMemos() {
                                         </ListGroup>
                                     )}
                                 </Tab>
-
                                 <Tab eventKey="vehiculos" title={`Vehículos (${selected.vehiculos.length})`}>
                                     {selected.vehiculos.length === 0 ? (
                                         <p className="text-muted">No hay vehículos.</p>
@@ -655,7 +739,6 @@ export default function AuditoriaMemos() {
                                         </ListGroup>
                                     )}
                                 </Tab>
-
                                 <Tab eventKey="issues" title={`Observaciones (${selected.issues.length})`}>
                                     {selected.issues.length === 0 ? (
                                         <p className="text-muted">No hay observaciones.</p>
@@ -664,9 +747,7 @@ export default function AuditoriaMemos() {
                                             {selected.issues.map((i) => (
                                                 <ListGroup.Item key={i.id}>
                                                     <Badge
-                                                        bg={
-                                                            i.severidad === "ERROR" ? "danger" : i.severidad === "WARN" ? "warning" : "info"
-                                                        }
+                                                        bg={i.severidad === "ERROR" ? "danger" : i.severidad === "WARN" ? "warning" : "info"}
                                                         className="me-2"
                                                     >
                                                         {i.severidad}
