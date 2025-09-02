@@ -1,0 +1,26 @@
+package cl.investigaciones.nodos.domain.auditoriamemos;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "memo_revisados", schema = "nodos")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class MemoRevisado {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoRevision estado;
+
+    private Long idMemo;
+
+    private String observaciones;
+}

@@ -85,9 +85,14 @@ export default function UnidadesAsyncMulti({
             closeMenuOnSelect={false}
             hideSelectedOptions={false}
             menuPlacement="auto"
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
             styles={{
-                menuList: (base) => ({...base, maxHeight: 240}),
+                menuPortal: (base) => ({ ...base, zIndex: 2000 }),   // > 1 y > que tooltips, etc.
+                menu: (base) => ({ ...base, zIndex: 2000 }),
+                menuList: (base) => ({ ...base, maxHeight: 240 }),
             }}
+
         />
     );
 }

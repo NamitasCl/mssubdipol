@@ -111,7 +111,19 @@ const normalizeMemo = (m) => {
 export default function AuditoriaMemos() {
     const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
 
+    /**
+     * Modales para observar o aprobar el memo
+     * */
     const [selected, setSelected] = useState(null);
+    const [observado, setObservado] = useState(null);
+    const [aprobado, setAprobado] = useState(null);
+
+    // formularios
+    const [obsTexto, setObsTexto] = useState("");        // para "observar"
+    const [obsAprobTexto, setObsAprobTexto] = useState(""); // opcional en "aprobar"
+    const [savingRev, setSavingRev] = useState(false);
+    const [saveErr, setSaveErr] = useState(null);
+
     const [regiones, setRegiones] = useState([]);
     const [regionSeleccionada, setRegionSeleccionada] = useState(""); // para acotar el buscador de unidades
     const [memos, setMemos] = useState([]);
@@ -276,6 +288,7 @@ export default function AuditoriaMemos() {
         try {
             await navigator.clipboard.writeText(text);
         } catch {
+            console.log("No se pudo copiar el texto al portapapeles.");
         }
     };
 
@@ -316,6 +329,63 @@ export default function AuditoriaMemos() {
         const start = (page - 1) * pageSize;
         return filteredSorted.slice(start, start + pageSize);
     }, [filteredSorted, page, pageSize]);
+
+    /**
+     * Comportamiento modales para aprobar y observar
+     * */
+
+    const resetModales = () => {
+        setObservado(false);
+        setAprobado(false);
+        setObsTexto("");
+        setObsAprobTexto("");
+        setSaveErr(null);
+    };
+
+    const handleGuardarObservado = async () => {
+        if (!selected?.id) return;
+        const txt = obsTexto.trim();
+        if (txt.length < 3) {
+            setSaveErr("Escribe al menos 3 caracteres de observación.");
+            return;
+        }
+        setSavingRev(true);
+        setSaveErr(null);
+        try {
+            const payload = {
+                estado: "PENDIENTE",
+                idMemo: selected.id,
+                observaciones: txt,
+            };
+            //TODO: await crearRevisionMemo(payload, user?.token);  // si usas helper
+            resetModales();
+        } catch (e) {
+            setSaveErr("No se pudo guardar la observación.");
+            console.error(e);
+        } finally {
+            setSavingRev(false);
+        }
+    };
+
+    const handleGuardarAprobado = async () => {
+        if (!selected?.id) return;
+        setSavingRev(true);
+        setSaveErr(null);
+        try {
+            const payload = {
+                estado: "APROBADO",
+                idMemo: selected.id,
+                observaciones: obsAprobTexto.trim() || null,
+            };
+            //TODO: await crearRevisionMemo(payload, user?.token);  // si usas helper
+            resetModales();
+        } catch (e) {
+            setSaveErr("No se pudo aprobar el memo.");
+            console.error(e);
+        } finally {
+            setSavingRev(false);
+        }
+    };
 
     /* ------------------ Render ------------------ */
 
@@ -762,14 +832,80 @@ export default function AuditoriaMemos() {
                         </Modal.Body>
                         <Modal.Footer>
                             <div className="me-auto text-muted small">ID: {selected.id}</div>
-                            <Button variant="success" size="sm" onClick={() => alert("Aprobado ✅")}>
+                            <Button variant="success" size="sm" onClick={() => setAprobado(selected)}>
                                 Aprobar
                             </Button>
-                            <Button variant="warning" size="sm" onClick={() => alert("Observado ⚠️")}>
+                            <Button variant="warning" size="sm" onClick={() => setObservado(selected)}>
                                 Observar
                             </Button>
-                            <Button variant="danger" size="sm" onClick={() => alert("Rechazado ❌")}>
-                                Rechazar
+                        </Modal.Footer>
+                    </>
+                )}
+            </Modal>
+            {/* Modal OBSERVAR */}
+            <Modal show={!!observado} onHide={resetModales} centered>
+                {selected && (
+                    <>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Observar memo #{selected.id}</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form.Group className="mb-2">
+                                <Form.Label>Observaciones (requerido)</Form.Label>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={4}
+                                    placeholder="Describe brevemente el problema/observación…"
+                                    value={obsTexto}
+                                    onChange={(e) => setObsTexto(e.target.value)}
+                                    disabled={savingRev}
+                                />
+                                <Form.Text muted>Se guardará con estado <strong>PENDIENTE</strong>.</Form.Text>
+                            </Form.Group>
+                            {saveErr && <div className="text-danger small">{saveErr}</div>}
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={resetModales} disabled={savingRev}>
+                                Cancelar
+                            </Button>
+                            <Button variant="warning" onClick={handleGuardarObservado} disabled={savingRev}>
+                                {savingRev ? "Guardando…" : "Guardar observación"}
+                            </Button>
+                        </Modal.Footer>
+                    </>
+                )}
+            </Modal>
+
+            {/* Modal APROBAR */}
+            <Modal show={!!aprobado} onHide={resetModales} centered>
+                {selected && (
+                    <>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Aprobar memo #{selected.id}</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <p className="mb-2">
+                                ¿Confirmas la aprobación de este memo? Se guardará con estado <strong>APROBADO</strong>.
+                            </p>
+                            <Form.Group>
+                                <Form.Label>Observación (opcional)</Form.Label>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={3}
+                                    placeholder="Puedes dejar un comentario breve (opcional)…"
+                                    value={obsAprobTexto}
+                                    onChange={(e) => setObsAprobTexto(e.target.value)}
+                                    disabled={savingRev}
+                                />
+                            </Form.Group>
+                            {saveErr && <div className="text-danger small mt-2">{saveErr}</div>}
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={resetModales} disabled={savingRev}>
+                                Cancelar
+                            </Button>
+                            <Button variant="success" onClick={handleGuardarAprobado} disabled={savingRev}>
+                                {savingRev ? "Aprobando…" : "Aprobar"}
                             </Button>
                         </Modal.Footer>
                     </>
