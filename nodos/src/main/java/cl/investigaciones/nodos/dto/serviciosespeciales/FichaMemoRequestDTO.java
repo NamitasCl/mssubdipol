@@ -9,6 +9,7 @@ import java.util.List;
 public class FichaMemoRequestDTO {
     private LocalDateTime fechaInicioUtc;
     private LocalDateTime fechaTerminoUtc;
+    private String tipoFecha;
     private String tipoMemo;
     private String region;
     private String unidad;

@@ -78,9 +78,16 @@ public class ServiciosEspecialesService {
             }
 
             // 3) Buscar memos para el set de unidades
-            memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
-                    tipoMemo, fechaInicio, fechaTermino, unidadIds
-            );
+            if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
+                memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
+                        tipoMemo, fechaInicio, fechaTermino, unidadIds
+                );
+            } else {
+                memos = memoRepo.findByFormularioAndCreatedAtBetweenAndUnidadIdIn(
+                        tipoMemo, fechaInicio, fechaTermino, unidadIds
+                );
+            }
+
 
         } else if (solicitud.getRegion() != null && !solicitud.getRegion().isBlank()) {
             // 4) (Opcional) Filtro por región si no se enviaron unidades

@@ -19,9 +19,10 @@ import {
     Tabs,
 } from "react-bootstrap";
 import {getRegionesUnidades} from "../../api/commonServicesApi.js";
-import {consultaMemosServiciosEspeciales, consultarMemosPorIds} from "../../api/nodosApi.js";
 import UnidadesAsyncMulti from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
 import AsyncMultiMemoIdsSelect from "../../components/ComponentesAsyncSelect/AsyncMultiMemoIdsSelect.jsx";
+import {consultaMemosServiciosEspeciales, consultarMemosPorIds, crearRevisionMemo} from "../../api/nodosApi.js";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 /* ------------------ Config UI y helpers ------------------ */
 
@@ -38,6 +39,11 @@ const tipoMemos = [
     {value: "MEMORANDO CONCURRENCIAS"},
     {value: "DILIGENCIAS HOMICIDIOS"},
 ];
+
+const tipoFecha = [
+    {value: "FECHA REGISTRO"},
+    {value: "FECHA DEL HECHO"}
+]
 
 const toUTCISO = (str) => (str ? new Date(str).toISOString() : null);
 const clamp2 = {
@@ -109,6 +115,10 @@ const normalizeMemo = (m) => {
 /* ------------------ Componente principal ------------------ */
 
 export default function AuditoriaMemos() {
+
+    const {user} = useAuth();
+    console.log("Usuario en serv. auditoria: ", user);
+
     const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
 
     /**
@@ -132,6 +142,7 @@ export default function AuditoriaMemos() {
     const [payload, setPayload] = useState({
         fechaInicio: "",
         fechaTermino: "",
+        tipoFecha: "FECHA REGISTRO",
         tipoMemo: "MEMORANDO DILIGENCIAS",
         folio: "",
     });
@@ -169,6 +180,7 @@ export default function AuditoriaMemos() {
         const base = {
             fechaInicioUtc: toUTCISO(payload.fechaInicio),
             fechaTerminoUtc: toUTCISO(payload.fechaTermino),
+            tipoFecha: payload.tipoFecha || null,
             tipoMemo: payload.tipoMemo || null,
         };
 
@@ -238,6 +250,7 @@ export default function AuditoriaMemos() {
         setPayload({
             fechaInicio: "",
             fechaTermino: "",
+            tipoFecha: "FECHA REGISTRO",
             tipoMemo: "MEMORANDO DILIGENCIAS",
             folio: "",
         });
@@ -354,10 +367,10 @@ export default function AuditoriaMemos() {
         try {
             const payload = {
                 estado: "PENDIENTE",
-                idMemo: selected.id,
+                memoId: selected.id,
                 observaciones: txt,
             };
-            //TODO: await crearRevisionMemo(payload, user?.token);  // si usas helper
+            await crearRevisionMemo(payload, user?.token);  // si usas helper
             resetModales();
         } catch (e) {
             setSaveErr("No se pudo guardar la observación.");
@@ -374,10 +387,10 @@ export default function AuditoriaMemos() {
         try {
             const payload = {
                 estado: "APROBADO",
-                idMemo: selected.id,
+                memoId: selected.id,
                 observaciones: obsAprobTexto.trim() || null,
             };
-            //TODO: await crearRevisionMemo(payload, user?.token);  // si usas helper
+            await crearRevisionMemo(payload, user?.token);  // si usas helper
             resetModales();
         } catch (e) {
             setSaveErr("No se pudo aprobar el memo.");
@@ -442,6 +455,19 @@ export default function AuditoriaMemos() {
 
                         {/* Controles comunes: fechas + tipo de memo */}
                         <div className="w-100 d-flex flex-wrap align-items-center gap-2">
+                            <Form.Label className="mb-0 small text-muted ms-2">Tipo de fecha</Form.Label>
+                            <Form.Select
+                                size="sm"
+                                style={{maxWidth: 160}}
+                                value={payload.tipoFecha}
+                                onChange={(e) => setPayload((p) => ({...p, tipoFecha: e.target.value}))}
+                            >
+                                {tipoFecha.map((t) => (
+                                    <option key={t.value} value={t.value}>
+                                        {t.value}
+                                    </option>
+                                ))}
+                            </Form.Select>
                             <Form.Label className="mb-0 small text-muted">Fecha inicio</Form.Label>
                             <Form.Control
                                 size="sm"

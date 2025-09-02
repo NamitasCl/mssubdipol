@@ -26,4 +26,10 @@ public interface FichaMemoRepository extends JpaRepository<FichaMemo, Long> {
             OffsetDateTime hasta
     );
 
+    List<FichaMemo> findByFormularioAndCreatedAtBetweenAndUnidadIdIn(
+            String formulario,
+            OffsetDateTime desde,
+            OffsetDateTime hasta,
+            List<Long> unidadIds);
+
 }

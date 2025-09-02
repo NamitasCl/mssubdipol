@@ -1,98 +1,157 @@
-import React from "react";
+import React, {useCallback, useMemo, useRef} from "react";
 import AsyncSelect from "react-select/async";
 import axios from "axios";
 import {useAuth} from "../contexts/AuthContext.jsx";
 
 /**
  * props:
- *  - value: [{label, value}]  // opciones seleccionadas
- *  - onChange: (arr) => void  // devuelve array de opciones
- *  - regionSeleccionada, comunaSeleccionada (para acotar búsqueda, opcional)
+ * - value: [{label, value}]
+ * - onChange: (arr) => void
+ * - regionSeleccionada?: string
+ * - comunaSeleccionada?: string
+ * - minChars?: number (default 2)
+ * - debounceMs?: number (default 300)
  */
 export default function UnidadesAsyncMulti({
                                                value,
                                                onChange,
                                                regionSeleccionada,
                                                comunaSeleccionada,
+                                               minChars = 2,
+                                               debounceMs = 300,
                                            }) {
     const {user} = useAuth();
 
-    // Llama a tu API y devuelve [{label, value}, ...]
-    const fetchOptions = async (input) => {
-        const params = new URLSearchParams();
-        if (input) params.set("nombre", input);
-        if (regionSeleccionada) params.set("region", regionSeleccionada);
-        if (comunaSeleccionada) params.set("comuna", comunaSeleccionada);
+    // Normaliza base sin barra final
+    const BASE = useMemo(() => {
+        const b = import.meta.env.VITE_COMMON_SERVICES_API_URL || "";
+        return b.endsWith("/") ? b.slice(0, -1) : b;
+    }, []);
 
-        const base = import.meta.env.VITE_COMMON_SERVICES_API_URL;
-        const url = `${base}/unidades/buscar?${params.toString()}`;
+    // Cache simple en memoria: (input|region|comuna) -> options
+    const cacheRef = useRef(new Map());
+    // Control para cancelar llamadas previas en vuelo
+    const abortRef = useRef(null);
+    // Timer para debounce
+    const timerRef = useRef(null);
 
-        const res = await axios.get(url, {
-            headers: user?.token ? {Authorization: `Bearer ${user.token}`} : undefined
-            // responseType por defecto es 'json'; si el backend manda HTML, caerá en el block de abajo
-        });
+    const fetchOptions = useCallback(
+        async (input) => {
+            const q = (input || "").trim();
 
-        let raw = res?.data;
+            // Guardas: no llames si no hay suficientes caracteres
+            if (q.length < minChars) return [];
 
-        // Defensivo: si la API devolvió HTML (proxy/login/error), evita romper y retorna []
-        if (typeof raw === "string") {
-            const s = raw.trim();
-            if (s.startsWith("<!doctype html") || s.startsWith("<html")) {
-                console.warn("[UnidadesAsyncMulti] La API devolvió HTML; revisa el proxy/ruta/auth:", url);
-                return [];
+            const cacheKey = `${q}::${regionSeleccionada || ""}::${comunaSeleccionada || ""}`;
+            if (cacheRef.current.has(cacheKey)) {
+                return cacheRef.current.get(cacheKey);
             }
-            // si devolvieron string JSON por algún motivo
+
+            // Cancela petición anterior si existe
+            if (abortRef.current) {
+                abortRef.current.abort();
+            }
+            abortRef.current = new AbortController();
+
+            // Construye params
+            const params = new URLSearchParams();
+            params.set("nombre", q);
+            if (regionSeleccionada) params.set("region", regionSeleccionada);
+            if (comunaSeleccionada) params.set("comuna", comunaSeleccionada);
+
+            const url = `${BASE}/unidades/buscar?${params.toString()}`;
+
             try {
-                raw = JSON.parse(raw);
-            } catch {
+                const res = await axios.get(url, {
+                    signal: abortRef.current.signal,
+                    headers: user?.token ? {Authorization: `Bearer ${user.token}`} : undefined,
+                });
+
+                let raw = res?.data;
+
+                // Si por algún proxy/login vino HTML, evita romper y retorna []
+                if (typeof raw === "string") {
+                    const s = raw.trim().toLowerCase();
+                    if (s.startsWith("<!doctype html") || s.startsWith("<html")) {
+                        console.warn("[UnidadesAsyncMulti] La API devolvió HTML; revisa auth/proxy:", url);
+                        return [];
+                    }
+                    try {
+                        raw = JSON.parse(raw);
+                    } catch {
+                        return [];
+                    }
+                }
+
+                const arr = Array.isArray(raw)
+                    ? raw
+                    : Array.isArray(raw?.items)
+                        ? raw.items
+                        : Array.isArray(raw?.content)
+                            ? raw.content
+                            : Array.isArray(raw?.data)
+                                ? raw.data
+                                : [];
+
+                const options = arr.map((u) => ({
+                    value: u?.nombreUnidad ?? "",
+                    label: `${u?.nombreUnidad ?? ""}${u?.nombreComuna ? ` — ${u.nombreComuna}` : ""}`,
+                    raw: u,
+                }));
+
+                cacheRef.current.set(cacheKey, options);
+                return options;
+            } catch (err) {
+                if (axios.isCancel?.(err)) {
+                    // Cancelada: devuelve vacío para esta invocación
+                    return [];
+                }
+                console.error("[UnidadesAsyncMulti] Error consultando:", err);
                 return [];
             }
-        }
+        },
+        [BASE, user?.token, regionSeleccionada, comunaSeleccionada, minChars]
+    );
 
-        const arr = Array.isArray(raw)
-            ? raw
-            : Array.isArray(raw?.items)
-                ? raw.items
-                : Array.isArray(raw?.content)
-                    ? raw.content
-                    : Array.isArray(raw?.data)
-                        ? raw.data
-                        : [];
-
-        // Mapea al formato de react-select
-        return arr.map((u) => ({
-            value: u.nombreUnidad,
-            label: `${u.nombreUnidad}${u.nombreComuna ? ` — ${u.nombreComuna}` : ""}`,
-            raw: u, // por si quieres guardar más datos
-        }));
-    };
-
-    // React-Select acepta una función que devuelve promesa
-    const loadOptions = (inputValue) => fetchOptions(inputValue);
+    // loadOptions con debounce: react-select/async usa esta función y espera una Promise
+    const loadOptions = useCallback(
+        (inputValue) =>
+            new Promise((resolve) => {
+                if (timerRef.current) clearTimeout(timerRef.current);
+                timerRef.current = setTimeout(async () => {
+                    const opts = await fetchOptions(inputValue);
+                    resolve(opts);
+                }, debounceMs);
+            }),
+        [fetchOptions, debounceMs]
+    );
 
     return (
         <AsyncSelect
             isMulti
             cacheOptions
-            defaultOptions // carga set inicial con input vacío
-            loadOptions={loadOptions}
+            defaultOptions={false}     // 👈 NO cargar al montar
+            loadOptions={loadOptions}  // 👈 Solo busca cuando el usuario escribe
             value={value}
             onChange={(opts) => onChange(opts || [])}
             placeholder="Busca y selecciona unidades…"
             noOptionsMessage={({inputValue}) =>
-                inputValue?.trim() ? "Sin coincidencias" : "Escribe para buscar"
+                (inputValue?.trim()?.length || 0) < minChars
+                    ? `Escribe al menos ${minChars} caracteres`
+                    : "Sin coincidencias"
             }
             closeMenuOnSelect={false}
             hideSelectedOptions={false}
             menuPlacement="auto"
             menuPortalTarget={document.body}
             menuPosition="fixed"
+            // Evita doble filtrado en cliente; dejamos que el backend decida
+            filterOption={null}
             styles={{
-                menuPortal: (base) => ({ ...base, zIndex: 2000 }),   // > 1 y > que tooltips, etc.
-                menu: (base) => ({ ...base, zIndex: 2000 }),
-                menuList: (base) => ({ ...base, maxHeight: 240 }),
+                menuPortal: (base) => ({...base, zIndex: 2000}),
+                menu: (base) => ({...base, zIndex: 2000}),
+                menuList: (base) => ({...base, maxHeight: 240}),
             }}
-
         />
     );
 }

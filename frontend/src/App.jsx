@@ -41,7 +41,7 @@ export default function App() {
                     <Route path="listas"></Route>
                     <Route path="aportefuncionarios" element={<PanelAdministracionAportes/>}/>
                 </Route>
-                <Route path="/auditoria" element={<AuditoriaMemos/>}/>
+                <Route path="/auditoria" element={<AuthGuard><AuditoriaMemos/></AuthGuard>}/>
                 <Route path="/login" element={<LoginForm/>}/>
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion/>}/>
                 <Route path="/" element={<AuthGuard><DashboardPrincipal/></AuthGuard>}/>
