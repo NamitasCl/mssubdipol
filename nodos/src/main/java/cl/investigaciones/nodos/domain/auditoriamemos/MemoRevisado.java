@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.OffsetDateTime;
+
 @Entity
 @Table(name = "memo_revisados", schema = "nodos")
 @Getter
@@ -14,7 +16,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MemoRevisado {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -23,4 +26,12 @@ public class MemoRevisado {
     private Long idMemo;
 
     private String observaciones;
+
+    private Boolean revisadoJefe;
+    private Boolean revisadoPlana;
+
+    private OffsetDateTime fechaRevisionJefe;
+    private OffsetDateTime fechaRevisionPlana;
+
+
 }
