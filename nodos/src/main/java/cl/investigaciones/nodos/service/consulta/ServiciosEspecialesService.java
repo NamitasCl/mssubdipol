@@ -4,6 +4,7 @@ import cl.investigaciones.nodos.domain.entidadesconsulta.FichaMemo;
 import cl.investigaciones.nodos.dto.consulta.*;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
 import cl.investigaciones.nodos.repository.consulta.FichaMemoRepository;
+import cl.investigaciones.nodos.repository.consulta.FichaPersonaRepository;
 import cl.investigaciones.nodos.repository.consulta.ListaUnidadRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +21,15 @@ public class ServiciosEspecialesService {
 
     private final FichaMemoRepository memoRepo;
     private final ListaUnidadRepository unidadRepo;
+    private final FichaPersonaRepository personaRepo;
+
 
     public ServiciosEspecialesService(FichaMemoRepository memoRepo,
-                                      ListaUnidadRepository unidadRepo) {
+                                      ListaUnidadRepository unidadRepo,
+                                      FichaPersonaRepository personaRepo) {
         this.memoRepo = memoRepo;
         this.unidadRepo = unidadRepo;
+        this.personaRepo = personaRepo;
     }
 
     public List<FichaMemoDTO> listarMemos(FichaMemoRequestDTO solicitud) {
@@ -304,5 +309,6 @@ public class ServiciosEspecialesService {
         }).toList();
 
     }
+
 
 }

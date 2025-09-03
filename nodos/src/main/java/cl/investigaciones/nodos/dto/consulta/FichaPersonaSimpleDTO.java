@@ -2,10 +2,13 @@ package cl.investigaciones.nodos.dto.consulta;
 
 import lombok.Data;
 
+import java.time.OffsetDateTime;
+
 @Data
 public class FichaPersonaSimpleDTO {
     private Long id;
     private String rut;
+    private OffsetDateTime createdAt;
     private String nombre;
     private String apellidoPat;
     private String apellidoMat;

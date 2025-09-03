@@ -1,10 +1,12 @@
 package cl.investigaciones.nodos.domain.entidadesconsulta;
 
-import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaModelo;
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaDelito;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaNacionalidad;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Immutable;
+
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "ficha_persona", schema = "public")
@@ -18,6 +20,9 @@ public class FichaPersona {
 
     @Column(name = "\"rut\"")
     private String rut;
+
+    @Column(name = "\"created_at\"")
+    private OffsetDateTime createdAt;
 
     @Column(name = "\"nombre\"")
     private String nombre;
@@ -66,5 +71,16 @@ public class FichaPersona {
     @ManyToOne
     @JoinColumn(name = "memos_id")
     private FichaMemo memo;
+
+    // >>> relación muchos-a-muchos con delitos
+    @ManyToMany(fetch = FetchType.LAZY)
+    @org.hibernate.annotations.Immutable     // colección de solo lectura
+    @JoinTable(
+            name = "\"ficha_persona_delitosP\"", // ¡ojo con la P mayúscula!
+            schema = "public",
+            joinColumns = @JoinColumn(name = "\"persona_id\"", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "delitos_id", referencedColumnName = "id")
+    )
+    private java.util.Set<ListaDelito> delitos = new java.util.HashSet<>();
 
 }

@@ -1,12 +1,10 @@
 package cl.investigaciones.nodos.controller.consulta;
 
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
+import cl.investigaciones.nodos.dto.serviciosespeciales.FichaPersonasRequestDTO;
 import cl.investigaciones.nodos.service.consulta.ServiciosEspecialesService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -37,5 +35,11 @@ public class ServiciosEspecialesController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @GetMapping("/personas")
+    public void listarPersonas(@RequestBody FichaPersonasRequestDTO req) {
+
+
     }
 }

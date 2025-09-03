@@ -24,4 +24,7 @@ public class ListaUnidad {
 
     @Column(name = "nombreRegion")
     private String nombreRegion;
+
+    @Column(name = "nombreUnidadReporta")
+    private String nombreUnidadReporta;
 }
