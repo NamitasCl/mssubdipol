@@ -1,5 +1,6 @@
 package cl.investigaciones.nodos.domain.entidadesconsulta;
 
+import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaCalidadPersona;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaDelito;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaNacionalidad;
 import jakarta.persistence.*;
@@ -7,6 +8,7 @@ import lombok.Data;
 import org.hibernate.annotations.Immutable;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "ficha_persona", schema = "public")
@@ -66,8 +68,7 @@ public class FichaPersona {
 
     @Column(name = "\"correo\"")
     private String correoElectronico;
-
-
+    
     @ManyToOne
     @JoinColumn(name = "memos_id")
     private FichaMemo memo;
@@ -82,5 +83,16 @@ public class FichaPersona {
             inverseJoinColumns = @JoinColumn(name = "delitos_id", referencedColumnName = "id")
     )
     private java.util.Set<ListaDelito> delitos = new java.util.HashSet<>();
+
+    // >>> relación muchos-a-muchos con estado
+    @ManyToMany(fetch = FetchType.LAZY)
+    @org.hibernate.annotations.Immutable     // colección de solo lectura
+    @JoinTable(
+            name = "\"ficha_persona_estadoP\"", // ¡ojo con la P mayúscula!
+            schema = "public",
+            joinColumns = @JoinColumn(name = "\"persona_id\"", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "calidadpersona_id", referencedColumnName = "id")
+    )
+    private Set<ListaCalidadPersona> estados = new java.util.HashSet<>();
 
 }

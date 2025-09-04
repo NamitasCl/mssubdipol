@@ -7,13 +7,11 @@ import cl.investigaciones.nodos.repository.consulta.FichaMemoRepository;
 import cl.investigaciones.nodos.repository.consulta.FichaPersonaRepository;
 import cl.investigaciones.nodos.repository.consulta.ListaUnidadRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +30,7 @@ public class ServiciosEspecialesService {
         this.personaRepo = personaRepo;
     }
 
+    @Transactional(readOnly = true)
     public List<FichaMemoDTO> listarMemos(FichaMemoRequestDTO solicitud) {
 
         if (solicitud == null) return List.of();
@@ -138,6 +137,19 @@ public class ServiciosEspecialesService {
                     per.setApellidoPat(persona.getApellidoPat());
                     per.setApellidoMat(persona.getApellidoMat());
                     per.setRut(persona.getRut());
+
+                    Set<String> estados = new LinkedHashSet<>();
+                    if (persona.getEstados() != null) {
+                        estados.addAll(
+                                persona.getEstados().stream()
+                                        .map(cp -> cp.getCalidad())
+                                        .filter(Objects::nonNull)
+                                        .collect(Collectors.toList())
+                        );
+                    }
+
+                    per.setEstados(estados);
+
                     return per;
                 }).toList());
             }
@@ -206,6 +218,7 @@ public class ServiciosEspecialesService {
         }).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<FichaMemoDTO> listarMemosPorId(List<Long> ids) {
 
         List<Long> idMemos = ids;
@@ -214,7 +227,7 @@ public class ServiciosEspecialesService {
             return List.of();
         }
 
-        List<FichaMemo> memos = memoRepo.findAllById(idMemos);
+        List<FichaMemo> memos = memoRepo.findAllByIdWithPersonasAndEstados(idMemos);
 
         // ---- Mapping a DTO (igual que tenías, con null-safety puntual) ----
         return memos.stream().map(registro -> {
@@ -241,6 +254,19 @@ public class ServiciosEspecialesService {
                     per.setApellidoPat(persona.getApellidoPat());
                     per.setApellidoMat(persona.getApellidoMat());
                     per.setRut(persona.getRut());
+
+                    Set<String> estados = new LinkedHashSet<>();
+                    if (persona.getEstados() != null) {
+                        estados.addAll(
+                                persona.getEstados().stream()
+                                        .map(cp -> cp.getCalidad())
+                                        .filter(Objects::nonNull)
+                                        .collect(Collectors.toList())
+                        );
+                    }
+
+                    per.setEstados(estados);
+
                     return per;
                 }).toList());
             }

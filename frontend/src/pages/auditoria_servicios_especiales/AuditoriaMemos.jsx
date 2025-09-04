@@ -21,7 +21,7 @@ import {
 import {getRegionesUnidades} from "../../api/commonServicesApi.js";
 import UnidadesAsyncMulti from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
 import AsyncMultiMemoIdsSelect from "../../components/ComponentesAsyncSelect/AsyncMultiMemoIdsSelect.jsx";
-import {consultaMemosServiciosEspeciales, consultarMemosPorIds, crearRevisionMemo} from "../../api/nodosApi.js";
+import {consultaMemosServiciosEspeciales, consultarMemosPorIds, crearRevisionMemo,} from "../../api/nodosApi.js";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 /* ------------------ Config UI y helpers ------------------ */
@@ -33,6 +33,19 @@ const estadoColors = {
     RECHAZADO: "danger",
 };
 
+// Colores para los estados de las personas (opcional, ajusta a tu catálogo real)
+const estadoPersonaColor = {
+    IMPUTADO: "danger",
+    IMPUTADA: "danger",
+    VICTIMA: "primary",
+    VÍCTIMA: "primary",
+    TESTIGO: "info",
+    DENUNCIANTE: "warning",
+    DETENIDO: "danger",
+    AFECTADO: "secondary",
+};
+const colorEstado = (s) => estadoPersonaColor[(s || "").toUpperCase()] || "secondary";
+
 const tipoMemos = [
     {value: "MEMORANDO DILIGENCIAS"},
     {value: "CONCURRENCIAS HOMICIDIOS"},
@@ -40,10 +53,7 @@ const tipoMemos = [
     {value: "DILIGENCIAS HOMICIDIOS"},
 ];
 
-const tipoFecha = [
-    {value: "FECHA REGISTRO"},
-    {value: "FECHA DEL HECHO"}
-]
+const tipoFecha = [{value: "FECHA REGISTRO"}, {value: "FECHA DEL HECHO"}];
 
 const toUTCISO = (str) => (str ? new Date(str).toISOString() : null);
 const clamp2 = {
@@ -56,6 +66,25 @@ const stickyTh = {position: "sticky", top: 0, background: "var(--bs-body-bg)", z
 
 /* ------------------ Normalización de datos ------------------ */
 
+// Acepta: ["VÍCTIMA", "IMPUTADO"]  ó  [{id:1, calidad:"VÍCTIMA"}, ...]  ó null
+const normalizeEstadosPersona = (est) => {
+    if (!est) return [];
+    if (Array.isArray(est)) {
+        return est
+            .map((x) => {
+                if (x == null) return null;
+                if (typeof x === "string") return x;
+                if (typeof x === "object") {
+                    // intenta distintas claves habituales
+                    return x.calidad ?? x.nombre ?? x.label ?? x.valor ?? null;
+                }
+                return null;
+            })
+            .filter(Boolean);
+    }
+    return [];
+};
+
 const normalizeMemo = (m) => {
     const fecha = m.fecha ? new Date(m.fecha) : null;
 
@@ -63,6 +92,7 @@ const normalizeMemo = (m) => {
         id: p.id ?? `${m.id}-persona-${p.rut || Math.random()}`,
         rut: p.rut || "",
         nombre: [p.nombre, p.apellidoPat, p.apellidoMat].filter(Boolean).join(" ") || "",
+        estados: normalizeEstadosPersona(p.estados), // 👈 estados normalizados
     }));
 
     const drogas = (m.fichaDrogas || []).map((d, idx) => ({
@@ -115,30 +145,27 @@ const normalizeMemo = (m) => {
 /* ------------------ Componente principal ------------------ */
 
 export default function AuditoriaMemos() {
-
     const {user} = useAuth();
     console.log("Usuario en serv. auditoria: ", user);
 
     const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
 
-    /**
-     * Modales para observar o aprobar el memo
-     * */
+    // Modales observar / aprobar
     const [selected, setSelected] = useState(null);
     const [observado, setObservado] = useState(null);
     const [aprobado, setAprobado] = useState(null);
 
     // formularios
-    const [obsTexto, setObsTexto] = useState("");        // para "observar"
-    const [obsAprobTexto, setObsAprobTexto] = useState(""); // opcional en "aprobar"
+    const [obsTexto, setObsTexto] = useState("");
+    const [obsAprobTexto, setObsAprobTexto] = useState("");
     const [savingRev, setSavingRev] = useState(false);
     const [saveErr, setSaveErr] = useState(null);
 
     const [regiones, setRegiones] = useState([]);
-    const [regionSeleccionada, setRegionSeleccionada] = useState(""); // para acotar el buscador de unidades
+    const [regionSeleccionada, setRegionSeleccionada] = useState("");
     const [memos, setMemos] = useState([]);
 
-    // Filtros comunes y por modo
+    // Filtros
     const [payload, setPayload] = useState({
         fechaInicio: "",
         fechaTermino: "",
@@ -190,11 +217,11 @@ export default function AuditoriaMemos() {
                 modo: "unidades",
                 ...base,
                 unidades, // array completo
-                unidad: unidades[0] || null, // compat con backend si espera uno
+                unidad: unidades[0] || null, // compat si backend espera uno
             };
         }
 
-        // modo folio (IDs de memos)
+        // modo folio
         return {
             modo: "folio",
             ...base,
@@ -203,12 +230,10 @@ export default function AuditoriaMemos() {
     };
 
     const handleFiltrar = async () => {
-        // Variables iniciales
-        let data = null; //la busqueda de memos
-
+        let data = null;
         setErr(null);
 
-        // Validaciones mínimas por modo
+        // Validaciones por modo
         if (searchMode === "unidades") {
             if (!(unidadesSeleccionadas?.length > 0)) {
                 setErr("Debes seleccionar al menos una unidad.");
@@ -292,7 +317,10 @@ export default function AuditoriaMemos() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `auditoria_memos_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
+        a.download = `auditoria_memos_${new Date()
+            .toISOString()
+            .slice(0, 19)
+            .replace(/[:T]/g, "-")}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -343,9 +371,7 @@ export default function AuditoriaMemos() {
         return filteredSorted.slice(start, start + pageSize);
     }, [filteredSorted, page, pageSize]);
 
-    /**
-     * Comportamiento modales para aprobar y observar
-     * */
+    /* ------------------ Modales aprobar / observar ------------------ */
 
     const resetModales = () => {
         setObservado(false);
@@ -370,7 +396,7 @@ export default function AuditoriaMemos() {
                 memoId: selected.id,
                 observaciones: txt,
             };
-            await crearRevisionMemo(payload, user?.token);  // si usas helper
+            await crearRevisionMemo(payload, user?.token);
             resetModales();
         } catch (e) {
             setSaveErr("No se pudo guardar la observación.");
@@ -390,7 +416,7 @@ export default function AuditoriaMemos() {
                 memoId: selected.id,
                 observaciones: obsAprobTexto.trim() || null,
             };
-            await crearRevisionMemo(payload, user?.token);  // si usas helper
+            await crearRevisionMemo(payload, user?.token);
             resetModales();
         } catch (e) {
             setSaveErr("No se pudo aprobar el memo.");
@@ -413,8 +439,11 @@ export default function AuditoriaMemos() {
                     </small>
                 </div>
                 <div className="d-flex gap-2">
-                    <Button variant={!!memos.length ? "outline-secondary" : "secondary"} size="sm"
-                            onClick={clearFilters}>
+                    <Button
+                        variant={!!memos.length ? "outline-secondary" : "secondary"}
+                        size="sm"
+                        onClick={clearFilters}
+                    >
                         Limpiar
                     </Button>
                     <Button variant="primary" size="sm" onClick={handleFiltrar}>
@@ -476,7 +505,6 @@ export default function AuditoriaMemos() {
                                 style={{maxWidth: 220}}
                                 value={payload.fechaInicio}
                                 onChange={(e) => setPayload((p) => ({...p, fechaInicio: e.target.value}))}
-
                             />
                             <Form.Label className="mb-0 small text-muted ms-2">Fecha término</Form.Label>
                             <Form.Control
@@ -515,8 +543,9 @@ export default function AuditoriaMemos() {
                                     comunaSeleccionada={""}
                                 />
                                 {!!unidadesSeleccionadas.length && (
-                                    <div
-                                        className="small text-muted mt-1">Seleccionadas: {unidadesSeleccionadas.length}.</div>
+                                    <div className="small text-muted mt-1">
+                                        Seleccionadas: {unidadesSeleccionadas.length}.
+                                    </div>
                                 )}
                             </Col>
                         )}
@@ -726,34 +755,61 @@ export default function AuditoriaMemos() {
                         <Modal.Body>
                             <Row className="g-3">
                                 <Col md={6}>
-                                    <Card>
-                                        <Card.Body>
-                                            <div className="mb-2">
-                                                <div className="text-muted small">Fecha</div>
-                                                <div className="fw-semibold">{selected.fecha}</div>
-                                            </div>
-                                            <div className="mb-2">
-                                                <div className="text-muted small">Unidad</div>
-                                                <div className="fw-semibold">{selected.unidad}</div>
-                                            </div>
-                                            <div className="mb-2">
-                                                <div className="text-muted small">Folio / RUC</div>
-                                                <div className="d-flex align-items-center gap-3">
-                                                    <span><strong>Folio:</strong> {selected.folio}</span>
-                                                    <Button size="sm" variant="link" className="p-0"
-                                                            onClick={() => copy(String(selected.folio))}>
-                                                        📋
-                                                    </Button>
-                                                    <span><strong>RUC:</strong> {selected.ruc}</span>
-                                                    <Button size="sm" variant="link" className="p-0"
-                                                            onClick={() => copy(String(selected.ruc))}>
-                                                        📋
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
+                                    <Row>
+                                        <Col md={12}>
+                                            <Card>
+                                                <Card.Body>
+                                                    <div className="mb-2">
+                                                        <div className="text-muted small">Fecha</div>
+                                                        <div className="fw-semibold">{selected.fecha}</div>
+                                                    </div>
+                                                    <div className="mb-2">
+                                                        <div className="text-muted small">Unidad</div>
+                                                        <div className="fw-semibold">{selected.unidad}</div>
+                                                    </div>
+                                                    <div className="mb-2">
+                                                        <div className="text-muted small">Folio / RUC</div>
+                                                        <div className="d-flex align-items-center gap-3">
+                                                            <span><strong>Folio:</strong> {selected.folio}</span>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="link"
+                                                                className="p-0"
+                                                                onClick={() => copy(String(selected.folio))}
+                                                            >
+                                                                📋
+                                                            </Button>
+                                                            <span><strong>RUC:</strong> {selected.ruc}</span>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="link"
+                                                                className="p-0"
+                                                                onClick={() => copy(String(selected.ruc))}
+                                                            >
+                                                                📋
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    </Row>
+
+                                    {/* Puedes dejar este card como área de pruebas/debug si quieres */}
+                                    <Row>
+                                        <Col style={{marginTop: 10, marginBottom: 0}} md={12}>
+                                            <Card>
+                                                <Card.Body>
+                                                    {/* Ejemplo: resumen rápido de personas y sus estados */}
+                                                    {selected.personas.map((p) => {
+                                                        console.log(selected._raw)
+                                                    })}
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    </Row>
                                 </Col>
+
                                 <Col md={6}>
                                     <Card>
                                         <Card.Body>
@@ -783,13 +839,23 @@ export default function AuditoriaMemos() {
                                         <ListGroup className="mt-2">
                                             {selected.personas.map((p) => (
                                                 <ListGroup.Item key={p.id}>
-                                                    <div className="fw-semibold">{p.nombre}</div>
+                                                    <div className="fw-semibold">{p.nombre || "Sin nombre"}</div>
                                                     {p.rut && <div className="text-muted small">{p.rut}</div>}
+                                                    {!!(p.estados && p.estados.length) && (
+                                                        <div className="mt-1 d-flex flex-wrap gap-1">
+                                                            {p.estados.map((e, i) => (
+                                                                <Badge key={i} bg={colorEstado(e)} pill>
+                                                                    {e}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </ListGroup.Item>
                                             ))}
                                         </ListGroup>
                                     )}
                                 </Tab>
+
                                 <Tab eventKey="drogas" title={`Drogas (${selected.drogas.length})`}>
                                     {selected.drogas.length === 0 ? (
                                         <p className="text-muted">No hay drogas.</p>
@@ -806,6 +872,7 @@ export default function AuditoriaMemos() {
                                         </ListGroup>
                                     )}
                                 </Tab>
+
                                 <Tab eventKey="funcionarios" title={`Funcionarios (${selected.funcionarios.length})`}>
                                     {selected.funcionarios.length === 0 ? (
                                         <p className="text-muted">No hay funcionarios asociados.</p>
@@ -814,13 +881,15 @@ export default function AuditoriaMemos() {
                                             {selected.funcionarios.map((f) => (
                                                 <ListGroup.Item key={f.id}>
                                                     <div className="fw-semibold">{f.nombre}</div>
-                                                    {f.responsabilidad &&
-                                                        <div className="text-muted small">{f.responsabilidad}</div>}
+                                                    {f.responsabilidad && (
+                                                        <div className="text-muted small">{f.responsabilidad}</div>
+                                                    )}
                                                 </ListGroup.Item>
                                             ))}
                                         </ListGroup>
                                     )}
                                 </Tab>
+
                                 <Tab eventKey="vehiculos" title={`Vehículos (${selected.vehiculos.length})`}>
                                     {selected.vehiculos.length === 0 ? (
                                         <p className="text-muted">No hay vehículos.</p>
@@ -835,6 +904,7 @@ export default function AuditoriaMemos() {
                                         </ListGroup>
                                     )}
                                 </Tab>
+
                                 <Tab eventKey="issues" title={`Observaciones (${selected.issues.length})`}>
                                     {selected.issues.length === 0 ? (
                                         <p className="text-muted">No hay observaciones.</p>
@@ -843,7 +913,13 @@ export default function AuditoriaMemos() {
                                             {selected.issues.map((i) => (
                                                 <ListGroup.Item key={i.id}>
                                                     <Badge
-                                                        bg={i.severidad === "ERROR" ? "danger" : i.severidad === "WARN" ? "warning" : "info"}
+                                                        bg={
+                                                            i.severidad === "ERROR"
+                                                                ? "danger"
+                                                                : i.severidad === "WARN"
+                                                                    ? "warning"
+                                                                    : "info"
+                                                        }
                                                         className="me-2"
                                                     >
                                                         {i.severidad}
@@ -868,6 +944,7 @@ export default function AuditoriaMemos() {
                     </>
                 )}
             </Modal>
+
             {/* Modal OBSERVAR */}
             <Modal show={!!observado} onHide={resetModales} centered>
                 {selected && (
@@ -886,7 +963,9 @@ export default function AuditoriaMemos() {
                                     onChange={(e) => setObsTexto(e.target.value)}
                                     disabled={savingRev}
                                 />
-                                <Form.Text muted>Se guardará con estado <strong>PENDIENTE</strong>.</Form.Text>
+                                <Form.Text muted>
+                                    Se guardará con estado <strong>PENDIENTE</strong>.
+                                </Form.Text>
                             </Form.Group>
                             {saveErr && <div className="text-danger small">{saveErr}</div>}
                         </Modal.Body>
@@ -911,7 +990,8 @@ export default function AuditoriaMemos() {
                         </Modal.Header>
                         <Modal.Body>
                             <p className="mb-2">
-                                ¿Confirmas la aprobación de este memo? Se guardará con estado <strong>APROBADO</strong>.
+                                ¿Confirmas la aprobación de este memo? Se guardará con estado{" "}
+                                <strong>APROBADO</strong>.
                             </p>
                             <Form.Group>
                                 <Form.Label>Observación (opcional)</Form.Label>

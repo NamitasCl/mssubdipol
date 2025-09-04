@@ -2,6 +2,7 @@ package cl.investigaciones.commonservices.controller;
 
 import cl.investigaciones.commonservices.dto.ConsultaUnidadDto;
 import cl.investigaciones.commonservices.dto.UnidadPorRegionRequestDTO;
+import cl.investigaciones.commonservices.dto.jerarquiaunidades.RegionesJefaturasDTO;
 import cl.investigaciones.commonservices.service.UnidadesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ public class ConsultaUnidadesController {
     @Autowired
     private UnidadesService unidadesService;
 
-    @GetMapping
+    @GetMapping("/actualizarbase")
     public ResponseEntity<?> cronSaveUnidades() {
         try {
             unidadesService.cronSaveUnidad();
@@ -94,6 +95,16 @@ public class ConsultaUnidadesController {
     public ResponseEntity<?> getJefaturasNacionalesPrefecturas() {
         try {
             List<String> unidades = unidadesService.getJefaturasNacionalesPrefecturas();
+            return ResponseEntity.ok(unidades);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al obtener regiones: " + e.getMessage());
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllUnidades() {
+        try {
+            List<RegionesJefaturasDTO> unidades = unidadesService.getJefaturasRegionesUudd();
             return ResponseEntity.ok(unidades);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error al obtener regiones: " + e.getMessage());

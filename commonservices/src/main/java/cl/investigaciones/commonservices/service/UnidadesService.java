@@ -2,6 +2,9 @@ package cl.investigaciones.commonservices.service;
 
 import cl.investigaciones.commonservices.dto.ConsultaUnidadDto;
 import cl.investigaciones.commonservices.dto.ConsultaUnidadWrapperDTO;
+import cl.investigaciones.commonservices.dto.jerarquiaunidades.RegionesJefaturasDTO;
+import cl.investigaciones.commonservices.dto.jerarquiaunidades.UnidadHijoDTO;
+import cl.investigaciones.commonservices.dto.jerarquiaunidades.UnidadNietoDto;
 import cl.investigaciones.commonservices.model.Unidad;
 import cl.investigaciones.commonservices.repository.UnidadesRepository;
 import org.springframework.http.HttpEntity;
@@ -11,8 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UnidadesService {
@@ -183,5 +186,62 @@ public class UnidadesService {
     public List<String> getJefaturasNacionalesPrefecturas() {
         List<String> jefaturasPrefecturas = unidadesRepository.findDistinctNombreUnidadReporta();
         return jefaturasPrefecturas;
+    }
+
+    public List<RegionesJefaturasDTO> getJefaturasRegionesUudd() {
+        List<Unidad> unidades = unidadesRepository.findAll();
+
+        // Agrupar por Región -> Jefatura
+        Map<String, Map<String, List<Unidad>>> porRegionLuegoJefatura = unidades.stream()
+                .collect(Collectors.groupingBy(
+                        u -> nvl(u.getNombreRegion()),
+                        Collectors.groupingBy(u -> nvl(u.getNombreUnidadReporta()))
+                ));
+
+        // Construcción de DTOs
+        return porRegionLuegoJefatura.entrySet().stream()
+                .map(regionEntry -> {
+                    String nombreRegion = regionEntry.getKey();
+
+                    // Hijos (jefaturas)
+                    List<UnidadHijoDTO> hijos = regionEntry.getValue().entrySet().stream()
+                            .map(jefEntry -> {
+                                String nombreHijo = jefEntry.getKey();
+
+                                // Nietos (unidades) bajo esta jefatura
+                                List<UnidadNietoDto> nietos = jefEntry.getValue().stream()
+                                        .map(u -> new UnidadNietoDto(u.getIdUnidad(), u.getNombreUnidad()))
+                                        .sorted(Comparator.comparing(UnidadNietoDto::getNombreUnidad, Comparator.nullsLast(String::compareToIgnoreCase)))
+                                        .toList();
+
+                                // IDs asociados (sin duplicados)
+                                List<Integer> idsAsociados = nietos.stream()
+                                        .map(UnidadNietoDto::getId)
+                                        .filter(Objects::nonNull)
+                                        .distinct()
+                                        .sorted()
+                                        .toList();
+
+                                return new UnidadHijoDTO(nombreHijo, idsAsociados, nietos);
+                            })
+                            .sorted(Comparator.comparing(UnidadHijoDTO::getNombreHijo, Comparator.nullsLast(String::compareToIgnoreCase)))
+                            .toList();
+
+                    // IDs de todos los nietos de la región (sin duplicados)
+                    List<Integer> idsNietos = hijos.stream()
+                            .flatMap(h -> h.getIdsAsociados().stream())
+                            .distinct()
+                            .sorted()
+                            .toList();
+
+                    return new RegionesJefaturasDTO(nombreRegion, idsNietos, hijos);
+                })
+                .sorted(Comparator.comparing(RegionesJefaturasDTO::getNombreRegion, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .toList();
+    }
+
+    // Helper para evitar NPE en claves de agrupación
+    private static String nvl(String s) {
+        return (s == null || s.isBlank()) ? "(SIN INFORMAR)" : s;
     }
 }

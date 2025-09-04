@@ -3,6 +3,8 @@ package cl.investigaciones.nodos.dto.consulta;
 import lombok.Data;
 
 import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Data
 public class FichaPersonaSimpleDTO {
@@ -23,4 +25,7 @@ public class FichaPersonaSimpleDTO {
     private String observaciones;
     private String fono;
     private String correoElectronico;
+
+    // 👇 ahora simples strings; inicializado para que nunca sea null
+    private Set<String> estados = new LinkedHashSet<>();
 }
