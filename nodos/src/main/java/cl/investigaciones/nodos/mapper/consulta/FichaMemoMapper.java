@@ -8,13 +8,14 @@ import org.mapstruct.factory.Mappers;
 @Mapper(
         componentModel = "spring",
         uses = {
-            FichaPersonaSimpleMapper.class,
-            FichaArmaMapper.class,
-            FichaDineroMapper.class,
-            FichaDrogaMapper.class,
-            FichaFuncionarioMapper.class,
-            FichaMunicionMapper.class,
-            FichaVehiculoMapper.class,
+                FichaPersonaSimpleMapper.class,
+                FichaArmaMapper.class,
+                FichaDineroMapper.class,
+                FichaDrogaMapper.class,
+                FichaFuncionarioMapper.class,
+                FichaMunicionMapper.class,
+                FichaVehiculoMapper.class,
+                FichaOtrasEspeciesMapper.class, // ✅ AGREGADO
         }
 )
 public interface FichaMemoMapper {

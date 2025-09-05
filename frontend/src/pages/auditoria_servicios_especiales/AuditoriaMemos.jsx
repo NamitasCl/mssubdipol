@@ -21,7 +21,12 @@ import {
 import {getRegionesUnidades} from "../../api/commonServicesApi.js";
 import UnidadesAsyncMulti from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
 import AsyncMultiMemoIdsSelect from "../../components/ComponentesAsyncSelect/AsyncMultiMemoIdsSelect.jsx";
-import {consultaMemosServiciosEspeciales, consultarMemosPorIds, guardarRevisionMemo,} from "../../api/nodosApi.js";
+import {
+    consultaMemosServiciosEspeciales,
+    consultarMemosPorIds,
+    guardarRevisionMemo,
+    obtenerEstadisticas,
+} from "../../api/nodosApi.js";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 /* ------------------ Config UI y helpers ------------------ */
@@ -93,7 +98,7 @@ const normalizeMemo = (m) => {
         id: p.id ?? `${m.id}-persona-${p.rut || Math.random()}`,
         rut: p.rut || "",
         nombre: [p.nombre, p.apellidoPat, p.apellidoMat].filter(Boolean).join(" ") || "",
-        estados: normalizeEstadosPersona(p.estados), // 👈 estados normalizados
+        estados: normalizeEstadosPersona(p.estados),
     }));
 
     const drogas = (m.fichaDrogas || []).map((d, idx) => ({
@@ -114,6 +119,43 @@ const normalizeMemo = (m) => {
         id: v.id ?? `${m.id}-veh-${idx}`,
         patente: v.patente || v.ppu || "",
         marca: [v.marca, v.modelo].filter(Boolean).join(" "),
+        calidad: v.calidad || "",
+        obs: v.obs || "",
+    }));
+
+    // ✅ AGREGAR NORMALIZACIÓN PARA ARMAS
+    const armas = (m.fichaArmas || []).map((a, idx) => ({
+        id: a.id ?? `${m.id}-arma-${idx}`,
+        serie: a.serieArma || "",
+        marca: a.marcaArma || "",
+        tipo: a.tipoArma || "",
+        calibre: a.calibreArma || "",
+    }));
+
+    // ✅ AGREGAR NORMALIZACIÓN PARA DINEROS
+    const dineros = (m.fichaDineros || []).map((d, idx) => ({
+        id: d.id ?? `${m.id}-dinero-${idx}`,
+        calidad: d.calidad || "",
+        monto: d.monto || "",
+        obs: d.obs || "",
+    }));
+
+    // ✅ AGREGAR NORMALIZACIÓN PARA MUNICIONES
+    const municiones = (m.fichaMuniciones || []).map((mu, idx) => ({
+        id: mu.id ?? `${m.id}-municion-${idx}`,
+        obs: mu.obs || "",
+    }));
+
+    // ✅ AGREGAR NORMALIZACIÓN PARA OTRAS ESPECIES (COMO STRING)
+    const otrasEspecies = (m.fichaOtrasEspecies || []).map((oe, idx) => ({
+        id: oe.id ?? `${m.id}-especie-${idx}`,
+        calidad: oe.calidad || "",
+        descripcion: oe.descripcion || "",
+        nue: oe.nue || "",
+        cantidad: oe.cantidad || "",
+        avaluo: oe.avaluo || "",
+        utilizadoComoArma: oe.utilizadoComoArma || "", // ✅ MANTENER COMO STRING
+        sitioSuceso: oe.sitioSuceso || "",
     }));
 
     const relatoPlano = (m.modusDescripcion || "")
@@ -135,9 +177,10 @@ const normalizeMemo = (m) => {
         drogas,
         funcionarios,
         vehiculos,
-        armas: m.fichaArmas || [],
-        dineros: m.fichaDineros || [],
-        municiones: m.fichaMuniciones || [],
+        armas,
+        dineros,
+        municiones,
+        otrasEspecies, // ✅ AGREGAR
         issues: m.issues || [],
         _raw: m,
     };
@@ -146,7 +189,7 @@ const normalizeMemo = (m) => {
 /* ------------------ Componente principal ------------------ */
 
 export default function AuditoriaMemos() {
-    const { user } = useAuth();
+    const {user} = useAuth();
 
     const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
 
@@ -174,8 +217,8 @@ export default function AuditoriaMemos() {
         folio: "",
     });
 
-    const [unidadesSeleccionadas, setUnidadesSeleccionadas] = useState([]); // [{label,value}]
-    const [memoIds, setMemoIds] = useState([]); // [{label, value}]
+    const [unidadesSeleccionadas, setUnidadesSeleccionadas] = useState([]);
+    const [memoIds, setMemoIds] = useState([]);
 
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState(null);
@@ -216,12 +259,11 @@ export default function AuditoriaMemos() {
             return {
                 modo: "unidades",
                 ...base,
-                unidades, // array completo
-                unidad: unidades[0] || null, // compat si backend espera uno
+                unidades,
+                unidad: unidades[0] || null,
             };
         }
 
-        // modo folio
         return {
             modo: "folio",
             ...base,
@@ -233,7 +275,6 @@ export default function AuditoriaMemos() {
         let data = null;
         setErr(null);
 
-        // Validaciones por modo
         if (searchMode === "unidades") {
             if (!(unidadesSeleccionadas?.length > 0)) {
                 setErr("Debes seleccionar al menos una unidad.");
@@ -247,7 +288,6 @@ export default function AuditoriaMemos() {
         }
 
         const filtros = buildFilters();
-
 
         setLoading(true);
         setSelected(null);
@@ -323,6 +363,282 @@ export default function AuditoriaMemos() {
             .replace(/[:T]/g, "-")}.csv`;
         a.click();
         URL.revokeObjectURL(url);
+    };
+
+    // ✅ FUNCIÓN MEJORADA PARA EXPORTAR ESTADÍSTICAS CON DEBUG
+    const exportarEstadisticas = async () => {
+        console.log("🔍 Iniciando exportación de estadísticas...");
+        console.log("👤 Usuario:", user);
+
+        if (!user?.siglasUnidad || user.siglasUnidad !== "PMSUBDIPOL") {
+            alert("No tienes permisos para exportar estadísticas");
+            return;
+        }
+
+        const filtros = buildFilters();
+        console.log("📋 Filtros construidos:", filtros);
+
+        try {
+            setLoading(true);
+
+            console.log("🌐 Llamando al endpoint de estadísticas...");
+            console.log("🔗 URL:", `${import.meta.env.VITE_NODOS_CONSULTA_API_URL}/servicios-especiales/estadisticas`);
+
+            // Usar la función de nodosApi.js en lugar de fetch directo
+            const estadisticas = await obtenerEstadisticas(filtros);
+
+            console.log("✅ Estadísticas obtenidas:", estadisticas);
+            console.log("📊 Estructura de datos recibida:", Object.keys(estadisticas || {}));
+
+            // Verificar que tengamos datos
+            if (!estadisticas || typeof estadisticas !== 'object') {
+                throw new Error('No se recibieron datos válidos del servidor');
+            }
+
+            // Generar Excel
+            console.log("📄 Iniciando generación de Excel...");
+            await generarArchivosExcel(estadisticas);
+
+        } catch (e) {
+            console.error("❌ Error detallado:", e);
+            console.error("📝 Stack trace:", e.stack);
+
+            let mensaje = "Error desconocido";
+            if (e.response) {
+                console.error("🔴 Error de respuesta HTTP:", e.response.status, e.response.data);
+                mensaje = `Error del servidor: ${e.response.status} - ${e.response.statusText}`;
+            } else if (e.request) {
+                console.error("🔴 Error de red:", e.request);
+                mensaje = "Error de conexión con el servidor";
+            } else {
+                mensaje = e.message || "Error al procesar los datos";
+            }
+
+            alert(`No fue posible generar el Excel: ${mensaje}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ✅ FUNCIÓN MEJORADA PARA GENERAR EXCEL CON DEBUG
+    const generarArchivosExcel = async (estadisticas) => {
+        console.log("📊 Iniciando generación de archivo Excel...");
+
+        try {
+            // Verificar si xlsx está disponible
+            console.log("📚 Importando librería XLSX...");
+            const XLSX = await import('xlsx');
+            console.log("✅ XLSX importado correctamente");
+
+            // Crear workbook
+            console.log("📖 Creando workbook...");
+            const wb = XLSX.utils.book_new();
+
+            let hojasCreadas = 0;
+
+            // Hoja 1: Personas
+            console.log("👥 Procesando personas...", estadisticas.personas);
+            if (estadisticas.personas && Array.isArray(estadisticas.personas) && estadisticas.personas.length > 0) {
+                const wsPersonas = XLSX.utils.json_to_sheet(estadisticas.personas.map(p => ({
+                    'ID Memo': p.memoId,
+                    'RUT': p.rut,
+                    'Nombre': p.nombre,
+                    'Apellido Pat': p.apellidoPat,
+                    'Apellido Mat': p.apellidoMat,
+                    'Estados': Array.isArray(p.estados) ? p.estados.join(', ') : (p.estados || ''),
+                    'Folio': p.memoFolio,
+                    'RUC': p.memoRuc,
+                    'Formulario': p.memoFormulario,
+                    'Fecha Memo': p.memoFecha ? new Date(p.memoFecha).toLocaleDateString('es-CL') : '',
+                    'Unidad': p.memoUnidad,
+                })));
+                XLSX.utils.book_append_sheet(wb, wsPersonas, "Personas");
+                hojasCreadas++;
+                console.log("✅ Hoja Personas creada");
+            } else {
+                console.log("⚠️ No hay datos de personas o datos inválidos");
+            }
+
+            // Hoja 2: Armas
+            console.log("🔫 Procesando armas...", estadisticas.armas);
+            if (estadisticas.armas && Array.isArray(estadisticas.armas) && estadisticas.armas.length > 0) {
+                const wsArmas = XLSX.utils.json_to_sheet(estadisticas.armas.map(a => ({
+                    'ID Memo': a.memoId,
+                    'Serie': a.serieArma,
+                    'Marca': a.marcaArma,
+                    'Tipo': a.tipoArma,
+                    'Calibre': a.calibreArma,
+                    'Calidad': a.calidad,
+                    'Condición': a.condicion,
+                    'Observaciones': a.obs,
+                    'Folio': a.memoFolio,
+                    'RUC': a.memoRuc,
+                    'Fecha Memo': a.memoFecha ? new Date(a.memoFecha).toLocaleDateString('es-CL') : '',
+                    'Unidad': a.memoUnidad,
+                    'Formulario': a.memoFormulario,
+                })));
+                XLSX.utils.book_append_sheet(wb, wsArmas, "Armas");
+                hojasCreadas++;
+                console.log("✅ Hoja Armas creada");
+            } else {
+                console.log("⚠️ No hay datos de armas");
+            }
+
+            // Hoja 3: Drogas
+            console.log("💊 Procesando drogas...", estadisticas.drogas);
+            if (estadisticas.drogas && Array.isArray(estadisticas.drogas) && estadisticas.drogas.length > 0) {
+                const wsDrogas = XLSX.utils.json_to_sheet(estadisticas.drogas.map(d => ({
+                    'ID Memo': d.memoId,
+                    'Tipo': d.tipoDroga,
+                    'Cantidad': d.cantidadDroga,
+                    'Unidad Medida': d.unidadMedida,
+                    'Observaciones': d.obs,
+                    'Folio': d.memoFolio,
+                    'RUC': d.memoRuc,
+                    'Fecha Memo': d.memoFecha ? new Date(d.memoFecha).toLocaleDateString('es-CL') : '',
+                    'Unidad Policial': d.memoUnidad,
+                    'Formulario': d.memoFormulario,
+                })));
+                XLSX.utils.book_append_sheet(wb, wsDrogas, "Drogas");
+                hojasCreadas++;
+                console.log("✅ Hoja Drogas creada");
+            } else {
+                console.log("⚠️ No hay datos de drogas");
+            }
+
+            // Hoja 4: Dineros
+            console.log("💰 Procesando dineros...", estadisticas.dineros);
+            if (estadisticas.dineros && Array.isArray(estadisticas.dineros) && estadisticas.dineros.length > 0) {
+                const wsDineros = XLSX.utils.json_to_sheet(estadisticas.dineros.map(d => ({
+                    'ID Memo': d.memoId,
+                    'Calidad': d.calidad,
+                    'Monto': d.monto,
+                    'Observaciones': d.obs,
+                    'Folio': d.memoFolio,
+                    'RUC': d.memoRuc,
+                    'Fecha Memo': d.memoFecha ? new Date(d.memoFecha).toLocaleDateString('es-CL') : '',
+                    'Unidad': d.memoUnidad,
+                    'Formulario': d.memoFormulario,
+                })));
+                XLSX.utils.book_append_sheet(wb, wsDineros, "Dineros");
+                hojasCreadas++;
+                console.log("✅ Hoja Dineros creada");
+            } else {
+                console.log("⚠️ No hay datos de dineros");
+            }
+
+            // Hoja 5: Vehículos
+            console.log("🚗 Procesando vehículos...", estadisticas.vehiculos);
+            if (estadisticas.vehiculos && Array.isArray(estadisticas.vehiculos) && estadisticas.vehiculos.length > 0) {
+                const wsVehiculos = XLSX.utils.json_to_sheet(estadisticas.vehiculos.map(v => ({
+                    'ID Memo': v.memoId,
+                    'Patente': v.patente,
+                    'Marca': v.marca,
+                    'Modelo': v.modelo,
+                    'Calidad': v.calidad,
+                    'Observaciones': v.obs,
+                    'Folio': v.memoFolio,
+                    'RUC': v.memoRuc,
+                    'Fecha Memo': v.memoFecha ? new Date(v.memoFecha).toLocaleDateString('es-CL') : '',
+                    'Unidad': v.memoUnidad,
+                    'Formulario': v.memoFormulario,
+                })));
+                XLSX.utils.book_append_sheet(wb, wsVehiculos, "Vehículos");
+                hojasCreadas++;
+                console.log("✅ Hoja Vehículos creada");
+            } else {
+                console.log("⚠️ No hay datos de vehículos");
+            }
+
+            // Hoja 6: Municiones
+            console.log("🔆 Procesando municiones...", estadisticas.municiones);
+            if (estadisticas.municiones && Array.isArray(estadisticas.municiones) && estadisticas.municiones.length > 0) {
+                const wsMuniciones = XLSX.utils.json_to_sheet(estadisticas.municiones.map(m => ({
+                    'ID Memo': m.memoId,
+                    'Observaciones': m.obs,
+                    'Folio': m.memoFolio,
+                    'RUC': m.memoRuc,
+                    'Fecha Memo': m.memoFecha ? new Date(m.memoFecha).toLocaleDateString('es-CL') : '',
+                    'Unidad': m.memoUnidad,
+                    'Formulario': m.memoFormulario,
+                })));
+                XLSX.utils.book_append_sheet(wb, wsMuniciones, "Municiones");
+                hojasCreadas++;
+                console.log("✅ Hoja Municiones creada");
+            } else {
+                console.log("⚠️ No hay datos de municiones");
+            }
+
+            // Hoja 7: Otras Especies
+            console.log("📦 Procesando otras especies...", estadisticas.otrasEspecies);
+            if (estadisticas.otrasEspecies && Array.isArray(estadisticas.otrasEspecies) && estadisticas.otrasEspecies.length > 0) {
+                const wsEspecies = XLSX.utils.json_to_sheet(estadisticas.otrasEspecies.map(oe => ({
+                    'ID Memo': oe.memoId,
+                    'Calidad': oe.calidad,
+                    'Descripción': oe.descripcion,
+                    'NUE': oe.nue,
+                    'Cantidad': oe.cantidad,
+                    'Avalúo': oe.avaluo,
+                    'Utilizado como Arma': oe.utilizadoComoArma,
+                    'Sitio Suceso': oe.sitioSuceso,
+                    'Folio': oe.memoFolio,
+                    'RUC': oe.memoRuc,
+                    'Fecha Memo': oe.memoFecha ? new Date(oe.memoFecha).toLocaleDateString('es-CL') : '',
+                    'Unidad': oe.memoUnidad,
+                    'Formulario': oe.memoFormulario,
+                })));
+                XLSX.utils.book_append_sheet(wb, wsEspecies, "Otras Especies");
+                hojasCreadas++;
+                console.log("✅ Hoja Otras Especies creada");
+            } else {
+                console.log("⚠️ No hay datos de otras especies");
+            }
+
+            // Hoja 8: Resumen de Memos
+            console.log("📋 Procesando resumen de memos...", estadisticas.resumenMemos);
+            if (estadisticas.resumenMemos && Array.isArray(estadisticas.resumenMemos) && estadisticas.resumenMemos.length > 0) {
+                const wsMemos = XLSX.utils.json_to_sheet(estadisticas.resumenMemos.map(m => ({
+                    'ID Memo': m.memoId,
+                    'Formulario': m.memoFormulario,
+                    'Folio': m.memoFolio,
+                    'RUC': m.memoRuc,
+                    'Fecha': m.memoFecha ? new Date(m.memoFecha).toLocaleDateString('es-CL') : '',
+                    'Unidad': m.memoUnidad,
+                    'Total Personas': m.totalPersonas || 0,
+                    'Total Armas': m.totalArmas || 0,
+                    'Total Drogas': m.totalDrogas || 0,
+                    'Total Dineros': m.totalDineros || 0,
+                    'Total Vehículos': m.totalVehiculos || 0,
+                    'Total Municiones': m.totalMuniciones || 0,
+                    'Total Otras Especies': m.totalOtrasEspecies || 0,
+                })));
+                XLSX.utils.book_append_sheet(wb, wsMemos, "Resumen Memos");
+                hojasCreadas++;
+                console.log("✅ Hoja Resumen Memos creada");
+            } else {
+                console.log("⚠️ No hay datos de resumen de memos");
+            }
+
+            // Verificar que al menos tengamos una hoja
+            if (hojasCreadas === 0) {
+                throw new Error('No se encontraron datos para exportar. Verifica que existan registros en el período seleccionado.');
+            }
+
+            // Generar archivo y descargarlo
+            console.log(`📁 Generando archivo Excel con ${hojasCreadas} hojas...`);
+            const fechaActual = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+            const fileName = `Estadisticas_PMSUBDIPOL_${fechaActual}.xlsx`;
+
+            console.log("💾 Guardando archivo:", fileName);
+            XLSX.writeFile(wb, fileName);
+
+            console.log("✅ Archivo generado exitosamente");
+            alert(`✅ Archivo ${fileName} descargado exitosamente con ${hojasCreadas} hojas de datos`);
+
+        } catch (e) {
+            console.error("❌ Error en generación de Excel:", e);
+            throw e; // Re-lanzar para que lo capture el catch principal
+        }
     };
 
     const copy = async (text) => {
@@ -401,8 +717,10 @@ export default function AuditoriaMemos() {
                 fechaRevisionPlana: new Date().toISOString()
             };
             const saved = await guardarRevisionMemo(payload, user?.token);
-            // Actualizar estado en la lista inmediatamente
-            setMemos((prev) => prev.map(m => m.id === selected.id ? { ...m, estado: (saved?.estado || "PENDIENTE") } : m));
+            setMemos((prev) => prev.map(m => m.id === selected.id ? {
+                ...m,
+                estado: (saved?.estado || "PENDIENTE")
+            } : m));
             window.alert("Observación guardada correctamente");
             resetModales();
         } catch (e) {
@@ -428,7 +746,7 @@ export default function AuditoriaMemos() {
                 fechaRevisionPlana: new Date().toISOString()
             };
             const saved = await guardarRevisionMemo(payload, user?.token);
-            setMemos((prev) => prev.map(m => m.id === selected.id ? { ...m, estado: (saved?.estado || "APROBADO") } : m));
+            setMemos((prev) => prev.map(m => m.id === selected.id ? {...m, estado: (saved?.estado || "APROBADO")} : m));
             window.alert("Memo aprobado correctamente");
             resetModales();
         } catch (e) {
@@ -467,7 +785,6 @@ export default function AuditoriaMemos() {
 
             <Card className="mb-3">
                 <Card.Body>
-                    {/* Selector de modo */}
                     <div className="d-flex flex-wrap align-items-center gap-3">
                         <div className="d-flex align-items-center gap-2">
                             <span className="text-muted small">Modo de búsqueda:</span>
@@ -477,7 +794,7 @@ export default function AuditoriaMemos() {
                                     variant={searchMode === "unidades" ? "primary" : "outline-primary"}
                                     onClick={() => {
                                         setSearchMode("unidades");
-                                        setMemoIds([]); // limpiar IDs cuando pasas a unidades
+                                        setMemoIds([]);
                                     }}
                                 >
                                     Por Unidades
@@ -487,15 +804,14 @@ export default function AuditoriaMemos() {
                                     variant={searchMode === "folio" ? "primary" : "outline-primary"}
                                     onClick={() => {
                                         setSearchMode("folio");
-                                        setUnidadesSeleccionadas([]); // limpiar unidades cuando pasas a folio
+                                        setUnidadesSeleccionadas([]);
                                     }}
                                 >
-                                    Por Folio
+                                    Por ID memo
                                 </Button>
                             </ButtonGroup>
                         </div>
 
-                        {/* Controles comunes: fechas + tipo de memo */}
                         <div className="w-100 d-flex flex-wrap align-items-center gap-2">
                             <Form.Label className="mb-0 small text-muted ms-2">Tipo de fecha</Form.Label>
                             <Form.Select
@@ -544,7 +860,6 @@ export default function AuditoriaMemos() {
                         </div>
                     </div>
 
-                    {/* Contenido por modo */}
                     <Row className="g-3 mt-2">
                         {searchMode === "unidades" && (
                             <Col md={12}>
@@ -576,7 +891,6 @@ export default function AuditoriaMemos() {
                 </Card.Body>
             </Card>
 
-            {/* Búsqueda rápida local */}
             <div
                 className="d-flex justify-content-between align-items-center m-2 bg-secondary bg-opacity-25 p-2 rounded-3 shadow-sm mb-4">
                 <div className="d-flex align-items-center gap-2">
@@ -623,6 +937,17 @@ export default function AuditoriaMemos() {
                     <Button size="sm" variant="outline-success" onClick={exportCsv} disabled={!total}>
                         Exportar CSV
                     </Button>
+                    {user?.siglasUnidad === "PMSUBDIPOL" && (
+                        <Button
+                            size="sm"
+                            variant="outline-success"
+                            onClick={exportarEstadisticas}
+                            disabled={loading || !total}
+                            className="ms-2"
+                        >
+                            📊 Estadísticas Excel
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -719,7 +1044,8 @@ export default function AuditoriaMemos() {
                                     </div>
                                 </td>
                                 <td>
-                                    <Badge bg={estadoColors[m.estado] || "secondary"}>{m.estado === "SIN_REVISAR" ? "Pendiente" : m.estado}</Badge>
+                                    <Badge
+                                        bg={estadoColors[m.estado] || "secondary"}>{m.estado === "SIN_REVISAR" ? "Pendiente" : m.estado}</Badge>
                                 </td>
                                 <td className="text-end">
                                     <Button size="sm" variant="outline-primary" onClick={() => setSelected(m)}>
@@ -762,7 +1088,8 @@ export default function AuditoriaMemos() {
                             <Modal.Title className="d-flex align-items-center gap-2">
                                 <span>Memo #{selected.id}</span>
                                 <Badge bg="info" className="text-dark">{selected.tipo}</Badge>
-                                <Badge bg={estadoColors[selected.estado] || "secondary"}>{selected.estado === "SIN_REVISAR" ? "Pendiente" : selected.estado}</Badge>
+                                <Badge
+                                    bg={estadoColors[selected.estado] || "secondary"}>{selected.estado === "SIN_REVISAR" ? "Pendiente" : selected.estado}</Badge>
                             </Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
@@ -857,6 +1184,49 @@ export default function AuditoriaMemos() {
                                     )}
                                 </Tab>
 
+                                {/* ✅ PESTAÑA ARMAS */}
+                                <Tab eventKey="armas" title={`Armas (${selected.armas.length})`}>
+                                    {selected.armas.length === 0 ? (
+                                        <p className="text-muted">No hay armas asociadas.</p>
+                                    ) : (
+                                        <ListGroup className="mt-2">
+                                            {selected.armas.map((a) => (
+                                                <ListGroup.Item key={a.id}>
+                                                    <div
+                                                        className="fw-semibold">{a.tipo || "Sin tipo especificado"}</div>
+                                                    <div className="text-muted small">
+                                                        <strong>Marca:</strong> {a.marca || "—"} |
+                                                        <strong> Serie:</strong> {a.serie || "—"} |
+                                                        <strong> Calibre:</strong> {a.calibre || "—"}
+                                                    </div>
+                                                </ListGroup.Item>
+                                            ))}
+                                        </ListGroup>
+                                    )}
+                                </Tab>
+
+                                {/* ✅ PESTAÑA DINEROS */}
+                                <Tab eventKey="dineros" title={`Dineros (${selected.dineros.length})`}>
+                                    {selected.dineros.length === 0 ? (
+                                        <p className="text-muted">No hay dineros asociados.</p>
+                                    ) : (
+                                        <ListGroup className="mt-2">
+                                            {selected.dineros.map((d) => (
+                                                <ListGroup.Item key={d.id}>
+                                                    <div
+                                                        className="fw-semibold">{d.calidad || "Sin calidad especificada"}</div>
+                                                    <div className="text-muted small">
+                                                        <strong>Monto:</strong> {d.monto || "—"}
+                                                        {d.obs && (
+                                                            <span> | <strong>Observaciones:</strong> {d.obs}</span>
+                                                        )}
+                                                    </div>
+                                                </ListGroup.Item>
+                                            ))}
+                                        </ListGroup>
+                                    )}
+                                </Tab>
+
                                 <Tab eventKey="drogas" title={`Drogas (${selected.drogas.length})`}>
                                     {selected.drogas.length === 0 ? (
                                         <p className="text-muted">No hay drogas.</p>
@@ -891,6 +1261,24 @@ export default function AuditoriaMemos() {
                                     )}
                                 </Tab>
 
+                                {/* ✅ PESTAÑA MUNICIONES */}
+                                <Tab eventKey="municiones" title={`Municiones (${selected.municiones.length})`}>
+                                    {selected.municiones.length === 0 ? (
+                                        <p className="text-muted">No hay municiones asociadas.</p>
+                                    ) : (
+                                        <ListGroup className="mt-2">
+                                            {selected.municiones.map((m) => (
+                                                <ListGroup.Item key={m.id}>
+                                                    <div className="fw-semibold">Munición</div>
+                                                    <div className="text-muted small">
+                                                        {m.obs || "Sin observaciones"}
+                                                    </div>
+                                                </ListGroup.Item>
+                                            ))}
+                                        </ListGroup>
+                                    )}
+                                </Tab>
+
                                 <Tab eventKey="vehiculos" title={`Vehículos (${selected.vehiculos.length})`}>
                                     {selected.vehiculos.length === 0 ? (
                                         <p className="text-muted">No hay vehículos.</p>
@@ -899,7 +1287,56 @@ export default function AuditoriaMemos() {
                                             {selected.vehiculos.map((v) => (
                                                 <ListGroup.Item key={v.id}>
                                                     <div className="fw-semibold">{v.patente || "Sin patente"}</div>
-                                                    <div className="text-muted small">{v.marca}</div>
+                                                    <div className="text-muted small">
+                                                        <strong>Marca/Modelo:</strong> {v.marca || "—"}
+                                                        {v.calidad && (
+                                                            <span> | <strong>Calidad:</strong> {v.calidad}</span>
+                                                        )}
+                                                        {v.obs && (
+                                                            <span> | <strong>Observaciones:</strong> {v.obs}</span>
+                                                        )}
+                                                    </div>
+                                                </ListGroup.Item>
+                                            ))}
+                                        </ListGroup>
+                                    )}
+                                </Tab>
+
+                                {/* ✅ PESTAÑA OTRAS ESPECIES (CORREGIDA PARA STRING) */}
+                                <Tab eventKey="otrasEspecies"
+                                     title={`Otras Especies (${selected.otrasEspecies.length})`}>
+                                    {selected.otrasEspecies.length === 0 ? (
+                                        <p className="text-muted">No hay otras especies asociadas.</p>
+                                    ) : (
+                                        <ListGroup className="mt-2">
+                                            {selected.otrasEspecies.map((oe) => (
+                                                <ListGroup.Item key={oe.id}>
+                                                    <div
+                                                        className="fw-semibold">{oe.descripcion || "Sin descripción"}</div>
+                                                    <div className="text-muted small">
+                                                        <strong>Calidad:</strong> {oe.calidad || "—"} |
+                                                        <strong> Cantidad:</strong> {oe.cantidad || "—"} |
+                                                        <strong> NUE:</strong> {oe.nue || "—"}
+                                                    </div>
+                                                    {oe.avaluo && (
+                                                        <div className="text-muted small">
+                                                            <strong>Avalúo:</strong> {oe.avaluo}
+                                                        </div>
+                                                    )}
+                                                    {/* ✅ LÓGICA CORREGIDA PARA STRING */}
+                                                    {oe.utilizadoComoArma &&
+                                                        oe.utilizadoComoArma !== "—" &&
+                                                        oe.utilizadoComoArma !== "" &&
+                                                        oe.utilizadoComoArma.toUpperCase().includes("SI") && (
+                                                            <Badge bg="warning" className="me-1">
+                                                                Utilizado como arma
+                                                            </Badge>
+                                                        )}
+                                                    {oe.sitioSuceso && (
+                                                        <div className="text-muted small">
+                                                            <strong>Sitio del suceso:</strong> {oe.sitioSuceso}
+                                                        </div>
+                                                    )}
                                                 </ListGroup.Item>
                                             ))}
                                         </ListGroup>
@@ -990,6 +1427,7 @@ export default function AuditoriaMemos() {
                             <Modal.Title>Aprobar memo #{selected.id}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
+                            {console.log(selected._raw)}
                             <p className="mb-2">
                                 ¿Confirmas la aprobación de este memo? Se guardará con estado{" "}
                                 <strong>APROBADO</strong>.

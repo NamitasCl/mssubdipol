@@ -59,6 +59,9 @@ public class FichaMemo {
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
     private List<FichaVehiculo> fichaVehiculos;
 
+    @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
+    private List<FichaOtrasEspecies> fichaOtrasEspecies;
+
     @ManyToOne
     @JoinColumn(name = "\"unidad_id\"")
     private ListaUnidad unidad;

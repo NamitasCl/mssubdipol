@@ -50,3 +50,8 @@ export async function guardarRevisionMemo(revision, token) {
     const res = await axios.post(`${API_SERVICIOS_ESPECIALES_MEMOS_REVISADOS}`, revision, config);
     return res.data;
 }
+
+export async function obtenerEstadisticas(consulta) {
+    const res = await axios.post(`${API_SERVICIOS_ESPECIALES}/estadisticas`, consulta);
+    return res.data;
+}

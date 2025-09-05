@@ -219,6 +219,21 @@ public class ServiciosEspecialesService {
                 }).toList());
             }
 
+            if (registro.getFichaOtrasEspecies() != null) {
+                dto.setFichaOtrasEspecies(registro.getFichaOtrasEspecies().stream().map(oe -> {
+                    FichaOtrasEspeciesDTO oeDto = new FichaOtrasEspeciesDTO();
+                    oeDto.setId(oe.getId());
+                    oeDto.setCalidad(oe.getCalidad());
+                    oeDto.setDescripcion(oe.getDescripcion());
+                    oeDto.setNue(oe.getNue());
+                    oeDto.setCantidad(oe.getCantidad());
+                    oeDto.setAvaluo(oe.getAvaluo());
+                    oeDto.setUtilizadoComoArma(oe.getUtilizadoComoArma());
+                    oeDto.setSitioSuceso(oe.getSitioSuceso());
+                    return oeDto;
+                }).toList());
+            }
+
             return dto;
         }).toList();
     }
@@ -336,6 +351,21 @@ public class ServiciosEspecialesService {
                 }).toList());
             }
 
+            if (registro.getFichaOtrasEspecies() != null) {
+                dto.setFichaOtrasEspecies(registro.getFichaOtrasEspecies().stream().map(oe -> {
+                    FichaOtrasEspeciesDTO oeDto = new FichaOtrasEspeciesDTO();
+                    oeDto.setId(oe.getId());
+                    oeDto.setCalidad(oe.getCalidad());
+                    oeDto.setDescripcion(oe.getDescripcion());
+                    oeDto.setNue(oe.getNue());
+                    oeDto.setCantidad(oe.getCantidad());
+                    oeDto.setAvaluo(oe.getAvaluo());
+                    oeDto.setUtilizadoComoArma(oe.getUtilizadoComoArma());
+                    oeDto.setSitioSuceso(oe.getSitioSuceso());
+                    return oeDto;
+                }).toList());
+            }
+
             return dto;
         }).toList();
 
@@ -370,6 +400,7 @@ public class ServiciosEspecialesService {
             fe.setFichaFuncionarios(dto.getFichaFuncionarios());
             fe.setFichaMuniciones(dto.getFichaMuniciones());
             fe.setFichaVehiculos(dto.getFichaVehiculos());
+            fe.setFichaOtrasEspecies(dto.getFichaOtrasEspecies());
 
             MemoRevisado r = porId.get(dto.getId());
             if (r != null) {
@@ -412,6 +443,7 @@ public class ServiciosEspecialesService {
             fe.setFichaFuncionarios(dto.getFichaFuncionarios());
             fe.setFichaMuniciones(dto.getFichaMuniciones());
             fe.setFichaVehiculos(dto.getFichaVehiculos());
+            fe.setFichaOtrasEspecies(dto.getFichaOtrasEspecies());
 
             MemoRevisado r = porId.get(dto.getId());
             if (r != null) {

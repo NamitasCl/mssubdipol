@@ -22,5 +22,6 @@ public class FichaMemoDTO {
     private List<FichaFuncionarioDTO> fichaFuncionarios;
     private List<FichaMunicionDTO> fichaMuniciones;
     private List<FichaVehiculoDTO> fichaVehiculos;
+    private List<FichaOtrasEspeciesDTO> fichaOtrasEspecies;
 
 }
