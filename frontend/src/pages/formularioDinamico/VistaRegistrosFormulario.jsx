@@ -55,8 +55,6 @@ export default function VistaRegistrosFormulario() {
     const navigate  = useNavigate();
     const { user }  = useAuth();
 
-    console.log(user);
-
     /* ------------ params recibidos ------------ */
     const formularioId       = state?.formularioId;
     const esCuotaPadre       = !!state?.esCuotaPadre;
@@ -320,7 +318,7 @@ export default function VistaRegistrosFormulario() {
                 fila.Fecha = r.fechaRespuesta
                     ? "'" + r.fechaRespuesta.replace("T", " ").split(".")[0]
                     : "";
-                console.log(fila.Fecha)
+
                 fila["#registro"] = i + 1;
                 rows.push(fila);
             });

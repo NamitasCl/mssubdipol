@@ -21,7 +21,7 @@ function FormBuilderApp() {
     };
 
     const handleShowPreview = () => {
-        console.log(fields)
+
         setShowPreview(true)
     }
 

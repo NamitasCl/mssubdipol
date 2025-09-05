@@ -70,7 +70,7 @@ export default function ModificarAsignacionesUnidad() {
     }, [user]);
 
     useEffect(() => {
-        console.log(funcionariosAportadosUnidad)
+
     }, [funcionariosAportadosUnidad])
 
     /* -------- Cargar slots del calendario seleccionado -------- */
@@ -78,7 +78,7 @@ export default function ModificarAsignacionesUnidad() {
         if (!calendarioSeleccionado || !user?.idUnidad) return;
 
         getSlotsByCalendario(calendarioSeleccionado.id).then((data) => {
-            console.log(data)
+
 
             const slotsUnidad = data.filter(
                 (slot) => slot.siglasUnidadFuncionario === user.siglasUnidad

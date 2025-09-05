@@ -33,5 +33,8 @@ public class MemoRevisado {
     private OffsetDateTime fechaRevisionJefe;
     private OffsetDateTime fechaRevisionPlana;
 
+    private String nombreRevisor;
+    private String unidadRevisor;
+
 
 }

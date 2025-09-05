@@ -29,7 +29,6 @@ export default function ConfigurarUnidadesAportantesModal({ show, onHide, idCale
     }, [show, idCalendario]);
 
     const agregarAporte = async () => {
-        console.log("Unidad seleccionada: ", unidadSeleccionada)
         if (!unidadSeleccionada) return;
         await agregarAporteUnidad({
             idCalendario,

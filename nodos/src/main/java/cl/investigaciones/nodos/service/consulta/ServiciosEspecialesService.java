@@ -1,8 +1,10 @@
 package cl.investigaciones.nodos.service.consulta;
 
+import cl.investigaciones.nodos.domain.auditoriamemos.MemoRevisado;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaMemo;
 import cl.investigaciones.nodos.dto.consulta.*;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
+import cl.investigaciones.nodos.repository.auditoriamemos.MemoRevisadoRepository;
 import cl.investigaciones.nodos.repository.consulta.FichaMemoRepository;
 import cl.investigaciones.nodos.repository.consulta.FichaPersonaRepository;
 import cl.investigaciones.nodos.repository.consulta.ListaUnidadRepository;
@@ -20,14 +22,17 @@ public class ServiciosEspecialesService {
     private final FichaMemoRepository memoRepo;
     private final ListaUnidadRepository unidadRepo;
     private final FichaPersonaRepository personaRepo;
+    private final MemoRevisadoRepository memoRevisadoRepository;
 
 
     public ServiciosEspecialesService(FichaMemoRepository memoRepo,
                                       ListaUnidadRepository unidadRepo,
-                                      FichaPersonaRepository personaRepo) {
+                                      FichaPersonaRepository personaRepo,
+                                      MemoRevisadoRepository memoRevisadoRepository) {
         this.memoRepo = memoRepo;
         this.unidadRepo = unidadRepo;
         this.personaRepo = personaRepo;
+        this.memoRevisadoRepository = memoRevisadoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -336,5 +341,90 @@ public class ServiciosEspecialesService {
 
     }
 
+
+    @Transactional(readOnly = true)
+    public List<FichaMemoConEstadoDTO> listarMemosConEstado(FichaMemoRequestDTO solicitud) {
+        List<FichaMemoDTO> base = listarMemos(solicitud);
+        if (base == null || base.isEmpty()) return List.of();
+        List<Long> ids = base.stream().map(FichaMemoDTO::getId).filter(Objects::nonNull).toList();
+        Map<Long, MemoRevisado> porId = new HashMap<>();
+        if (!ids.isEmpty()) {
+            List<MemoRevisado> revisiones = memoRevisadoRepository.findByIdMemoIn(ids);
+            porId = revisiones.stream().collect(Collectors.toMap(MemoRevisado::getIdMemo, r -> r, (a,b)->a));
+        }
+        List<FichaMemoConEstadoDTO> res = new ArrayList<>();
+        for (FichaMemoDTO dto : base) {
+            FichaMemoConEstadoDTO fe = new FichaMemoConEstadoDTO();
+            // copiar campos (por herencia ya están, pero debemos setear)
+            fe.setId(dto.getId());
+            fe.setFormulario(dto.getFormulario());
+            fe.setFecha(dto.getFecha());
+            fe.setFolioBrain(dto.getFolioBrain());
+            fe.setRuc(dto.getRuc());
+            fe.setModusDescripcion(dto.getModusDescripcion());
+            fe.setUnidad(dto.getUnidad());
+            fe.setFichaPersonas(dto.getFichaPersonas());
+            fe.setFichaArmas(dto.getFichaArmas());
+            fe.setFichaDineros(dto.getFichaDineros());
+            fe.setFichaDrogas(dto.getFichaDrogas());
+            fe.setFichaFuncionarios(dto.getFichaFuncionarios());
+            fe.setFichaMuniciones(dto.getFichaMuniciones());
+            fe.setFichaVehiculos(dto.getFichaVehiculos());
+
+            MemoRevisado r = porId.get(dto.getId());
+            if (r != null) {
+                fe.setEstadoRevision(r.getEstado() != null ? r.getEstado().name() : "SIN_REVISAR");
+                fe.setObservacionesRevision(r.getObservaciones());
+                fe.setNombreRevisor(r.getNombreRevisor());
+                fe.setFechaRevision(r.getFechaRevisionPlana() != null ? r.getFechaRevisionPlana() : r.getFechaRevisionJefe());
+            } else {
+                fe.setEstadoRevision("SIN_REVISAR");
+            }
+            res.add(fe);
+        }
+        return res;
+    }
+
+    @Transactional(readOnly = true)
+    public List<FichaMemoConEstadoDTO> listarMemosPorIdConEstado(List<Long> ids) {
+        List<FichaMemoDTO> base = listarMemosPorId(ids);
+        if (base == null || base.isEmpty()) return List.of();
+        List<Long> memoIds = base.stream().map(FichaMemoDTO::getId).filter(Objects::nonNull).toList();
+        Map<Long, MemoRevisado> porId = new HashMap<>();
+        if (!memoIds.isEmpty()) {
+            List<MemoRevisado> revisiones = memoRevisadoRepository.findByIdMemoIn(memoIds);
+            porId = revisiones.stream().collect(Collectors.toMap(MemoRevisado::getIdMemo, r -> r, (a,b)->a));
+        }
+        List<FichaMemoConEstadoDTO> res = new ArrayList<>();
+        for (FichaMemoDTO dto : base) {
+            FichaMemoConEstadoDTO fe = new FichaMemoConEstadoDTO();
+            fe.setId(dto.getId());
+            fe.setFormulario(dto.getFormulario());
+            fe.setFecha(dto.getFecha());
+            fe.setFolioBrain(dto.getFolioBrain());
+            fe.setRuc(dto.getRuc());
+            fe.setModusDescripcion(dto.getModusDescripcion());
+            fe.setUnidad(dto.getUnidad());
+            fe.setFichaPersonas(dto.getFichaPersonas());
+            fe.setFichaArmas(dto.getFichaArmas());
+            fe.setFichaDineros(dto.getFichaDineros());
+            fe.setFichaDrogas(dto.getFichaDrogas());
+            fe.setFichaFuncionarios(dto.getFichaFuncionarios());
+            fe.setFichaMuniciones(dto.getFichaMuniciones());
+            fe.setFichaVehiculos(dto.getFichaVehiculos());
+
+            MemoRevisado r = porId.get(dto.getId());
+            if (r != null) {
+                fe.setEstadoRevision(r.getEstado() != null ? r.getEstado().name() : "SIN_REVISAR");
+                fe.setObservacionesRevision(r.getObservaciones());
+                fe.setNombreRevisor(r.getNombreRevisor());
+                fe.setFechaRevision(r.getFechaRevisionPlana() != null ? r.getFechaRevisionPlana() : r.getFechaRevisionJefe());
+            } else {
+                fe.setEstadoRevision("SIN_REVISAR");
+            }
+            res.add(fe);
+        }
+        return res;
+    }
 
 }

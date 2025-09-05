@@ -68,7 +68,7 @@ export function Jefe() {
             return;
         }
 
-        console.log("Selected Funcionario:", selectedFuncionario);
+
 
         try {
             setCargando(true);

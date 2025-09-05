@@ -65,7 +65,7 @@ export default function FormularioDinamicoPage() {
 
     /* ---------- submit ---------- */
     const guardar = (values, regId) => {
-        console.log(values,regId)
+
         const url = regId
             ? `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${regId}`
             : `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros`;
@@ -83,7 +83,7 @@ export default function FormularioDinamicoPage() {
             .then(() => setEnviado(true))
             .catch((e) => {
                 setError("Error al guardar el formulario")
-                console.log(e);
+
             });
     };
 

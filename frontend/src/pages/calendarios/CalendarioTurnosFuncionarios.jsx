@@ -48,7 +48,7 @@ export default function CalendarioTurnosFuncionarios({
 
     const [nombresUnicos, setNombresUnicos] = useState([]);
 
-    console.log("Asignaciones recibidas:", asignaciones);
+
 
     /* lista de nombres para el filtro desplegable */
     useEffect(() => {
@@ -151,10 +151,10 @@ export default function CalendarioTurnosFuncionarios({
         compareAntiguedad
     ]);
 
-    console.log("Lista de personas:", listaPersonas);
+
 
     const Ticket = ({ servicio }) => {
-        console.log("Servicio:", servicio);
+
         const color =
             servicio === "JEFE_DE_SERVICIO" ? "green" :
                 servicio === "ENCARGADO_DE_GUARDIA" ? "orange" :

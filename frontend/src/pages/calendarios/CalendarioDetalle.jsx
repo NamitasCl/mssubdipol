@@ -19,7 +19,7 @@ export default function CalendarioDetalle({ id, onVolver }) {
     if (loading) return <Spinner animation="border" />;
     if (!cal) return <div>No encontrado</div>;
 
-    console.log("Calendario cargado:", cal);
+
 
     return (
         <Card>

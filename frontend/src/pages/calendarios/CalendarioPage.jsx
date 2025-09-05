@@ -9,7 +9,7 @@ export default function CalendarioPage() {
     const { user } = useAuth();
     const [detalleId, setDetalleId] = useState(null);
 
-    console.log("user:", user);
+
 
     return (
         <div>

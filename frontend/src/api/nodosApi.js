@@ -41,6 +41,12 @@ export async function consultarMemosPorIds(ids) {
 }
 
 export async function crearRevisionMemo(payload, user) {
-    console.log("Payload en API: ", payload)
+
     const res = await axios.post(`${API_SERVICIOS_ESPECIALES_MEMOS_REVISADOS}`, payload)
+}
+
+export async function guardarRevisionMemo(revision, token) {
+    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    const res = await axios.post(`${API_SERVICIOS_ESPECIALES_MEMOS_REVISADOS}`, revision, config);
+    return res.data;
 }

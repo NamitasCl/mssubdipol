@@ -21,7 +21,7 @@ public class ServiciosEspecialesController {
     @PostMapping
     public ResponseEntity<?> listar(@RequestBody FichaMemoRequestDTO req) {
         try {
-            return ResponseEntity.ok(serviciosEspecialesService.listarMemos(req));
+            return ResponseEntity.ok(serviciosEspecialesService.listarMemosConEstado(req));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -31,7 +31,7 @@ public class ServiciosEspecialesController {
     public ResponseEntity<?> listarMemosPorIds(@RequestBody FichaMemoRequestDTO req) {
         try {
             List<Long> ids = req.getMemoIds();
-            return ResponseEntity.ok(serviciosEspecialesService.listarMemosPorId(ids));
+            return ResponseEntity.ok(serviciosEspecialesService.listarMemosPorIdConEstado(ids));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

@@ -16,7 +16,7 @@ export default function CalendarioList({ onSeleccionar }) {
         listarCalendarios()
             .then(setCalendarios)
             .finally(() => setLoading(false));
-        console.log("Calendarios cargados:", calendarios);
+
     }, [refresh]);
 
     const handleEliminar = async (id) => {

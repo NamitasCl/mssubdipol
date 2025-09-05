@@ -77,7 +77,7 @@ function StaffOrderingView({ assignedStaff }) {
     };
 
     const handleSave = () => {
-        console.log("Roles asignados:", rolesMap);
+
         // Aquí podrías hacer un POST/PUT a tu backend con {assignedStaff: rolesMap}
         alert("Roles guardados (ver console)");
     };

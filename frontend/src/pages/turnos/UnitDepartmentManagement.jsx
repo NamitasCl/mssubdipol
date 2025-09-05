@@ -123,7 +123,7 @@ function DepartmentManagement({
                     value: u.siglasUnidad,
                     label: u.nombreUnidad
                 }));
-                console.log("Options: ", options)
+
                 callback(options);
             })
             .catch(() => callback([]));
@@ -139,7 +139,7 @@ function DepartmentManagement({
                 params: { turnoAsignacion: idCalendario }
             })
             .then((res) => {
-                console.log("Respuesta unidades-colaboradoras: ", res.data)
+
                 if (Array.isArray(res.data)) {
                     setDepartments(res.data);
                 } else {
@@ -377,7 +377,7 @@ function DepartmentManagement({
                                         value={selectedUnit}
                                         onChange={(option) => {
                                             setSelectedUnit(option);
-                                            console.log("Value: ", option.value)
+
                                             field.onChange(option.value);
                                         }}
                                         placeholder="Nombre de la unidad"

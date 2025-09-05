@@ -91,7 +91,7 @@ function GestionTurnos({ setModo }) {
 
     // Guarda la lista de plantillas seleccionadas desde el modal
     const handleAgregarPlantillas = (plantillas) => {
-        console.log("Plantillas: ", plantillas)
+
         setPlantillasSeleccionadas(plantillas);
         setShowAgregarPlantillas(false);
     };
@@ -104,7 +104,7 @@ function GestionTurnos({ setModo }) {
         }
         try {
             const ids = plantillasSeleccionadas.map(p => p.id)
-            console.log("Ids: ", ids)
+
             setLoading(true);
             // Suma la cantidad total de turnos (servicios x días), o ajusta según tu modelo
             // Aquí dejo un ejemplo, debes calcularlo según tus plantillas
@@ -120,7 +120,7 @@ function GestionTurnos({ setModo }) {
             alert("Mes abierto correctamente.");
         } catch (error) {
             alert("Ocurrió un error al abrir el mes.");
-            console.log("Error: ", error)
+
         } finally {
             setLoading(false);
         }

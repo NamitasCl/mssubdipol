@@ -76,7 +76,7 @@ export default function VistaCalendarioTurnosFiltros() {
             const data = await getSlotsByCalendario(seleccionado);
             setSlots([...data].sort(compareAntiguedad));
 
-            console.log(data);
+
 
             const calSel = calendarios.find(c => c.id === Number(seleccionado));
             setMes(calSel?.mes ?? null);

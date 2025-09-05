@@ -6,7 +6,7 @@ export function RestrictedAreaJefe({component: Component, ...rest }) {
     // Aquí puedes definir la lógica para verificar si el usuario tiene acceso a la ruta
     const { user } = useAuth();
 
-    console.log("User en restricted: ", user);
+
 
     const hasAccess = user && user.roles && (user.roles.includes('ROLE_JEFE') || user.roles.includes('ROLE_SUBJEFE') || user.isAdmin);
 

@@ -21,13 +21,14 @@ import {
 import {getRegionesUnidades} from "../../api/commonServicesApi.js";
 import UnidadesAsyncMulti from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
 import AsyncMultiMemoIdsSelect from "../../components/ComponentesAsyncSelect/AsyncMultiMemoIdsSelect.jsx";
-import {consultaMemosServiciosEspeciales, consultarMemosPorIds, crearRevisionMemo,} from "../../api/nodosApi.js";
+import {consultaMemosServiciosEspeciales, consultarMemosPorIds, guardarRevisionMemo,} from "../../api/nodosApi.js";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 /* ------------------ Config UI y helpers ------------------ */
 
 const estadoColors = {
-    PENDIENTE: "secondary",
+    SIN_REVISAR: "secondary", // Pendiente (gris)
+    PENDIENTE: "warning",
     APROBADO: "success",
     OBSERVADO: "warning",
     RECHAZADO: "danger",
@@ -128,7 +129,7 @@ const normalizeMemo = (m) => {
         folio: m.folioBrain || "—",
         ruc: m.ruc || "—",
         unidad: m.unidad?.nombreUnidad || "—",
-        estado: m.estado || "PENDIENTE",
+        estado: m.estadoRevision || "SIN_REVISAR",
         relato: relatoPlano,
         personas,
         drogas,
@@ -145,8 +146,7 @@ const normalizeMemo = (m) => {
 /* ------------------ Componente principal ------------------ */
 
 export default function AuditoriaMemos() {
-    const {user} = useAuth();
-    console.log("Usuario en serv. auditoria: ", user);
+    const { user } = useAuth();
 
     const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
 
@@ -247,7 +247,7 @@ export default function AuditoriaMemos() {
         }
 
         const filtros = buildFilters();
-        console.log("👉 Consulta enviada (payload):", filtros);
+
 
         setLoading(true);
         setSelected(null);
@@ -329,7 +329,7 @@ export default function AuditoriaMemos() {
         try {
             await navigator.clipboard.writeText(text);
         } catch {
-            console.log("No se pudo copiar el texto al portapapeles.");
+
         }
     };
 
@@ -395,8 +395,15 @@ export default function AuditoriaMemos() {
                 estado: "PENDIENTE",
                 memoId: selected.id,
                 observaciones: txt,
+                nombreRevisor: user?.nombreUsuario,
+                unidadRevisor: user?.siglasUnidad,
+                revisadoPlana: true,
+                fechaRevisionPlana: new Date().toISOString()
             };
-            await crearRevisionMemo(payload, user?.token);
+            const saved = await guardarRevisionMemo(payload, user?.token);
+            // Actualizar estado en la lista inmediatamente
+            setMemos((prev) => prev.map(m => m.id === selected.id ? { ...m, estado: (saved?.estado || "PENDIENTE") } : m));
+            window.alert("Observación guardada correctamente");
             resetModales();
         } catch (e) {
             setSaveErr("No se pudo guardar la observación.");
@@ -415,8 +422,14 @@ export default function AuditoriaMemos() {
                 estado: "APROBADO",
                 memoId: selected.id,
                 observaciones: obsAprobTexto.trim() || null,
+                nombreRevisor: user?.nombreUsuario,
+                unidadRevisor: user?.siglasUnidad,
+                revisadoPlana: true,
+                fechaRevisionPlana: new Date().toISOString()
             };
-            await crearRevisionMemo(payload, user?.token);
+            const saved = await guardarRevisionMemo(payload, user?.token);
+            setMemos((prev) => prev.map(m => m.id === selected.id ? { ...m, estado: (saved?.estado || "APROBADO") } : m));
+            window.alert("Memo aprobado correctamente");
             resetModales();
         } catch (e) {
             setSaveErr("No se pudo aprobar el memo.");
@@ -706,7 +719,7 @@ export default function AuditoriaMemos() {
                                     </div>
                                 </td>
                                 <td>
-                                    <Badge bg={estadoColors[m.estado] || "secondary"}>{m.estado}</Badge>
+                                    <Badge bg={estadoColors[m.estado] || "secondary"}>{m.estado === "SIN_REVISAR" ? "Pendiente" : m.estado}</Badge>
                                 </td>
                                 <td className="text-end">
                                     <Button size="sm" variant="outline-primary" onClick={() => setSelected(m)}>
@@ -749,65 +762,47 @@ export default function AuditoriaMemos() {
                             <Modal.Title className="d-flex align-items-center gap-2">
                                 <span>Memo #{selected.id}</span>
                                 <Badge bg="info" className="text-dark">{selected.tipo}</Badge>
-                                <Badge bg={estadoColors[selected.estado] || "secondary"}>{selected.estado}</Badge>
+                                <Badge bg={estadoColors[selected.estado] || "secondary"}>{selected.estado === "SIN_REVISAR" ? "Pendiente" : selected.estado}</Badge>
                             </Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                             <Row className="g-3">
                                 <Col md={6}>
-                                    <Row>
-                                        <Col md={12}>
-                                            <Card>
-                                                <Card.Body>
-                                                    <div className="mb-2">
-                                                        <div className="text-muted small">Fecha</div>
-                                                        <div className="fw-semibold">{selected.fecha}</div>
-                                                    </div>
-                                                    <div className="mb-2">
-                                                        <div className="text-muted small">Unidad</div>
-                                                        <div className="fw-semibold">{selected.unidad}</div>
-                                                    </div>
-                                                    <div className="mb-2">
-                                                        <div className="text-muted small">Folio / RUC</div>
-                                                        <div className="d-flex align-items-center gap-3">
-                                                            <span><strong>Folio:</strong> {selected.folio}</span>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="link"
-                                                                className="p-0"
-                                                                onClick={() => copy(String(selected.folio))}
-                                                            >
-                                                                📋
-                                                            </Button>
-                                                            <span><strong>RUC:</strong> {selected.ruc}</span>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="link"
-                                                                className="p-0"
-                                                                onClick={() => copy(String(selected.ruc))}
-                                                            >
-                                                                📋
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                </Card.Body>
-                                            </Card>
-                                        </Col>
-                                    </Row>
-
-                                    {/* Puedes dejar este card como área de pruebas/debug si quieres */}
-                                    <Row>
-                                        <Col style={{marginTop: 10, marginBottom: 0}} md={12}>
-                                            <Card>
-                                                <Card.Body>
-                                                    {/* Ejemplo: resumen rápido de personas y sus estados */}
-                                                    {selected.personas.map((p) => {
-                                                        console.log(selected._raw)
-                                                    })}
-                                                </Card.Body>
-                                            </Card>
-                                        </Col>
-                                    </Row>
+                                    <Card>
+                                        <Card.Body>
+                                            <div className="mb-2">
+                                                <div className="text-muted small">Fecha</div>
+                                                <div className="fw-semibold">{selected.fecha}</div>
+                                            </div>
+                                            <div className="mb-2">
+                                                <div className="text-muted small">Unidad</div>
+                                                <div className="fw-semibold">{selected.unidad}</div>
+                                            </div>
+                                            <div className="mb-2">
+                                                <div className="text-muted small">Folio / RUC</div>
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <span><strong>Folio:</strong> {selected.folio}</span>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="link"
+                                                        className="p-0"
+                                                        onClick={() => copy(String(selected.folio))}
+                                                    >
+                                                        📋
+                                                    </Button>
+                                                    <span><strong>RUC:</strong> {selected.ruc}</span>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="link"
+                                                        className="p-0"
+                                                        onClick={() => copy(String(selected.ruc))}
+                                                    >
+                                                        📋
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </Card.Body>
+                                    </Card>
                                 </Col>
 
                                 <Col md={6}>
@@ -843,11 +838,17 @@ export default function AuditoriaMemos() {
                                                     {p.rut && <div className="text-muted small">{p.rut}</div>}
                                                     {!!(p.estados && p.estados.length) && (
                                                         <div className="mt-1 d-flex flex-wrap gap-1">
-                                                            {p.estados.map((e, i) => (
-                                                                <Badge key={i} bg={colorEstado(e)} pill>
-                                                                    {e}
-                                                                </Badge>
-                                                            ))}
+                                                            <div>
+                                                                Calidad de la persona:
+                                                            </div>
+                                                            <div>
+                                                                {p.estados.map((e, i) => (
+                                                                    <Badge key={i} bg={colorEstado(e)} pill>
+                                                                        {e}
+                                                                    </Badge>
+
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </ListGroup.Item>

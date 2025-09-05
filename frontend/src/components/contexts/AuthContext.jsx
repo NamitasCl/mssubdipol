@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
                 setIsAuth(true);
                 sessionStorage.setItem('user', JSON.stringify(enrichedUser));
                 sessionStorage.setItem('token', data.token);
-                console.log('Usuario autenticado:', enrichedUser);
+
             } else {
                 // ⚠️ Manejo de errores sin asumir que hay JSON
                 const contentType = response.headers.get("content-type");

@@ -299,7 +299,7 @@ export default function ConfigurarUnidadesAportantesModal({
             unidades: unidadesPayload,
         };
 
-        console.log("Payload (carrito):", payload);
+
         onSave?.(payload);
         onHide?.();
     };

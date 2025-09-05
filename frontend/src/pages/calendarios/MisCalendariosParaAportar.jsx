@@ -25,7 +25,7 @@ export default function MisCalendariosParaAportar() {
         setLoading(true);
         listarCalendarios().then(async (todos) => {
             // Filtra solo los calendarios donde la unidad del usuario debe aportar
-            console.log("Todos: ", todos);
+
             const mios = todos.filter(c => {
                 if (c.tipo === "UNIDAD") {
                     // El calendario es exclusivo de tu unidad
@@ -42,7 +42,7 @@ export default function MisCalendariosParaAportar() {
                 }
                 return false;
             });
-            console.log("Mis calendarios: ", mios);
+
 
             // Para cada calendario, consulta los aportes de unidades
             const aportesData = {};
@@ -107,7 +107,7 @@ export default function MisCalendariosParaAportar() {
                 <tbody>
                 {calendarios.map(cal => {
 
-                    console.log("Renderizando calendario: ", cal);
+
 
                     const puedeAportar =
                         user.roles.includes('ROLE_JEFE') ||

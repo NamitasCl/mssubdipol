@@ -12,7 +12,7 @@ export function tienePermiso(user, { roles = [], usuarios = [], unidades = [], i
         if (unidades.includes(user.siglasUnidad)) return true;
     }
     if (isAdmin) {
-        console.log("Es admin: ", isAdmin)
+
         return true;
     }
 

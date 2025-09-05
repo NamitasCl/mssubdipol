@@ -131,7 +131,7 @@ export default function CalendarioForm({ show, onHide, onSuccess, calendarioEdit
             } else {
                 payload.nombreComplejo = "";
             }
-            console.log(payload)
+
 
             await (calendarioEditar && calendarioEditar.id
                     ? actualizarCalendario(calendarioEditar.id, payload, user.idFuncionario)

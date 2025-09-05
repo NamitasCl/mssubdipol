@@ -216,7 +216,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                 visibilidad: reglas
             };
 
-            console.log(dto);
+
 
             const response = await axios.post(
                 `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`,
@@ -243,7 +243,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
     // ---------- CUOTAS ----------
     const agregarCuota = () => {
         // Solo agregar si hay destino y cantidad
-        console.log("Nueva cuota: ", nuevaCuota);
+
         if (
             (!nuevaCuota.unidadObj && nuevaCuota.tipo === "unidad") ||
             (!nuevaCuota.funcionarioObj && nuevaCuota.tipo === "usuario") ||
@@ -286,7 +286,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
         try {
             for (const cuota of cuotas) {
 
-                console.log("Antes de guardar CUOTA: ", cuota)
+
                 await axios.post(
                     `${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas`,
                     {
