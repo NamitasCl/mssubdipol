@@ -60,6 +60,7 @@ public class ServiciosEspecialesController {
             filtroGlobal.setFechaInicioUtc(req.getFechaInicioUtc());
             filtroGlobal.setFechaTerminoUtc(req.getFechaTerminoUtc());
             filtroGlobal.setTipoFecha(req.getTipoFecha());
+            filtroGlobal.setFiltroDetenidos(req.getFiltroDetenidos()); // Aplicar filtro de detenidos si viene
             // Si tipoMemo es "TODOS" o null, no setearlo (quedará null) para no filtrar por tipo
             if (req.getTipoMemo() != null && !"TODOS".equals(req.getTipoMemo())) {
                 filtroGlobal.setTipoMemo(req.getTipoMemo());

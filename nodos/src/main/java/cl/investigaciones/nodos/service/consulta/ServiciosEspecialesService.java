@@ -409,6 +409,12 @@ public class ServiciosEspecialesService {
     @Transactional(readOnly = true)
     public List<FichaMemoConEstadoDTO> listarMemosConEstado(FichaMemoRequestDTO solicitud) {
         List<FichaMemoDTO> base = listarMemos(solicitud);
+        // Aplicar filtro de detenidos si está activado en la solicitud
+        if (solicitud.getFiltroDetenidos() != null && Boolean.TRUE.equals(solicitud.getFiltroDetenidos())) {
+            base = base.stream()
+                .filter(this::memoTienePersonasDetenidas)
+                .collect(Collectors.toList());
+        }
         if (base == null || base.isEmpty()) return List.of();
         List<Long> ids = base.stream().map(FichaMemoDTO::getId).filter(Objects::nonNull).toList();
         Map<Long, MemoRevisado> porId = new HashMap<>();
@@ -493,4 +499,23 @@ public class ServiciosEspecialesService {
         return res;
     }
 
+    
+    // Helper: determina si el memo contiene personas con estados de detenido
+    private boolean memoTienePersonasDetenidas(FichaMemoDTO memo) {
+        if (memo == null || memo.getFichaPersonas() == null || memo.getFichaPersonas().isEmpty()) {
+            return false;
+        }
+        return memo.getFichaPersonas().stream().anyMatch(persona -> {
+            if (persona == null || persona.getEstados() == null || persona.getEstados().isEmpty()) {
+                return false;
+            }
+            return persona.getEstados().stream().anyMatch(estado -> {
+                if (estado == null) return false;
+                String estadoUpper = estado.toUpperCase();
+                return "DETENIDO POR PDI".equals(estadoUpper) ||
+                        "ARRESTADO".equals(estadoUpper) ||
+                        estadoUpper.contains("DETE");
+            });
+        });
+    }
 }

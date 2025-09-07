@@ -189,6 +189,31 @@ const normalizeMemo = (m) => {
     };
 };
 
+// FUNCIÓN PARA DETERMINAR SI UNA PERSONA ESTÁ DETENIDA
+const esPersonaDetenida = (estados) => {
+    if (!Array.isArray(estados)) return false;
+    return estados.some((estado) => {
+        if (!estado) return false;
+        const estadoStr = String(estado).toUpperCase();
+        return estadoStr === "DETENIDO POR PDI" || estadoStr === "ARRESTADO" || estadoStr.includes("DETE");
+    });
+};
+
+// FUNCIÓN PARA CONTAR DETENIDOS EN UNA LISTA DE MEMOS
+const contarDetenidos = (memos) => {
+    let totalDetenidos = 0;
+    (memos || []).forEach((memo) => {
+        if (memo.personas && Array.isArray(memo.personas)) {
+            memo.personas.forEach((persona) => {
+                if (esPersonaDetenida(persona.estados)) {
+                    totalDetenidos++;
+                }
+            });
+        }
+    });
+    return totalDetenidos;
+};
+
 /* ------------------ Componente principal ------------------ */
 
 export default function AuditoriaMemos() {
@@ -232,6 +257,7 @@ export default function AuditoriaMemos() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [sort, setSort] = useState({by: "_fechaSort", dir: "desc"});
+    const [filtroDetenidos, setFiltroDetenidos] = useState(false);
 
     /* ------------------ Efectos de carga ------------------ */
 
@@ -257,6 +283,7 @@ export default function AuditoriaMemos() {
             fechaTerminoUtc: toUTCISO(payload.fechaTermino),
             tipoFecha: payload.tipoFecha || null,
             tipoMemo: payload.tipoMemo === "TODOS" ? null : payload.tipoMemo,
+            filtroDetenidos: filtroDetenidos,
         };
     };
 
@@ -299,6 +326,7 @@ export default function AuditoriaMemos() {
             fechaTerminoUtc: toUTCISO(payload.fechaTermino),
             tipoFecha: payload.tipoFecha || null,
             tipoMemo: payload.tipoMemo === "TODOS" ? null : payload.tipoMemo,
+            filtroDetenidos: filtroDetenidos,
         };
 
         if (searchMode === "unidades") {
@@ -374,6 +402,7 @@ export default function AuditoriaMemos() {
         setPage(1);
         setSelected(null);
         setErr(null);
+        setFiltroDetenidos(false);
     };
 
     const toggleSort = (by) => {
@@ -983,6 +1012,19 @@ export default function AuditoriaMemos() {
                             </Col>
                         </Row>
                     )}
+
+                    <Row className="mt-2">
+                        <Col md={12}>
+                            <Form.Check
+                                type="checkbox"
+                                id="filtro-detenidos"
+                                label="🔒 Mostrar solo memorandos con personas detenidas (Detenido por PDI, Arrestado, o que contenga 'Dete')"
+                                checked={filtroDetenidos}
+                                onChange={(e) => setFiltroDetenidos(e.target.checked)}
+                                className="text-primary"
+                            />
+                        </Col>
+                    </Row>
                 </Card.Body>
             </Card>
 
@@ -1006,9 +1048,19 @@ export default function AuditoriaMemos() {
 
             <div className="d-flex align-items-center justify-content-between mb-2">
                 <div className="d-flex align-items-center gap-2">
-                    <Badge bg="dark" pill>
-                        {total} resultado{total === 1 ? "" : "s"}
-                    </Badge>
+                    <div className="d-flex align-items-center gap-2">
+                        <Badge bg="dark" pill>
+                            {total} resultado{total === 1 ? "" : "s"}
+                            {total > 0 && (
+                                <>
+                                    {" • "}
+                                    <span className="text-info fw-bold">
+                                        {contarDetenidos(filteredSorted)} detenido{contarDetenidos(filteredSorted) !== 1 ? "s" : ""}
+                                    </span>
+                                </>
+                            )}
+                        </Badge>
+                    </div>
                     <Form.Select
                         size="sm"
                         value={pageSize}
@@ -1264,12 +1316,21 @@ export default function AuditoriaMemos() {
                                                                 Calidad de la persona:
                                                             </div>
                                                             <div>
-                                                                {p.estados.map((e, i) => (
-                                                                    <Badge key={i} bg={colorEstado(e)} pill>
-                                                                        {e}
-                                                                    </Badge>
-
-                                                                ))}
+                                                                {p.estados.map((e, i) => {
+                                                                    const esDet = esPersonaDetenida([e]);
+                                                                    return (
+                                                                        <Badge
+                                                                            key={i}
+                                                                            bg={esDet ? "danger" : colorEstado(e)}
+                                                                            className={`me-1 ${esDet ? "fw-bold" : ""}`}
+                                                                            pill
+                                                                            title={esDet ? "Persona detenida" : ""}
+                                                                        >
+                                                                            {e}
+                                                                            {esDet && " 🔒"}
+                                                                        </Badge>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         </div>
                                                     )}
