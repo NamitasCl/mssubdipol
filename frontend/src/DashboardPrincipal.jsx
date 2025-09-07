@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FaUsers, FaShieldAlt, FaCalendarAlt, FaCogs, FaSignOutAlt } from "react-icons/fa";
 import PdiLogo from "./assets/imagenes/pdilogo.png";
 import { useAuth } from "./components/contexts/AuthContext.jsx";
-import {FaWpforms} from "react-icons/fa6";
+import {FaListCheck, FaWpforms} from "react-icons/fa6";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -50,6 +50,14 @@ const modules = [
         text: "Gestión de usuarios y permisos.",
         icon: <FaCogs size={36} />,
         route: "/admin",
+        color: "#28618b", // Azul intermedio institucional
+        roles: ["ROLE_ADMINISTRADOR"]
+    },
+    {
+        title: "Auditoría",
+        text: "Sistema para Planas Mayores.",
+        icon: <FaListCheck size={36} />,
+        route: "/auditoria",
         color: "#28618b", // Azul intermedio institucional
         roles: ["ROLE_ADMINISTRADOR"]
     },

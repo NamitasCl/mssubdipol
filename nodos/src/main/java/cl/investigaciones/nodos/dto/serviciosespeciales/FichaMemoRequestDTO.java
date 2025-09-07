@@ -2,13 +2,14 @@ package cl.investigaciones.nodos.dto.serviciosespeciales;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
 public class FichaMemoRequestDTO {
-    private LocalDateTime fechaInicioUtc;
-    private LocalDateTime fechaTerminoUtc;
+    // Expect ISO-8601 instants with offset (e.g., 2025-09-01T04:00:00Z)
+    private OffsetDateTime fechaInicioUtc;
+    private OffsetDateTime fechaTerminoUtc;
     private String tipoFecha;
     private String tipoMemo;
     private String region;

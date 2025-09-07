@@ -34,6 +34,18 @@ public interface FichaMemoRepository extends JpaRepository<FichaMemo, Long> {
             OffsetDateTime hasta,
             List<Long> unidadIds);
 
+    // NUEVOS: consultas por createdAt (fallback y por tipo)
+    List<FichaMemo> findByCreatedAtBetween(
+            OffsetDateTime desde,
+            OffsetDateTime hasta
+    );
+
+    List<FichaMemo> findByFormularioAndCreatedAtBetween(
+            String formulario,
+            OffsetDateTime desde,
+            OffsetDateTime hasta
+    );
+
     @Query("SELECT DISTINCT m FROM FichaMemo m " +
            "LEFT JOIN FETCH m.fichaPersonas p " +
            "LEFT JOIN FETCH p.estados " +

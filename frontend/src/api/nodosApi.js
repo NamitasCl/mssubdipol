@@ -55,3 +55,10 @@ export async function obtenerEstadisticas(consulta) {
     const res = await axios.post(`${API_SERVICIOS_ESPECIALES}/estadisticas`, consulta);
     return res.data;
 }
+
+// ✅ NUEVA FUNCIÓN PARA CONSULTA COMPLETA PMSUBDIPOL
+export async function consultaTodosMemosPMSUBDIPOL(consulta) {
+    console.log("📡 Llamando endpoint global PMSUBDIPOL:", consulta);
+    const res = await axios.post(`${API_SERVICIOS_ESPECIALES}/pmsubdipol/global`, consulta);
+    return res.data;
+}

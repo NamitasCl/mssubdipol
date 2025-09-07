@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,15 +39,20 @@ public class ServiciosEspecialesService {
 
         if (solicitud == null) return List.of();
 
-        // Fechas en UTC (defensivo con null)
-        OffsetDateTime fechaInicio = solicitud.getFechaInicioUtc() != null
-                ? solicitud.getFechaInicioUtc().atOffset(ZoneOffset.UTC)
-                : null;
-        OffsetDateTime fechaTermino = solicitud.getFechaTerminoUtc() != null
-                ? solicitud.getFechaTerminoUtc().atOffset(ZoneOffset.UTC)
-                : null;
+        // Fechas en UTC (defensivo con null). Now the DTO already carries an OffsetDateTime in UTC.
+        OffsetDateTime fechaInicio = solicitud.getFechaInicioUtc();
+        OffsetDateTime fechaTermino = solicitud.getFechaTerminoUtc();
+        // Normalizar a UTC por seguridad
+        if (fechaInicio != null) fechaInicio = fechaInicio.withOffsetSameInstant(java.time.ZoneOffset.UTC);
+        if (fechaTermino != null) fechaTermino = fechaTermino.withOffsetSameInstant(java.time.ZoneOffset.UTC);
+
+        // Si el picker del frontend envía precisión a minutos (step=60), hacemos el término inclusivo al final del minuto
+        if (fechaTermino != null && fechaTermino.getSecond() == 0 && fechaTermino.getNano() == 0) {
+            fechaTermino = fechaTermino.plusMinutes(1).minusNanos(1);
+        }
 
         String tipoMemo = solicitud.getTipoMemo();
+        boolean filtraTipo = tipoMemo != null && !tipoMemo.trim().isEmpty() && !"TODOS".equals(tipoMemo);
 
         // 1) Unificar unidad (string) + unidades (lista) en una sola lista de nombres únicos
         List<String> nombresUnidades = new ArrayList<>();
@@ -87,16 +91,24 @@ public class ServiciosEspecialesService {
             }
 
             // 3) Buscar memos para el set de unidades
-            if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
-                memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
-                        tipoMemo, fechaInicio, fechaTermino, unidadIds
-                );
+            if (filtraTipo) {
+                if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
+                    memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
+                            tipoMemo, fechaInicio, fechaTermino, unidadIds
+                    );
+                } else {
+                    memos = memoRepo.findByFormularioAndCreatedAtBetweenAndUnidadIdIn(
+                            tipoMemo, fechaInicio, fechaTermino, unidadIds
+                    );
+                }
             } else {
-                memos = memoRepo.findByFormularioAndCreatedAtBetweenAndUnidadIdIn(
-                        tipoMemo, fechaInicio, fechaTermino, unidadIds
-                );
+                // No filtrar por tipo de memo: obtenemos por fecha y filtramos por unidades en memoria
+                List<FichaMemo> todosPorFecha = memoRepo.findByFechaBetween(fechaInicio, fechaTermino);
+                Set<Long> setUnidadIds = new HashSet<>(unidadIds);
+                memos = todosPorFecha.stream()
+                        .filter(m -> m.getUnidad() != null && m.getUnidad().getId() != null && setUnidadIds.contains(m.getUnidad().getId()))
+                        .toList();
             }
-
 
         } else if (solicitud.getRegion() != null && !solicitud.getRegion().isBlank()) {
             // 4) (Opcional) Filtro por región si no se enviaron unidades
@@ -104,13 +116,35 @@ public class ServiciosEspecialesService {
             if (ids == null || ids.isEmpty()) {
                 return List.of();
             }
-            memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
-                    tipoMemo, fechaInicio, fechaTermino, ids
-            );
+            if (filtraTipo) {
+                memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
+                        tipoMemo, fechaInicio, fechaTermino, ids
+                );
+            } else {
+                List<FichaMemo> todosPorFecha = memoRepo.findByFechaBetween(fechaInicio, fechaTermino);
+                Set<Long> setUnidadIds = new HashSet<>(ids);
+                memos = todosPorFecha.stream()
+                        .filter(m -> m.getUnidad() != null && m.getUnidad().getId() != null && setUnidadIds.contains(m.getUnidad().getId()))
+                        .toList();
+            }
 
         } else {
-            // 5) Fallback: por tipo y fechas (todas las unidades)
-            memos = memoRepo.findByFormularioAndFechaBetween(tipoMemo, fechaInicio, fechaTermino);
+            // 5) Fallback: por fechas (todas las unidades)
+            if (filtraTipo) {
+                if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
+                    memos = memoRepo.findByFormularioAndFechaBetween(tipoMemo, fechaInicio, fechaTermino);
+                } else {
+                    // usar createdAt cuando es FECHA REGISTRO
+                    memos = memoRepo.findByFormularioAndCreatedAtBetween(tipoMemo, fechaInicio, fechaTermino);
+                }
+            } else {
+                if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
+                    memos = memoRepo.findByFechaBetween(fechaInicio, fechaTermino);
+                } else {
+                    // usar createdAt cuando es FECHA REGISTRO
+                    memos = memoRepo.findByCreatedAtBetween(fechaInicio, fechaTermino);
+                }
+            }
         }
 
         if (memos == null || memos.isEmpty()) {

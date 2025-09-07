@@ -49,6 +49,33 @@ public class ServiciosEspecialesController {
         }
     }
 
+    // ✅ NUEVO ENDPOINT PARA CONSULTA GLOBAL PMSUBDIPOL
+    @PostMapping("/pmsubdipol/global")
+    public ResponseEntity<?> consultaGlobalPMSUBDIPOL(@RequestBody FichaMemoRequestDTO req) {
+        try {
+            System.out.println("[PMSUBDIPOL] Consulta global iniciada con filtros: " + req);
+
+            // Construir un filtro que sólo conserve los 4 parámetros permitidos
+            FichaMemoRequestDTO filtroGlobal = new FichaMemoRequestDTO();
+            filtroGlobal.setFechaInicioUtc(req.getFechaInicioUtc());
+            filtroGlobal.setFechaTerminoUtc(req.getFechaTerminoUtc());
+            filtroGlobal.setTipoFecha(req.getTipoFecha());
+            // Si tipoMemo es "TODOS" o null, no setearlo (quedará null) para no filtrar por tipo
+            if (req.getTipoMemo() != null && !"TODOS".equals(req.getTipoMemo())) {
+                filtroGlobal.setTipoMemo(req.getTipoMemo());
+            }
+            // Importante: no setear unidades, unidad, región, ni memoIds para evitar restricciones
+
+            var resultados = serviciosEspecialesService.listarMemosConEstado(filtroGlobal);
+            System.out.println("[PMSUBDIPOL] Se encontraron " + (resultados != null ? resultados.size() : 0) + " memos globales");
+
+            return ResponseEntity.ok(resultados);
+        } catch (Exception e) {
+            System.err.println("[PMSUBDIPOL] Error en consulta global: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error en consulta global: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/personas")
     public void listarPersonas(@RequestBody FichaPersonasRequestDTO req) {
 

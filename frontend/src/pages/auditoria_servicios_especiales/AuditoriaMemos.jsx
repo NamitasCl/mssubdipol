@@ -26,8 +26,10 @@ import {
     consultarMemosPorIds,
     guardarRevisionMemo,
     obtenerEstadisticas,
+    consultaTodosMemosPMSUBDIPOL,
 } from "../../api/nodosApi.js";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
+import {useNavigate} from "react-router-dom";
 
 /* ------------------ Config UI y helpers ------------------ */
 
@@ -53,6 +55,7 @@ const estadoPersonaColor = {
 const colorEstado = (s) => estadoPersonaColor[(s || "").toUpperCase()] || "secondary";
 
 const tipoMemos = [
+    {value: "TODOS"},
     {value: "MEMORANDO DILIGENCIAS"},
     {value: "CONCURRENCIAS HOMICIDIOS"},
     {value: "MEMORANDO CONCURRENCIAS"},
@@ -190,6 +193,7 @@ const normalizeMemo = (m) => {
 
 export default function AuditoriaMemos() {
     const {user} = useAuth();
+    const navigate = useNavigate();
 
     const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
 
@@ -213,7 +217,7 @@ export default function AuditoriaMemos() {
         fechaInicio: "",
         fechaTermino: "",
         tipoFecha: "FECHA REGISTRO",
-        tipoMemo: "MEMORANDO DILIGENCIAS",
+        tipoMemo: "TODOS",
         folio: "",
     });
 
@@ -246,12 +250,55 @@ export default function AuditoriaMemos() {
 
     /* ------------------ Handlers ------------------ */
 
+    // ✅ NUEVA FUNCIÓN PARA CONSULTA PMSUBDIPOL (solo 4 filtros)
+    const buildFiltersPMSUBDIPOL = () => {
+        return {
+            fechaInicioUtc: toUTCISO(payload.fechaInicio),
+            fechaTerminoUtc: toUTCISO(payload.fechaTermino),
+            tipoFecha: payload.tipoFecha || null,
+            tipoMemo: payload.tipoMemo === "TODOS" ? null : payload.tipoMemo,
+        };
+    };
+
+    // ✅ NUEVA FUNCIÓN PARA CONSULTA COMPLETA PMSUBDIPOL
+    const handleConsultaTodosPMSUBDIPOL = async () => {
+        setErr(null);
+
+        // Validar permisos
+        if (!user?.siglasUnidad || user.siglasUnidad !== "PMSUBDIPOL") {
+            setErr("No tienes permisos para realizar esta consulta completa.");
+            return;
+        }
+
+        const filtros = buildFiltersPMSUBDIPOL();
+        setLoading(true);
+        setSelected(null);
+
+        try {
+            console.log("🔍 Iniciando consulta completa PMSUBDIPOL...");
+            console.log("📋 Filtros:", filtros);
+
+            const data = await consultaTodosMemosPMSUBDIPOL(filtros);
+            const normalizados = (Array.isArray(data) ? data : []).map(normalizeMemo);
+            setMemos(normalizados);
+            setPage(1);
+
+            console.log(`✅ Se cargaron ${normalizados.length} memos de todas las unidades`);
+        } catch (e) {
+            console.error("❌ Error en consulta completa PMSUBDIPOL:", e);
+            setErr("No se pudo cargar la información completa. Inténtalo nuevamente.");
+            setMemos([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const buildFilters = () => {
         const base = {
             fechaInicioUtc: toUTCISO(payload.fechaInicio),
             fechaTerminoUtc: toUTCISO(payload.fechaTermino),
             tipoFecha: payload.tipoFecha || null,
-            tipoMemo: payload.tipoMemo || null,
+            tipoMemo: payload.tipoMemo === "TODOS" ? null : payload.tipoMemo,
         };
 
         if (searchMode === "unidades") {
@@ -316,7 +363,7 @@ export default function AuditoriaMemos() {
             fechaInicio: "",
             fechaTermino: "",
             tipoFecha: "FECHA REGISTRO",
-            tipoMemo: "MEMORANDO DILIGENCIAS",
+            tipoMemo: "TODOS",
             folio: "",
         });
         setRegionSeleccionada("");
@@ -770,6 +817,9 @@ export default function AuditoriaMemos() {
                     </small>
                 </div>
                 <div className="d-flex gap-2">
+                    <Button onClick={() => navigate("/")} variant="outline-secondary" size="sm">
+                        Volver al Dashboard
+                    </Button>
                     <Button
                         variant={!!memos.length ? "outline-secondary" : "secondary"}
                         size="sm"
@@ -780,6 +830,22 @@ export default function AuditoriaMemos() {
                     <Button variant="primary" size="sm" onClick={handleFiltrar}>
                         Filtrar
                     </Button>
+                    {/* ✅ NUEVO BOTÓN PARA PMSUBDIPOL */}
+                    {user?.siglasUnidad === "PMSUBDIPOL" && (
+                        <Button
+                            variant="warning"
+                            size="sm"
+                            onClick={handleConsultaTodosPMSUBDIPOL}
+                            disabled={loading}
+                            title="Consulta todos los memos sin restricción de unidad (solo para PMSUBDIPOL)"
+                        >
+                            {loading ? (
+                                <Spinner size="sm" animation="border" />
+                            ) : (
+                                <>🌍 Consulta Global</>
+                            )}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -851,12 +917,22 @@ export default function AuditoriaMemos() {
                                 value={payload.tipoMemo}
                                 onChange={(e) => setPayload((p) => ({...p, tipoMemo: e.target.value}))}
                             >
-                                {tipoMemos.map((t) => (
-                                    <option key={t.value} value={t.value}>
-                                        {t.value}
-                                    </option>
-                                ))}
+                                {tipoMemos
+                                    .filter(t => {
+                                        // ✅ Si no es usuario PMSUBDIPOL, filtrar la opción "TODOS"
+                                        if (user?.siglasUnidad !== "PMSUBDIPOL" && t.value === "TODOS") {
+                                            return false;
+                                        }
+                                        return true;
+                                    })
+                                    .map((t) => (
+                                        <option key={t.value} value={t.value}>
+                                            {t.value}
+                                        </option>
+                                    ))
+                                }
                             </Form.Select>
+
                         </div>
                     </div>
 
@@ -888,6 +964,25 @@ export default function AuditoriaMemos() {
                             </Col>
                         )}
                     </Row>
+
+                    {/* ✅ NUEVA SECCIÓN INFORMATIVA PARA PMSUBDIPOL */}
+                    {user?.siglasUnidad === "PMSUBDIPOL" && (
+                        <Row className="mt-3">
+                            <Col>
+                                <div className="bg-warning bg-opacity-10 border border-warning rounded p-3">
+                                    <div className="d-flex align-items-center gap-2 mb-2">
+                                        <span className="fw-bold text-warning">🌍 Acceso Especial PMSUBDIPOL</span>
+                                    </div>
+                                    <small className="text-muted">
+                                        Como usuario de PMSUBDIPOL, tienes acceso al botón <strong>"Consulta Global"</strong> que permite 
+                                        consultar todos los memos de todas las unidades usando únicamente los filtros de:
+                                        <strong> Tipo de fecha, Fecha inicio, Fecha término y Tipo de memo</strong>.
+                                        Este botón ignora la selección de unidades específicas.
+                                    </small>
+                                </div>
+                            </Col>
+                        </Row>
+                    )}
                 </Card.Body>
             </Card>
 
