@@ -480,10 +480,10 @@ export default function AuditoriaMemos() {
         console.log("🔍 Iniciando exportación de estadísticas...");
         console.log("👤 Usuario:", user);
 
-        if (!user?.siglasUnidad || user.siglasUnidad !== "PMSUBDIPOL") {
+        /*if (!user?.siglasUnidad || user.siglasUnidad !== "PMSUBDIPOL") {
             alert("No tienes permisos para exportar estadísticas");
             return;
-        }
+        }*/
 
         const filtros = buildFilters();
 
