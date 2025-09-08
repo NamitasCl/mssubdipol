@@ -1129,17 +1129,15 @@ export default function AuditoriaMemos() {
                     <Button size="sm" variant="outline-success" onClick={exportCsv} disabled={!total}>
                         Exportar CSV
                     </Button>
-                    {user?.siglasUnidad === "PMSUBDIPOL" && (
-                        <Button
-                            size="sm"
-                            variant="outline-success"
-                            onClick={exportarEstadisticas}
-                            disabled={loading || !total}
-                            className="ms-2"
-                        >
-                            📊 Estadísticas Excel
-                        </Button>
-                    )}
+                    <Button
+                        size="sm"
+                        variant="outline-success"
+                        onClick={exportarEstadisticas}
+                        disabled={loading || !total}
+                        className="ms-2"
+                    >
+                        📊 Estadísticas Excel
+                    </Button>
                 </div>
             </div>
 
