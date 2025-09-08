@@ -1126,9 +1126,13 @@ export default function AuditoriaMemos() {
                     <Button size="sm" variant="outline-secondary" onClick={handleFiltrar} disabled={loading}>
                         {loading ? <Spinner size="sm" animation="border"/> : "Refrescar"}
                     </Button>
-                    <Button size="sm" variant="outline-success" onClick={exportCsv} disabled={!total}>
-                        Exportar CSV
-                    </Button>
+                    {
+                        /**
+                         *  <Button size="sm" variant="outline-success" onClick={exportCsv} disabled={!total}>
+                         Exportar CSV
+                         </Button>
+                         */
+                    }
                     <Button
                         size="sm"
                         variant="outline-success"
