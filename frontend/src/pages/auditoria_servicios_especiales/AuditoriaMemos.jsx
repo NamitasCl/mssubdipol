@@ -11,12 +11,14 @@ import {
     Form,
     InputGroup,
     ListGroup,
-    Modal, OverlayTrigger,
+    Modal,
+    OverlayTrigger,
     Row,
     Spinner,
     Tab,
     Table,
-    Tabs, Tooltip,
+    Tabs,
+    Tooltip,
 } from "react-bootstrap";
 import {getRegionesUnidades} from "../../api/commonServicesApi.js";
 import UnidadesAsyncMulti from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
@@ -24,9 +26,9 @@ import AsyncMultiMemoIdsSelect from "../../components/ComponentesAsyncSelect/Asy
 import {
     consultaMemosServiciosEspeciales,
     consultarMemosPorIds,
+    consultaTodosMemosPMSUBDIPOL,
     guardarRevisionMemo,
     obtenerEstadisticas,
-    consultaTodosMemosPMSUBDIPOL,
 } from "../../api/nodosApi.js";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 import {useNavigate} from "react-router-dom";
@@ -869,7 +871,7 @@ export default function AuditoriaMemos() {
                             title="Consulta todos los memos sin restricción de unidad (solo para PMSUBDIPOL)"
                         >
                             {loading ? (
-                                <Spinner size="sm" animation="border" />
+                                <Spinner size="sm" animation="border"/>
                             ) : (
                                 <>🌍 Consulta Global</>
                             )}
@@ -1003,8 +1005,10 @@ export default function AuditoriaMemos() {
                                         <span className="fw-bold text-warning">🌍 Acceso Especial PMSUBDIPOL</span>
                                     </div>
                                     <small className="text-muted">
-                                        Como usuario de PMSUBDIPOL, tienes acceso al botón <strong>"Consulta Global"</strong> que permite 
-                                        consultar todos los memos de todas las unidades usando únicamente los filtros de:
+                                        Como usuario de PMSUBDIPOL, tienes acceso al botón <strong>"Consulta
+                                        Global"</strong> que permite
+                                        consultar todos los memos de todas las unidades usando únicamente los filtros
+                                        de:
                                         <strong> Tipo de fecha, Fecha inicio, Fecha término y Tipo de memo</strong>.
                                         Este botón ignora la selección de unidades específicas.
                                     </small>
@@ -1018,7 +1022,7 @@ export default function AuditoriaMemos() {
                             <Form.Check
                                 type="checkbox"
                                 id="filtro-detenidos"
-                                label="🔒 Mostrar solo memorandos con personas detenidas (Detenido por PDI, Arrestado, o que contenga 'Dete')"
+                                label="🔒 Mostrar solo memorandos con personas detenidas (Detenido por PDI y Arrestado)"
                                 checked={filtroDetenidos}
                                 onChange={(e) => setFiltroDetenidos(e.target.checked)}
                                 className="text-primary"
@@ -1062,7 +1066,7 @@ export default function AuditoriaMemos() {
                                             </Tooltip>
                                         }
                                     >
-                                        <span className="text-info fw-bold" style={{ cursor: 'pointer' }}>
+                                        <span className="text-info fw-bold" style={{cursor: 'pointer'}}>
                                             {contarDetenidos(filteredSorted)} detenido{contarDetenidos(filteredSorted) !== 1 ? "s" : ""}
                                         </span>
                                     </OverlayTrigger>
