@@ -11,12 +11,12 @@ import {
     Form,
     InputGroup,
     ListGroup,
-    Modal,
+    Modal, OverlayTrigger,
     Row,
     Spinner,
     Tab,
     Table,
-    Tabs,
+    Tabs, Tooltip,
 } from "react-bootstrap";
 import {getRegionesUnidades} from "../../api/commonServicesApi.js";
 import UnidadesAsyncMulti from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
@@ -1054,9 +1054,19 @@ export default function AuditoriaMemos() {
                             {total > 0 && (
                                 <>
                                     {" • "}
-                                    <span className="text-info fw-bold">
-                                        {contarDetenidos(filteredSorted)} detenido{contarDetenidos(filteredSorted) !== 1 ? "s" : ""}
-                                    </span>
+                                    <OverlayTrigger
+                                        placement="top"
+                                        overlay={
+                                            <Tooltip id="tooltip-detenidos">
+                                                Incluye: Detenidos por PDI y Arrestados.
+                                            </Tooltip>
+                                        }
+                                    >
+                                        <span className="text-info fw-bold" style={{ cursor: 'pointer' }}>
+                                            {contarDetenidos(filteredSorted)} detenido{contarDetenidos(filteredSorted) !== 1 ? "s" : ""}
+                                        </span>
+                                    </OverlayTrigger>
+
                                 </>
                             )}
                         </Badge>

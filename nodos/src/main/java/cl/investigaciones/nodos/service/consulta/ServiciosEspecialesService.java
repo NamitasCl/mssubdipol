@@ -54,6 +54,16 @@ public class ServiciosEspecialesService {
         String tipoMemo = solicitud.getTipoMemo();
         boolean filtraTipo = tipoMemo != null && !tipoMemo.trim().isEmpty() && !"TODOS".equals(tipoMemo);
 
+        // Filtro de detenidos (DB-level)
+        boolean filtroDetenidos = solicitud.getFiltroDetenidos() != null && Boolean.TRUE.equals(solicitud.getFiltroDetenidos());
+        List<Long> idsMemosConDetenidos = null;
+        if (filtroDetenidos) {
+            idsMemosConDetenidos = obtenerIdsMemosConDetenidos(fechaInicio, fechaTermino, solicitud.getTipoFecha());
+            if (idsMemosConDetenidos == null || idsMemosConDetenidos.isEmpty()) {
+                return List.of();
+            }
+        }
+
         // 1) Unificar unidad (string) + unidades (lista) en una sola lista de nombres únicos
         List<String> nombresUnidades = new ArrayList<>();
         if (solicitud.getUnidades() != null) {
@@ -91,7 +101,12 @@ public class ServiciosEspecialesService {
             }
 
             // 3) Buscar memos para el set de unidades
-            if (filtraTipo) {
+            if (filtroDetenidos) {
+                memos = memoRepo.findByIdsAndUnidadIdIn(idsMemosConDetenidos, unidadIds);
+                if (filtraTipo) {
+                    memos = memos.stream().filter(m -> tipoMemo.equals(m.getFormulario())).toList();
+                }
+            } else if (filtraTipo) {
                 if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
                     memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
                             tipoMemo, fechaInicio, fechaTermino, unidadIds
@@ -116,7 +131,12 @@ public class ServiciosEspecialesService {
             if (ids == null || ids.isEmpty()) {
                 return List.of();
             }
-            if (filtraTipo) {
+            if (filtroDetenidos) {
+                memos = memoRepo.findByIdsAndUnidadIdIn(idsMemosConDetenidos, ids);
+                if (filtraTipo) {
+                    memos = memos.stream().filter(m -> tipoMemo.equals(m.getFormulario())).toList();
+                }
+            } else if (filtraTipo) {
                 memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
                         tipoMemo, fechaInicio, fechaTermino, ids
                 );
@@ -130,7 +150,12 @@ public class ServiciosEspecialesService {
 
         } else {
             // 5) Fallback: por fechas (todas las unidades)
-            if (filtraTipo) {
+            if (filtroDetenidos) {
+                memos = memoRepo.findAllById(idsMemosConDetenidos);
+                if (filtraTipo) {
+                    memos = memos.stream().filter(m -> tipoMemo.equals(m.getFormulario())).toList();
+                }
+            } else if (filtraTipo) {
                 if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
                     memos = memoRepo.findByFormularioAndFechaBetween(tipoMemo, fechaInicio, fechaTermino);
                 } else {
@@ -409,12 +434,6 @@ public class ServiciosEspecialesService {
     @Transactional(readOnly = true)
     public List<FichaMemoConEstadoDTO> listarMemosConEstado(FichaMemoRequestDTO solicitud) {
         List<FichaMemoDTO> base = listarMemos(solicitud);
-        // Aplicar filtro de detenidos si está activado en la solicitud
-        if (solicitud.getFiltroDetenidos() != null && Boolean.TRUE.equals(solicitud.getFiltroDetenidos())) {
-            base = base.stream()
-                .filter(this::memoTienePersonasDetenidas)
-                .collect(Collectors.toList());
-        }
         if (base == null || base.isEmpty()) return List.of();
         List<Long> ids = base.stream().map(FichaMemoDTO::getId).filter(Objects::nonNull).toList();
         Map<Long, MemoRevisado> porId = new HashMap<>();
@@ -500,6 +519,12 @@ public class ServiciosEspecialesService {
     }
 
     
+    // Obtener IDs de memos que tienen personas detenidas
+    private List<Long> obtenerIdsMemosConDetenidos(OffsetDateTime fechaInicio, OffsetDateTime fechaTermino, String tipoFecha) {
+        String campoFecha = (tipoFecha != null && tipoFecha.equals("FECHA DEL HECHO")) ? "fm.fecha" : "fm.created_at";
+        return memoRepo.findMemoIdsWithDetenidos(fechaInicio, fechaTermino, campoFecha);
+    }
+
     // Helper: determina si el memo contiene personas con estados de detenido
     private boolean memoTienePersonasDetenidas(FichaMemoDTO memo) {
         if (memo == null || memo.getFichaPersonas() == null || memo.getFichaPersonas().isEmpty()) {
