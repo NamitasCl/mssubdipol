@@ -1,9 +1,9 @@
 import React from "react";
-import { Card, Row, Col, Container, Button, Image, Navbar, Nav } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import { FaUsers, FaShieldAlt, FaCalendarAlt, FaCogs, FaSignOutAlt } from "react-icons/fa";
+import {Button, Card, Col, Container, Image, Navbar, Row} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
+import {FaCalendarAlt, FaCogs, FaShieldAlt, FaSignOutAlt} from "react-icons/fa";
 import PdiLogo from "./assets/imagenes/pdilogo.png";
-import { useAuth } from "./components/contexts/AuthContext.jsx";
+import {useAuth} from "./components/contexts/AuthContext.jsx";
 import {FaListCheck, FaWpforms} from "react-icons/fa6";
 
 // Paleta institucional
@@ -24,7 +24,7 @@ const modules = [
     {
         title: "Turnos",
         text: "Gestión completa de turnos y servicios regulares.",
-        icon: <FaShieldAlt size={36} />,
+        icon: <FaShieldAlt size={36}/>,
         route: "/layout",
         color: azulPDI,
         roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
@@ -32,7 +32,7 @@ const modules = [
     {
         title: "Formularios",
         text: "Configura y administra formularios para requerimiento de información.",
-        icon: <FaWpforms size={36} />,
+        icon: <FaWpforms size={36}/>,
         route: "/formularios",
         color: "#a67822",
         roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
@@ -40,7 +40,7 @@ const modules = [
     {
         title: "Escolta y Enlaces",
         text: "Gestión de escoltas y enlaces institucionales.",
-        icon: <FaCalendarAlt size={36} />,
+        icon: <FaCalendarAlt size={36}/>,
         route: "/enconstruccion",
         color: "#28618b", // Azul intermedio institucional
         roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
@@ -48,7 +48,7 @@ const modules = [
     {
         title: "Administración",
         text: "Gestión de usuarios y permisos.",
-        icon: <FaCogs size={36} />,
+        icon: <FaCogs size={36}/>,
         route: "/admin",
         color: "#28618b", // Azul intermedio institucional
         roles: ["ROLE_ADMINISTRADOR"]
@@ -56,15 +56,15 @@ const modules = [
     {
         title: "Auditoría",
         text: "Sistema para Planas Mayores.",
-        icon: <FaListCheck size={36} />,
+        icon: <FaListCheck size={36}/>,
         route: "/auditoria",
         color: "#28618b", // Azul intermedio institucional
-        roles: ["ROLE_ADMINISTRADOR"]
+        roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE"]
     },
 ];
 
 function Header() {
-    const { logout } = useAuth();
+    const {logout} = useAuth();
     const navigate = useNavigate();
     const handleLogout = () => {
         logout();
@@ -83,10 +83,11 @@ function Header() {
                 zIndex: 1030
             }}
         >
-            <Container fluid className="align-items-center py-2" style={{ minHeight: "78px" }}>
-                <div className="d-flex flex-column align-items-center" style={{ minWidth: 140, cursor: "pointer" }}>
-                    <Image src={PdiLogo} alt="Logo" height={48} onClick={() => navigate("/")} />
-                    <span className="text-uppercase fw-semibold" style={{ color: azulSuave, fontSize: "0.98rem", letterSpacing: ".09em" }}>
+            <Container fluid className="align-items-center py-2" style={{minHeight: "78px"}}>
+                <div className="d-flex flex-column align-items-center" style={{minWidth: 140, cursor: "pointer"}}>
+                    <Image src={PdiLogo} alt="Logo" height={48} onClick={() => navigate("/")}/>
+                    <span className="text-uppercase fw-semibold"
+                          style={{color: azulSuave, fontSize: "0.98rem", letterSpacing: ".09em"}}>
                         Plana Mayor Subdipol
                     </span>
                 </div>
@@ -117,7 +118,7 @@ function Header() {
                         }}
                     >
                         <span>Cerrar sesión</span>
-                        <FaSignOutAlt />
+                        <FaSignOutAlt/>
                     </Button>
                 </div>
             </Container>
@@ -126,12 +127,12 @@ function Header() {
 }
 
 export default function DashboardPrincipal() {
-    const { user } = useAuth();
+    const {user} = useAuth();
     const navigate = useNavigate();
 
     return (
         <>
-            <Header />
+            <Header/>
             {/* Espaciado para header fijo */}
             <div style={{
                 background: "#f6f7fa",
@@ -139,7 +140,7 @@ export default function DashboardPrincipal() {
                 paddingTop: "52px",
                 paddingBottom: "32px"
             }}>
-                <Container fluid="md" style={{ maxWidth: 1100 }}>
+                <Container fluid="md" style={{maxWidth: 1100}}>
                     <h2
                         className="fw-bold mb-4"
                         style={{
@@ -155,7 +156,7 @@ export default function DashboardPrincipal() {
                     </h2>
                     <Row className="g-4">
                         {modules.map((mod, idx) => {
-                            if(mod.roles.some(rol => user.roles.includes(rol))) {
+                            if (mod.roles.some(rol => user.roles.includes(rol))) {
                                 return (
                                     <Col key={idx} xs={12} sm={6} md={4}>
                                         <Card
@@ -183,7 +184,8 @@ export default function DashboardPrincipal() {
                                             }}
                                         >
                                             <Card.Body className="d-flex flex-column justify-content-between">
-                                                <div className="d-flex align-items-center mb-3" style={{ gap: "0.85rem" }}>
+                                                <div className="d-flex align-items-center mb-3"
+                                                     style={{gap: "0.85rem"}}>
                                                     <div style={{
                                                         background: mod.color + "10",
                                                         borderRadius: "50%",
@@ -196,11 +198,16 @@ export default function DashboardPrincipal() {
                                                     }}>
                                                         {mod.icon}
                                                     </div>
-                                                    <Card.Title className="mb-0 fs-6 fw-bold" style={{ color: azulPDI, textTransform: "uppercase", letterSpacing: ".07em" }}>
+                                                    <Card.Title className="mb-0 fs-6 fw-bold" style={{
+                                                        color: azulPDI,
+                                                        textTransform: "uppercase",
+                                                        letterSpacing: ".07em"
+                                                    }}>
                                                         {mod.title}
                                                     </Card.Title>
                                                 </div>
-                                                <Card.Text style={{ color: grisOscuro, fontSize: "1.09rem", minHeight: "62px" }}>
+                                                <Card.Text
+                                                    style={{color: grisOscuro, fontSize: "1.09rem", minHeight: "62px"}}>
                                                     {mod.text}
                                                 </Card.Text>
                                             </Card.Body>
