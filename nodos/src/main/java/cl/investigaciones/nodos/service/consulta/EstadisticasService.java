@@ -4,9 +4,10 @@ import cl.investigaciones.nodos.dto.consulta.*;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class EstadisticasService {
@@ -86,6 +87,13 @@ public class EstadisticasService {
                         dto.setApellidoPat(p.getApellidoPat());
                         dto.setApellidoMat(p.getApellidoMat());
                         dto.setEstados(p.getEstados());
+
+                        // ✅ AGREGAR NUEVOS CAMPOS
+                        dto.setSexo(p.getSexo());
+                        dto.setEdad(p.getEdad());
+                        dto.setNacionalidad(p.getNacionalidad());
+                        dto.setCondicionMigratoria(p.getCondicionMigratoria());
+
                         fillMemoRef(dto, m);
                         personas.add(dto);
                     }
@@ -235,7 +243,9 @@ public class EstadisticasService {
         return out;
     }
 
-    private static String nullSafe(String s) { return s == null ? "" : s.trim(); }
+    private static String nullSafe(String s) {
+        return s == null ? "" : s.trim();
+    }
 
     private static void fillMemoRef(Object target, FichaMemoDTO m) {
         if (target instanceof FichaPersonaEstadisticaDTO dto) {

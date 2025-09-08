@@ -14,6 +14,13 @@ public class FichaPersonaEstadisticaDTO {
     private String apellidoMat;
     private Set<String> estados; // calidades si existen
 
+    // ✅ CAMPOS AGREGADOS
+    private String sexo;
+    private Integer edad;
+    private String nacionalidad;
+    private String condicionMigratoria;
+
+
     // Referencia al memo
     private Long memoId;
     private String memoFolio; // folioBrain

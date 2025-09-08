@@ -480,11 +480,6 @@ export default function AuditoriaMemos() {
         console.log("🔍 Iniciando exportación de estadísticas...");
         console.log("👤 Usuario:", user);
 
-        /*if (!user?.siglasUnidad || user.siglasUnidad !== "PMSUBDIPOL") {
-            alert("No tienes permisos para exportar estadísticas");
-            return;
-        }*/
-
         const filtros = buildFilters();
 
         try {
@@ -555,12 +550,18 @@ export default function AuditoriaMemos() {
                     'Apellido Pat': p.apellidoPat,
                     'Apellido Mat': p.apellidoMat,
                     'Estados': Array.isArray(p.estados) ? p.estados.join(', ') : (p.estados || ''),
+                    // ✅ AGREGAR NUEVAS COLUMNAS
+                    'Sexo': p.sexo || '',
+                    'Edad': p.edad || '',
+                    'Nacionalidad': p.nacionalidad || '',
+                    'Condición Migratoria': p.condicionMigratoria || '',
                     'Folio': p.memoFolio,
                     'RUC': p.memoRuc,
                     'Formulario': p.memoFormulario,
                     'Fecha Memo': p.memoFecha ? new Date(p.memoFecha).toLocaleDateString('es-CL') : '',
                     'Unidad': p.memoUnidad,
                 })));
+
                 XLSX.utils.book_append_sheet(wb, wsPersonas, "Personas");
                 hojasCreadas++;
                 console.log("✅ Hoja Personas creada");
