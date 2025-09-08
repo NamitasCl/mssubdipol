@@ -25,7 +25,12 @@ public class FichaPersonaSimpleDTO {
     private String observaciones;
     private String fono;
     private String correoElectronico;
+    private String sexo;
+    private Integer edad;
 
     // 👇 ahora simples strings; inicializado para que nunca sea null
     private Set<String> estados = new LinkedHashSet<>();
+
+    // Delitos agregados
+    private Set<String> delitos = new LinkedHashSet<>();
 }

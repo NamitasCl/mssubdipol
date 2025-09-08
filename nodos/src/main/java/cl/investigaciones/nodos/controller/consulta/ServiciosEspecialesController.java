@@ -1,5 +1,6 @@
 package cl.investigaciones.nodos.controller.consulta;
 
+import cl.investigaciones.nodos.dto.consulta.FichaMemoConEstadoDTO;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaPersonasRequestDTO;
 import cl.investigaciones.nodos.service.consulta.EstadisticasService;
@@ -33,10 +34,39 @@ public class ServiciosEspecialesController {
     @PostMapping("/ids")
     public ResponseEntity<?> listarMemosPorIds(@RequestBody FichaMemoRequestDTO req) {
         try {
+            // ✅ VALIDAR REQUEST
+            if (req == null) {
+                return ResponseEntity.badRequest().body("Request body es requerido");
+            }
+
             List<Long> ids = req.getMemoIds();
-            return ResponseEntity.ok(serviciosEspecialesService.listarMemosPorIdConEstado(ids));
+
+            // ✅ VALIDAR IDs
+            if (ids == null || ids.isEmpty()) {
+                return ResponseEntity.badRequest().body("Se requiere al menos un ID de memo");
+            }
+
+            // ✅ DEBUG: Log del request recibido
+            System.out.println("📨 Request recibido: " + req);
+            System.out.println("🆔 IDs a consultar: " + ids);
+
+            List<FichaMemoConEstadoDTO> resultado = serviciosEspecialesService.listarMemosPorIdConEstado(ids);
+
+            // ✅ DEBUG: Log del resultado
+            System.out.println("✅ Resultado obtenido: " + (resultado != null ? resultado.size() + " memos" : "null"));
+
+            return ResponseEntity.ok(resultado);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            // ✅ MOSTRAR ERROR DETALLADO
+            System.err.println("❌ Error en listarMemosPorIds:");
+            System.err.println("📝 Mensaje: " + e.getMessage());
+            System.err.println("🔍 Tipo: " + e.getClass().getSimpleName());
+            e.printStackTrace();
+
+            return ResponseEntity.badRequest().body(
+                    "Error interno: " + e.getClass().getSimpleName() + " - " + e.getMessage()
+            );
         }
     }
 

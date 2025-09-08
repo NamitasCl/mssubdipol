@@ -5,12 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
-import org.hibernate.annotations.Immutable;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "listas_calidadpersona", schema = "public")
+@org.hibernate.annotations.Immutable
 @Data
-@Immutable
+@EqualsAndHashCode(exclude = {"personas"})
 public class ListaCalidadPersona {
 
     @Id

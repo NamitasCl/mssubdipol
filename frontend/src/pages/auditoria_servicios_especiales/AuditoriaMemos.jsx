@@ -103,7 +103,15 @@ const normalizeMemo = (m) => {
         id: p.id ?? `${m.id}-persona-${p.rut || Math.random()}`,
         rut: p.rut || "",
         nombre: [p.nombre, p.apellidoPat, p.apellidoMat].filter(Boolean).join(" ") || "",
+        // ✅ Campos agregados
+        sexo: p.sexo || null,
+        edad: p.edad || null,
+        nacionalidad: p.nacionalidad || null,
+        condicionMigratoria: p.condicionMigratoria || null,
+        // Campos existentes
         estados: normalizeEstadosPersona(p.estados),
+        // ✅ NUEVO: Delitos agregados
+        delitos: normalizeDelitosPersona(p.delitos),
     }));
 
     const drogas = (m.fichaDrogas || []).map((d, idx) => ({
@@ -173,6 +181,7 @@ const normalizeMemo = (m) => {
         fecha: fecha ? fecha.toLocaleString("es-CL", {timeZone: "America/Santiago"}) : "—",
         _fechaSort: fecha ? fecha.getTime() : 0,
         tipo: m.formulario || "—",
+        tipoDeMemo: m.tipo || "—",
         folio: m.folioBrain || "—",
         ruc: m.ruc || "—",
         unidad: m.unidad?.nombreUnidad || "—",
@@ -199,6 +208,25 @@ const esPersonaDetenida = (estados) => {
         const estadoStr = String(estado).toUpperCase();
         return estadoStr === "DETENIDO POR PDI" || estadoStr === "ARRESTADO" || estadoStr.includes("DETE");
     });
+};
+
+// ✅ NUEVA FUNCIÓN: Normalizar delitos (similar a normalizeEstadosPersona)
+const normalizeDelitosPersona = (delitos) => {
+    if (!delitos) return [];
+    if (Array.isArray(delitos)) {
+        return delitos
+            .map((x) => {
+                if (x == null) return null;
+                if (typeof x === "string") return x;
+                if (typeof x === "object") {
+                    // intenta distintas claves habituales para delitos
+                    return x.delito ?? x.nombre ?? x.descripcion ?? x.label ?? x.valor ?? null;
+                }
+                return null;
+            })
+            .filter(Boolean);
+    }
+    return [];
 };
 
 // FUNCIÓN PARA CONTAR DETENIDOS EN UNA LISTA DE MEMOS
@@ -344,7 +372,11 @@ export default function AuditoriaMemos() {
         return {
             modo: "folio",
             ...base,
-            memoIds: (memoIds || []).map((o) => o.value),
+            // ✅ CONVERTIR A NÚMEROS
+            memoIds: (memoIds || []).map((o) => {
+                const id = parseInt(o.value, 10);
+                return isNaN(id) ? null : id;
+            }).filter(id => id !== null),
         };
     };
 
@@ -454,7 +486,6 @@ export default function AuditoriaMemos() {
         }
 
         const filtros = buildFilters();
-        console.log("📋 Filtros construidos:", filtros);
 
         try {
             setLoading(true);
@@ -1251,6 +1282,7 @@ export default function AuditoriaMemos() {
                                 <Badge bg="info" className="text-dark">{selected.tipo}</Badge>
                                 <Badge
                                     bg={estadoColors[selected.estado] || "secondary"}>{selected.estado === "SIN_REVISAR" ? "Pendiente" : selected.estado}</Badge>
+                                <Badge bg="secondary" className="text-white">{selected.tipoDeMemo}</Badge>
                             </Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
@@ -1289,6 +1321,10 @@ export default function AuditoriaMemos() {
                                                     </Button>
                                                 </div>
                                             </div>
+                                            <div className="mb-2">
+                                                <div className="text-muted small">Tipo de memo</div>
+                                                <div className="fw-semibold">{selected.tipoDeMemo}</div>
+                                            </div>
                                         </Card.Body>
                                     </Card>
                                 </Col>
@@ -1319,35 +1355,93 @@ export default function AuditoriaMemos() {
                                     {selected.personas.length === 0 ? (
                                         <p className="text-muted">No hay personas asociadas.</p>
                                     ) : (
+
                                         <ListGroup className="mt-2">
                                             {selected.personas.map((p) => (
                                                 <ListGroup.Item key={p.id}>
                                                     <div className="fw-semibold">{p.nombre || "Sin nombre"}</div>
                                                     {p.rut && <div className="text-muted small">{p.rut}</div>}
-                                                    {!!(p.estados && p.estados.length) && (
-                                                        <div className="mt-1 d-flex flex-wrap gap-1">
-                                                            <div>
-                                                                Calidad de la persona:
+
+                                                    {/* ✅ Información personal con mensajes cuando no hay datos */}
+                                                    <div className="row mt-2">
+                                                        <div className="col-md-6">
+                                                            <div className="small">
+                                                                <strong>Sexo:</strong> {p.sexo ||
+                                                                <span className="text-muted fst-italic">Información no disponible</span>}
                                                             </div>
-                                                            <div>
-                                                                {p.estados.map((e, i) => {
-                                                                    const esDet = esPersonaDetenida([e]);
-                                                                    return (
-                                                                        <Badge
-                                                                            key={i}
-                                                                            bg={esDet ? "danger" : colorEstado(e)}
-                                                                            className={`me-1 ${esDet ? "fw-bold" : ""}`}
-                                                                            pill
-                                                                            title={esDet ? "Persona detenida" : ""}
-                                                                        >
-                                                                            {e}
-                                                                            {esDet && " 🔒"}
-                                                                        </Badge>
-                                                                    );
-                                                                })}
+                                                            <div className="small">
+                                                                <strong>Edad:</strong> {p.edad ? `${p.edad} años` :
+                                                                <span className="text-muted fst-italic">Información no disponible</span>}
                                                             </div>
                                                         </div>
-                                                    )}
+                                                        <div className="col-md-6">
+                                                            <div className="small">
+                                                                <strong>Nacionalidad:</strong> {p.nacionalidad ||
+                                                                <span className="text-muted fst-italic">Información no disponible</span>}
+                                                            </div>
+                                                            <div className="small">
+                                                                <strong>Condición
+                                                                    Migratoria:</strong> {p.condicionMigratoria ||
+                                                                <span className="text-muted fst-italic">Información no disponible</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* ✅ Estados con mensaje cuando no hay datos */}
+                                                    <div className="mt-2 d-flex flex-column gap-1">
+                                                        <div className={"d-flex gap-2 align-items-center"}>
+                                                            <div>
+                                                                <strong>Calidad de la persona:</strong>
+                                                            </div>
+                                                            <div>
+                                                                {!!(p.estados && p.estados.length) ? (
+                                                                    p.estados.map((e, i) => {
+                                                                        const esDet = esPersonaDetenida([e]);
+                                                                        return (
+                                                                            <Badge
+                                                                                key={i}
+                                                                                bg={esDet ? "danger" : colorEstado(e)}
+                                                                                className={`me-1 ${esDet ? "fw-bold" : ""}`}
+                                                                                pill
+                                                                                title={esDet ? "Persona detenida" : ""}
+                                                                            >
+                                                                                {e}
+                                                                                {esDet && " 🔒"}
+                                                                            </Badge>
+                                                                        );
+                                                                    })
+                                                                ) : (
+                                                                    <span className="text-muted fst-italic">Información no disponible</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* ✅ Delitos con mensaje cuando no hay datos */}
+                                                    <div className="mt-1 d-flex flex-column gap-1">
+                                                        <div className={"d-flex gap-2 align-items-center"}>
+                                                            <div>
+                                                                <strong>Delitos:</strong>
+                                                            </div>
+                                                            <div>
+                                                                {!!(p.delitos && p.delitos.length) ? (
+                                                                    p.delitos.map((delito, i) => (
+                                                                        <Badge
+                                                                            key={i}
+                                                                            bg="warning"
+                                                                            text="dark"
+                                                                            className="me-1"
+                                                                            pill
+                                                                        >
+                                                                            {delito}
+                                                                        </Badge>
+                                                                    ))
+                                                                ) : (
+                                                                    <span className="text-muted fst-italic">Información no disponible</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </ListGroup.Item>
                                             ))}
                                         </ListGroup>
@@ -1597,7 +1691,6 @@ export default function AuditoriaMemos() {
                             <Modal.Title>Aprobar memo #{selected.id}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            {console.log(selected._raw)}
                             <p className="mb-2">
                                 ¿Confirmas la aprobación de este memo? Se guardará con estado{" "}
                                 <strong>APROBADO</strong>.

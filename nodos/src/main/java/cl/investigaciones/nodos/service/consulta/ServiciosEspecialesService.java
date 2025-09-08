@@ -4,6 +4,7 @@ import cl.investigaciones.nodos.domain.auditoriamemos.MemoRevisado;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaMemo;
 import cl.investigaciones.nodos.dto.consulta.*;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
+import cl.investigaciones.nodos.mapper.consulta.FichaPersonaSimpleMapper;
 import cl.investigaciones.nodos.repository.auditoriamemos.MemoRevisadoRepository;
 import cl.investigaciones.nodos.repository.consulta.FichaMemoRepository;
 import cl.investigaciones.nodos.repository.consulta.FichaPersonaRepository;
@@ -22,16 +23,19 @@ public class ServiciosEspecialesService {
     private final ListaUnidadRepository unidadRepo;
     private final FichaPersonaRepository personaRepo;
     private final MemoRevisadoRepository memoRevisadoRepository;
+    private final FichaPersonaSimpleMapper fichaPersonaSimpleMapper;
 
 
     public ServiciosEspecialesService(FichaMemoRepository memoRepo,
                                       ListaUnidadRepository unidadRepo,
                                       FichaPersonaRepository personaRepo,
-                                      MemoRevisadoRepository memoRevisadoRepository) {
+                                      MemoRevisadoRepository memoRevisadoRepository,
+                                      FichaPersonaSimpleMapper fichaPersonaSimpleMapper) {
         this.memoRepo = memoRepo;
         this.unidadRepo = unidadRepo;
         this.personaRepo = personaRepo;
         this.memoRevisadoRepository = memoRevisadoRepository;
+        this.fichaPersonaSimpleMapper = fichaPersonaSimpleMapper;
     }
 
     @Transactional(readOnly = true)
@@ -185,6 +189,7 @@ public class ServiciosEspecialesService {
             dto.setFolioBrain(registro.getFolioBrain());
             dto.setRuc(registro.getRuc());
             dto.setModusDescripcion(registro.getModusDescripcion());
+            dto.setTipo(registro.getTipo());
 
             if (registro.getUnidad() != null) {
                 ListaUnidadDTO unidadDto = new ListaUnidadDTO();
@@ -194,28 +199,9 @@ public class ServiciosEspecialesService {
             }
 
             if (registro.getFichaPersonas() != null) {
-                dto.setFichaPersonas(registro.getFichaPersonas().stream().map(persona -> {
-                    FichaPersonaSimpleDTO per = new FichaPersonaSimpleDTO();
-                    per.setId(persona.getId());
-                    per.setNombre(persona.getNombre());
-                    per.setApellidoPat(persona.getApellidoPat());
-                    per.setApellidoMat(persona.getApellidoMat());
-                    per.setRut(persona.getRut());
-
-                    Set<String> estados = new LinkedHashSet<>();
-                    if (persona.getEstados() != null) {
-                        estados.addAll(
-                                persona.getEstados().stream()
-                                        .map(cp -> cp.getCalidad())
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.toList())
-                        );
-                    }
-
-                    per.setEstados(estados);
-
-                    return per;
-                }).toList());
+                dto.setFichaPersonas(registro.getFichaPersonas().stream()
+                        .map(fichaPersonaSimpleMapper::toDto)
+                        .toList());
             }
 
             if (registro.getFichaArmas() != null) {
@@ -317,6 +303,7 @@ public class ServiciosEspecialesService {
             dto.setFolioBrain(registro.getFolioBrain());
             dto.setRuc(registro.getRuc());
             dto.setModusDescripcion(registro.getModusDescripcion());
+            dto.setTipo(registro.getTipo());
 
             if (registro.getUnidad() != null) {
                 ListaUnidadDTO unidadDto = new ListaUnidadDTO();
@@ -326,28 +313,9 @@ public class ServiciosEspecialesService {
             }
 
             if (registro.getFichaPersonas() != null) {
-                dto.setFichaPersonas(registro.getFichaPersonas().stream().map(persona -> {
-                    FichaPersonaSimpleDTO per = new FichaPersonaSimpleDTO();
-                    per.setId(persona.getId());
-                    per.setNombre(persona.getNombre());
-                    per.setApellidoPat(persona.getApellidoPat());
-                    per.setApellidoMat(persona.getApellidoMat());
-                    per.setRut(persona.getRut());
-
-                    Set<String> estados = new LinkedHashSet<>();
-                    if (persona.getEstados() != null) {
-                        estados.addAll(
-                                persona.getEstados().stream()
-                                        .map(cp -> cp.getCalidad())
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.toList())
-                        );
-                    }
-
-                    per.setEstados(estados);
-
-                    return per;
-                }).toList());
+                dto.setFichaPersonas(registro.getFichaPersonas().stream()
+                        .map(fichaPersonaSimpleMapper::toDto)
+                        .toList());
             }
 
             if (registro.getFichaArmas() != null) {
@@ -439,7 +407,7 @@ public class ServiciosEspecialesService {
         Map<Long, MemoRevisado> porId = new HashMap<>();
         if (!ids.isEmpty()) {
             List<MemoRevisado> revisiones = memoRevisadoRepository.findByIdMemoIn(ids);
-            porId = revisiones.stream().collect(Collectors.toMap(MemoRevisado::getIdMemo, r -> r, (a,b)->a));
+            porId = revisiones.stream().collect(Collectors.toMap(MemoRevisado::getIdMemo, r -> r, (a, b) -> a));
         }
         List<FichaMemoConEstadoDTO> res = new ArrayList<>();
         for (FichaMemoDTO dto : base) {
@@ -451,6 +419,7 @@ public class ServiciosEspecialesService {
             fe.setFolioBrain(dto.getFolioBrain());
             fe.setRuc(dto.getRuc());
             fe.setModusDescripcion(dto.getModusDescripcion());
+            fe.setTipo(dto.getTipo());
             fe.setUnidad(dto.getUnidad());
             fe.setFichaPersonas(dto.getFichaPersonas());
             fe.setFichaArmas(dto.getFichaArmas());
@@ -483,7 +452,7 @@ public class ServiciosEspecialesService {
         Map<Long, MemoRevisado> porId = new HashMap<>();
         if (!memoIds.isEmpty()) {
             List<MemoRevisado> revisiones = memoRevisadoRepository.findByIdMemoIn(memoIds);
-            porId = revisiones.stream().collect(Collectors.toMap(MemoRevisado::getIdMemo, r -> r, (a,b)->a));
+            porId = revisiones.stream().collect(Collectors.toMap(MemoRevisado::getIdMemo, r -> r, (a, b) -> a));
         }
         List<FichaMemoConEstadoDTO> res = new ArrayList<>();
         for (FichaMemoDTO dto : base) {
@@ -494,6 +463,7 @@ public class ServiciosEspecialesService {
             fe.setFolioBrain(dto.getFolioBrain());
             fe.setRuc(dto.getRuc());
             fe.setModusDescripcion(dto.getModusDescripcion());
+            fe.setTipo(dto.getTipo());
             fe.setUnidad(dto.getUnidad());
             fe.setFichaPersonas(dto.getFichaPersonas());
             fe.setFichaArmas(dto.getFichaArmas());
@@ -518,7 +488,7 @@ public class ServiciosEspecialesService {
         return res;
     }
 
-    
+
     // Obtener IDs de memos que tienen personas detenidas
     private List<Long> obtenerIdsMemosConDetenidos(OffsetDateTime fechaInicio, OffsetDateTime fechaTermino, String tipoFecha) {
         String campoFecha = (tipoFecha != null && tipoFecha.equals("FECHA DEL HECHO")) ? "fm.fecha" : "fm.created_at";

@@ -14,6 +14,7 @@ public class FichaMemoDTO {
     private String ruc;
     private String modusDescripcion;
     private ListaUnidadDTO unidad;
+    private String tipo;
 
     private List<FichaPersonaSimpleDTO> fichaPersonas;
     private List<FichaArmaDTO> fichaArmas;

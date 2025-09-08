@@ -5,6 +5,7 @@ import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaDelito;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaNacionalidad;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Immutable;
 
 import java.time.OffsetDateTime;
@@ -13,7 +14,9 @@ import java.util.Set;
 @Entity
 @Table(name = "ficha_persona", schema = "public")
 @Data
+@EqualsAndHashCode(exclude = {"delitos", "estados", "memo"})
 @Immutable
+
 public class FichaPersona {
 
     @Id
@@ -68,7 +71,13 @@ public class FichaPersona {
 
     @Column(name = "\"correo\"")
     private String correoElectronico;
-    
+
+    @Column(name = "\"sexo\"")
+    private String sexo;
+
+    @Column(name = "\"edad\"")
+    private Integer edad;
+
     @ManyToOne
     @JoinColumn(name = "memos_id")
     private FichaMemo memo;
