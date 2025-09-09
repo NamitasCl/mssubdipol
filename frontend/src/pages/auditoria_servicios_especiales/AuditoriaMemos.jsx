@@ -176,6 +176,15 @@ const normalizeMemo = (m) => {
         .replace(/\s+/g, " ")
         .trim();
 
+    const revision = {
+        estado: m.estadoRevision || "SIN_REVISAR",
+        fecha: m.fechaRevision ? new Date(m.fechaRevision).toLocaleString("es-CL", { timeZone: "America/Santiago" }) : null,
+        nombreRevisor: m.nombreRevisor || null,
+        unidadRevisor: m.unidadRevisor || null,
+        rolRevisor: m.rolRevisor || null,
+        observaciones: m.observacionesRevision || null,
+    };
+
     return {
         id: m.id,
         fecha: fecha ? fecha.toLocaleString("es-CL", {timeZone: "America/Santiago"}) : "—",
@@ -195,6 +204,7 @@ const normalizeMemo = (m) => {
         dineros,
         municiones,
         otrasEspecies, // ✅ AGREGAR
+        revision, // ✅ NUEVO
         issues: m.issues || [],
         _raw: m,
     };
@@ -1276,10 +1286,11 @@ export default function AuditoriaMemos() {
             )}
 
             {/* Modal Detalle */}
-            <Modal show={!!selected} onHide={() => setSelected(null)} size="xl" fullscreen="lg-down" centered>
+            <Modal show={!!selected} onHide={() => setSelected(null)} fullscreen="lg-down" fullscreen>
                 {selected && (
                     <>
                         <Modal.Header closeButton>
+                            {console.log(user)}
                             <Modal.Title className="d-flex align-items-center gap-2">
                                 <span>Memo #{selected.id}</span>
                                 <Badge bg="info" className="text-dark">{selected.tipo}</Badge>

@@ -1,6 +1,7 @@
 package cl.investigaciones.nodos.dto.serviciosespeciales;
 
 import cl.investigaciones.nodos.domain.auditoriamemos.EstadoRevision;
+import cl.investigaciones.nodos.domain.auditoriamemos.RolRevisor;
 import lombok.Data;
 
 import java.time.OffsetDateTime;
@@ -12,6 +13,9 @@ public class MemoRevisadoRequestDTO {
     private Long memoId;
     private String nombreRevisor;
     private String unidadRevisor;
-    private Boolean revisadoPlana;
-    private OffsetDateTime fechaRevisionPlana;
+    private String usuarioRevisor;
+    private RolRevisor rolRevisor; // opcional en request, default en backend
+    private OffsetDateTime createdAt; // opcional en request, default en backend
+    private String origen;
+    private String requestId;
 }

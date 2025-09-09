@@ -406,8 +406,8 @@ public class ServiciosEspecialesService {
         List<Long> ids = base.stream().map(FichaMemoDTO::getId).filter(Objects::nonNull).toList();
         Map<Long, MemoRevisado> porId = new HashMap<>();
         if (!ids.isEmpty()) {
-            List<MemoRevisado> revisiones = memoRevisadoRepository.findByIdMemoIn(ids);
-            porId = revisiones.stream().collect(Collectors.toMap(MemoRevisado::getIdMemo, r -> r, (a, b) -> a));
+            List<MemoRevisado> ultimos = memoRevisadoRepository.findUltimoPorMemoIdIn(ids);
+            porId = ultimos.stream().collect(Collectors.toMap(r -> r.getMemo().getId(), r -> r, (a, b) -> a));
         }
         List<FichaMemoConEstadoDTO> res = new ArrayList<>();
         for (FichaMemoDTO dto : base) {
@@ -435,7 +435,9 @@ public class ServiciosEspecialesService {
                 fe.setEstadoRevision(r.getEstado() != null ? r.getEstado().name() : "SIN_REVISAR");
                 fe.setObservacionesRevision(r.getObservaciones());
                 fe.setNombreRevisor(r.getNombreRevisor());
-                fe.setFechaRevision(r.getFechaRevisionPlana() != null ? r.getFechaRevisionPlana() : r.getFechaRevisionJefe());
+                fe.setUnidadRevisor(r.getUnidadRevisor());
+                fe.setRolRevisor(r.getRolRevisor() != null ? r.getRolRevisor().name() : null);
+                fe.setFechaRevision(r.getCreatedAt());
             } else {
                 fe.setEstadoRevision("SIN_REVISAR");
             }
@@ -451,8 +453,8 @@ public class ServiciosEspecialesService {
         List<Long> memoIds = base.stream().map(FichaMemoDTO::getId).filter(Objects::nonNull).toList();
         Map<Long, MemoRevisado> porId = new HashMap<>();
         if (!memoIds.isEmpty()) {
-            List<MemoRevisado> revisiones = memoRevisadoRepository.findByIdMemoIn(memoIds);
-            porId = revisiones.stream().collect(Collectors.toMap(MemoRevisado::getIdMemo, r -> r, (a, b) -> a));
+            List<MemoRevisado> ultimos = memoRevisadoRepository.findUltimoPorMemoIdIn(memoIds);
+            porId = ultimos.stream().collect(Collectors.toMap(r -> r.getMemo().getId(), r -> r, (a, b) -> a));
         }
         List<FichaMemoConEstadoDTO> res = new ArrayList<>();
         for (FichaMemoDTO dto : base) {
@@ -479,7 +481,9 @@ public class ServiciosEspecialesService {
                 fe.setEstadoRevision(r.getEstado() != null ? r.getEstado().name() : "SIN_REVISAR");
                 fe.setObservacionesRevision(r.getObservaciones());
                 fe.setNombreRevisor(r.getNombreRevisor());
-                fe.setFechaRevision(r.getFechaRevisionPlana() != null ? r.getFechaRevisionPlana() : r.getFechaRevisionJefe());
+                fe.setUnidadRevisor(r.getUnidadRevisor());
+                fe.setRolRevisor(r.getRolRevisor() != null ? r.getRolRevisor().name() : null);
+                fe.setFechaRevision(r.getCreatedAt());
             } else {
                 fe.setEstadoRevision("SIN_REVISAR");
             }
