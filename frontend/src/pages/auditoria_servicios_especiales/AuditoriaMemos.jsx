@@ -32,6 +32,10 @@ import {
 } from "../../api/nodosApi.js";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 import {useNavigate} from "react-router-dom";
+import {FaCar, FaJoint, FaMoneyBillWave} from "react-icons/fa";
+import {FaGun, FaPeopleGroup} from "react-icons/fa6";
+import {GiHeavyBullets} from "react-icons/gi";
+import {TbCodeDots} from "react-icons/tb";
 
 /* ------------------ Config UI y helpers ------------------ */
 
@@ -178,7 +182,7 @@ const normalizeMemo = (m) => {
 
     const revision = {
         estado: m.estadoRevision || "SIN_REVISAR",
-        fecha: m.fechaRevision ? new Date(m.fechaRevision).toLocaleString("es-CL", { timeZone: "America/Santiago" }) : null,
+        fecha: m.fechaRevision ? new Date(m.fechaRevision).toLocaleString("es-CL", {timeZone: "America/Santiago"}) : null,
         nombreRevisor: m.nombreRevisor || null,
         unidadRevisor: m.unidadRevisor || null,
         rolRevisor: m.rolRevisor || null,
@@ -877,6 +881,48 @@ export default function AuditoriaMemos() {
         }
     };
 
+    // Helper reutilizable para evaluar "tiene elementos"
+    const hasAnyValue = (value) => {
+        if (!value) return false;
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === "object") return Object.keys(value).length > 0;
+        if (typeof value === "number") return value > 0;
+        return Boolean(value);
+    };
+
+// Catálogo de iconos y posibles nombres de propiedades en el memo
+    const ICON_CATALOG = [
+        {key: "droga", label: "Droga", Icon: FaJoint, props: ["drogas", "droga"]},
+        {key: "vehiculo", label: "Vehículo", Icon: FaCar, props: ["vehiculos", "vehiculo"]},
+        {key: "armas", label: "Armas", Icon: FaGun, props: ["armas", "arma"]},
+        {key: "personas", label: "Personas", Icon: FaPeopleGroup, props: ["personas", "imputados", "detenidos"]},
+        {key: "dinero", label: "Dinero", Icon: FaMoneyBillWave, props: ["dinero", "efectivo", "dineroIncautado"]},
+        {key: "municiones", label: "Municiones", Icon: GiHeavyBullets, props: ["municiones", "municion"]},
+        {
+            key: "otras_especies",
+            label: "Otras especies",
+            Icon: TbCodeDots,
+            props: ["otrasEspecies", "otras_especies", "otras especies"]
+        },
+    ];
+
+// Devuelve un array de elementos React con los iconos a mostrar
+    const handleHasIconset = (memo) => {
+        const iconsToShow = [];
+        if (!memo) return iconsToShow;
+
+        ICON_CATALOG.forEach(({key, label, Icon, props}) => {
+            const present = props.some((p) => hasAnyValue(memo?.[p]));
+            if (present) {
+                iconsToShow.push(
+                    <Icon key={key} size={24} title={label} className="me-1" style={{width: "24px", height: "24px"}}/>
+                );
+            }
+        });
+
+        return iconsToShow;
+    };
+
     /* ------------------ Render ------------------ */
 
     return (
@@ -1179,6 +1225,7 @@ export default function AuditoriaMemos() {
                         <th style={stickyTh} onClick={() => toggleSort("estado")} role="button">
                             Estado {sort.by === "estado" ? (sort.dir === "asc" ? "▲" : "▼") : ""}
                         </th>
+                        <th style={stickyTh}>Info</th>
                         <th style={stickyTh}></th>
                     </tr>
                     </thead>
@@ -1251,6 +1298,12 @@ export default function AuditoriaMemos() {
                                 <td>
                                     <Badge
                                         bg={estadoColors[m.estado] || "secondary"}>{m.estado === "SIN_REVISAR" ? "Pendiente" : m.estado}</Badge>
+                                </td>
+                                <td>
+                                    <div className={"d-flex gap-2 flex-wrap align-items-center px-5"}
+                                         style={{width: 200}}>
+                                        {handleHasIconset(m)}
+                                    </div>
                                 </td>
                                 <td className="text-end">
                                     <Button size="sm" variant="outline-primary" onClick={() => setSelected(m)}>

@@ -59,7 +59,7 @@ const modules = [
         icon: <FaListCheck size={36}/>,
         route: "/auditoria",
         color: "#28618b", // Azul intermedio institucional
-        roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE"]
+        roles: ["ROLE_FUNCIONARIO", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
     },
 ];
 
@@ -129,6 +129,7 @@ function Header() {
 export default function DashboardPrincipal() {
     const {user} = useAuth();
     const navigate = useNavigate();
+    console.log("User en dashboard principal: ", user)
 
     return (
         <>
