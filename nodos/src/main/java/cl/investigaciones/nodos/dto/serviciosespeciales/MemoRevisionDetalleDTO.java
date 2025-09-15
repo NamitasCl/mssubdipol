@@ -7,16 +7,16 @@ import lombok.Data;
 import java.time.OffsetDateTime;
 
 @Data
-public class MemoRevisadoRequestDTO {
-    private EstadoRevision estado;
-    private String observaciones; // preferente
-    private String observacion;   // alias desde frontend
+public class MemoRevisionDetalleDTO {
+    private Long id;
     private Long memoId;
+    private EstadoRevision estado;
+    private RolRevisor rolRevisor;
+    private String observaciones;
     private String nombreRevisor;
     private String unidadRevisor;
     private String usuarioRevisor;
-    private RolRevisor rolRevisor; // opcional en request, default en backend
-    private OffsetDateTime createdAt; // opcional en request, default en backend
+    private OffsetDateTime createdAt;
     private String origen;
     private String requestId;
 }

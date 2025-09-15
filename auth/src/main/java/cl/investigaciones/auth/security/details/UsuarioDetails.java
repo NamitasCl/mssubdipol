@@ -75,7 +75,7 @@ public class UsuarioDetails implements UserDetails {
 
     public String getNombreCompleto() {
         return usuario.getNombre() + " " + usuario.getApellidoPaterno()
-                 + " " + usuario.getApellidoMaterno();
+                + " " + usuario.getApellidoMaterno();
     }
 
     public String getNombreCargo() {
@@ -85,8 +85,14 @@ public class UsuarioDetails implements UserDetails {
     public String getSiglasUnidad() {
         return usuario.getSiglasUnidad();
     }
-    public int getIdUnidad() { return usuario.getIdUnidad(); }
 
+    public int getIdUnidad() {
+        return usuario.getIdUnidad();
+    }
+
+    public String getNombrePerfil() {
+        return usuario.getNombrePerfil();
+    }
 
 
     @Override

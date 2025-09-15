@@ -1,5 +1,6 @@
 package cl.investigaciones.nodos.domain.entidadesconsulta;
 
+import cl.investigaciones.nodos.domain.auditoriamemos.MemoRevisado;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaUnidad;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -61,6 +62,11 @@ public class FichaMemo {
 
     @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
     private List<FichaOtrasEspecies> fichaOtrasEspecies;
+
+    @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
+    @OrderBy("createdAt DESC")
+    private List<MemoRevisado> revisiones;
+
 
     @ManyToOne
     @JoinColumn(name = "\"unidad_id\"")

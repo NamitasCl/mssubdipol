@@ -96,6 +96,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             usuarioBD.setIdFun(usuarioAD.getIdFun());
             usuarioBD.setSiglasCargo(usuarioAD.getSiglasCargo());
             usuarioBD.setIdUnidad(usuarioAD.getIdUnidad());
+            usuarioBD.setNombrePerfil(usuarioAD.getNombrePerfil());
         } else {
             usuarioBD = new Usuario();
             usuarioBD.setUsername(usuarioAD.getUsuarioAD()); // username nuevo
@@ -130,7 +131,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         Map<String, String> tokenBodyRequest = new HashMap<>();
 
         tokenBodyRequest.put("usuarioAD", "eramirezs");
-    tokenBodyRequest.put("contraseñaFun", "Mhb2015.@");
+        tokenBodyRequest.put("contraseñaFun", "Mhb2015.@");
         tokenBodyRequest.put("keySistema", "UNE1KBATI6BNVLQF8Z9O");
 
         RestTemplate restTemplate = new RestTemplate();

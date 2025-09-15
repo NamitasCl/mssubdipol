@@ -52,7 +52,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 return;
             }
 
-            JwtUserPrincipal principal = new JwtUserPrincipal(username, nombreUsuario, siglasUnidad, roles, idFuncionario);
+            String nombrePerfil = jwtUtils.extractClaim(token, claims -> claims.get("nombrePerfil", String.class));
+                        JwtUserPrincipal principal = new JwtUserPrincipal(username, nombreUsuario, siglasUnidad, roles, idFuncionario, nombrePerfil);
 
             // Mapear roles a objetos GrantedAuthority
             Object rolesObj = jwtUtils.extractClaim(token, claims -> claims.get("roles"));

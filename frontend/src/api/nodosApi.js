@@ -46,8 +46,25 @@ export async function crearRevisionMemo(payload, user) {
 }
 
 export async function guardarRevisionMemo(revision, token) {
-    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    const config = token ? {headers: {Authorization: `Bearer ${token}`}} : {};
     const res = await axios.post(`${API_SERVICIOS_ESPECIALES_MEMOS_REVISADOS}`, revision, config);
+    return res.data;
+}
+
+// Obtener historial completo de revisiones de un memo
+export async function obtenerHistorialRevisiones(memoId, token) {
+    if (memoId == null) throw new Error("memoId es requerido");
+    const config = token ? {headers: {Authorization: `Bearer ${token}`}} : {};
+    const res = await axios.get(`${API_SERVICIOS_ESPECIALES_MEMOS_REVISADOS}/historial/${memoId}`, config);
+    return res.data;
+}
+
+// Obtener últimos estados por rol para múltiples memos
+export async function obtenerUltimosPorRol(memoIds, token) {
+    const ids = Array.isArray(memoIds) ? memoIds.filter((x) => x != null) : [];
+    const query = ids.length ? `?memoIds=${ids.join(',')}` : '?memoIds=';
+    const config = token ? {headers: {Authorization: `Bearer ${token}`}} : {};
+    const res = await axios.get(`${API_SERVICIOS_ESPECIALES_MEMOS_REVISADOS}/ultimos-por-rol${query}`, config);
     return res.data;
 }
 
@@ -58,7 +75,6 @@ export async function obtenerEstadisticas(consulta) {
 
 // ✅ NUEVA FUNCIÓN PARA CONSULTA COMPLETA PMSUBDIPOL
 export async function consultaTodosMemosPMSUBDIPOL(consulta) {
-    console.log("📡 Llamando endpoint global PMSUBDIPOL:", consulta);
     const res = await axios.post(`${API_SERVICIOS_ESPECIALES}/pmsubdipol/global`, consulta);
     return res.data;
 }

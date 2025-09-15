@@ -16,9 +16,10 @@ public class JwtUserPrincipal {
     private String siglasUnidad;
     private List<String> roles;
     private int idFuncionario;
+    private String nombrePerfil;
 
     @Override
     public String toString() {
-        return "JwtUserPrincipal [username=" + username + ", nombreUsuario=" + nombreUsuario + ", siglasUnidad=" + siglasUnidad + ", roles=" + roles + "]";
+        return "JwtUserPrincipal [username=" + username + ", nombreUsuario=" + nombreUsuario + ", siglasUnidad=" + siglasUnidad + ", roles=" + roles + ", nombrePerfil=" + nombrePerfil + "]";
     }
 }
