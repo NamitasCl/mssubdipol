@@ -22,7 +22,7 @@ public class MemoRevisado {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idMemo", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "id_memo", referencedColumnName = "id", nullable = false)
     private FichaMemo memo;
 
     @Enumerated(EnumType.STRING)

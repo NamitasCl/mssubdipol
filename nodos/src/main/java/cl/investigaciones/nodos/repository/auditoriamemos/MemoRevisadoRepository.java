@@ -14,21 +14,21 @@ public interface MemoRevisadoRepository extends JpaRepository<MemoRevisado, Long
     // Último evento para un memo específico
     Optional<MemoRevisado> findTopByMemo_IdOrderByCreatedAtDesc(Long memoId);
 
-    // ✅ CORREGIDO: usar "idMemo" que es el nombre real de la columna
+    // ✅ CORREGIDO: usar "id_memo" que es el nombre real de la columna
     @Query(value = """
-            SELECT DISTINCT ON (nodos.memo_revisados."idMemo") *
+            SELECT DISTINCT ON (id_memo) *
             FROM nodos.memo_revisados
-            WHERE nodos.memo_revisados."idMemo" IN (:memoIds)
-            ORDER BY nodos.memo_revisados."idMemo", created_at DESC
+            WHERE id_memo IN (:memoIds)
+            ORDER BY id_memo, created_at DESC
             """, nativeQuery = true)
     List<MemoRevisado> findUltimoPorMemoIdIn(@Param("memoIds") Collection<Long> memoIds);
 
-    // ✅ CORREGIDO: usar "idMemo" que es el nombre real de la columna
+    // ✅ CORREGIDO: usar "id_memo" que es el nombre real de la columna
     @Query(value = """
-            SELECT DISTINCT ON (nodos.memo_revisados."idMemo", rol_revisor) *
+            SELECT DISTINCT ON (id_memo, rol_revisor) *
             FROM nodos.memo_revisados
-            WHERE nodos.memo_revisados."idMemo" IN (:memoIds)
-            ORDER BY nodos.memo_revisados."idMemo", rol_revisor, created_at DESC
+            WHERE id_memo IN (:memoIds)
+            ORDER BY id_memo, rol_revisor, created_at DESC
             """, nativeQuery = true)
     List<MemoRevisado> findUltimosPorRolYMemoIds(@Param("memoIds") Collection<Long> memoIds);
 
