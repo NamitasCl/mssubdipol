@@ -14,27 +14,28 @@ public interface MemoRevisadoRepository extends JpaRepository<MemoRevisado, Long
     // Último evento para un memo específico
     Optional<MemoRevisado> findTopByMemo_IdOrderByCreatedAtDesc(Long memoId);
 
-    // Último evento por cada memoId (PostgreSQL)
+    // ✅ CORREGIDO: usar "idMemo" que es el nombre real de la columna
     @Query(value = """
-            SELECT DISTINCT ON (mr.memo_id) *
-            FROM nodos.memo_revisados mr
-            WHERE mr.memo_id IN (:memoIds)
-            ORDER BY mr.memo_id, mr.created_at DESC
+            SELECT DISTINCT ON (idMemo) *
+            FROM nodos.memo_revisados
+            WHERE idMemo IN (:memoIds)
+            ORDER BY idMemo, created_at DESC
             """, nativeQuery = true)
     List<MemoRevisado> findUltimoPorMemoIdIn(@Param("memoIds") Collection<Long> memoIds);
 
-    // Último evento por cada (memo, rol) (PostgreSQL)
+    // ✅ CORREGIDO: usar "idMemo" que es el nombre real de la columna
     @Query(value = """
-            SELECT DISTINCT ON (mr.memo_id, mr.rol_revisor) *
-            FROM nodos.memo_revisados mr
-            WHERE mr.memo_id IN (:memoIds)
-            ORDER BY mr.memo_id, mr.rol_revisor, mr.created_at DESC
+            SELECT DISTINCT ON (idMemo, rol_revisor) *
+            FROM nodos.memo_revisados
+            WHERE idMemo IN (:memoIds)
+            ORDER BY idMemo, rol_revisor, created_at DESC
             """, nativeQuery = true)
     List<MemoRevisado> findUltimosPorRolYMemoIds(@Param("memoIds") Collection<Long> memoIds);
 
-    // Idempotencia por requestId
+    // Idempotencia por requestId - esta query JPQL está bien
     Optional<MemoRevisado> findByMemo_IdAndRequestId(Long memoId, String requestId);
 
+    // Esta query JPQL está bien porque usa la propiedad del objeto
     @Query("select mr from MemoRevisado mr where mr.memo.id = :memoId order by mr.createdAt desc")
     List<MemoRevisado> findHistorial(@Param("memoId") Long memoId);
 }
