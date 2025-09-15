@@ -16,19 +16,19 @@ public interface MemoRevisadoRepository extends JpaRepository<MemoRevisado, Long
 
     // ✅ CORREGIDO: usar "idMemo" que es el nombre real de la columna
     @Query(value = """
-            SELECT DISTINCT ON ("memo_revisados.idMemo") *
+            SELECT DISTINCT ON (nodos.memo_revisados."idMemo") *
             FROM nodos.memo_revisados
-            WHERE "memo_revisados.idMemo" IN (:memoIds)
-            ORDER BY "memo_revisados.idMemo", created_at DESC
+            WHERE nodos.memo_revisados."idMemo" IN (:memoIds)
+            ORDER BY nodos.memo_revisados."idMemo", created_at DESC
             """, nativeQuery = true)
     List<MemoRevisado> findUltimoPorMemoIdIn(@Param("memoIds") Collection<Long> memoIds);
 
     // ✅ CORREGIDO: usar "idMemo" que es el nombre real de la columna
     @Query(value = """
-            SELECT DISTINCT ON ("memo_revisados.idMemo", rol_revisor) *
+            SELECT DISTINCT ON (nodos.memo_revisados."idMemo", rol_revisor) *
             FROM nodos.memo_revisados
-            WHERE "memo_revisados.idMemo" IN (:memoIds)
-            ORDER BY "memo_revisados.idMemo", rol_revisor, created_at DESC
+            WHERE nodos.memo_revisados."idMemo" IN (:memoIds)
+            ORDER BY nodos.memo_revisados."idMemo", rol_revisor, created_at DESC
             """, nativeQuery = true)
     List<MemoRevisado> findUltimosPorRolYMemoIds(@Param("memoIds") Collection<Long> memoIds);
 
