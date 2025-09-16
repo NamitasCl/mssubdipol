@@ -30,7 +30,8 @@ public class JwtUtil {
             boolean isAdmin,
             int idFuncionario,
             List<String> permisos,
-            String nombrePerfil
+            String nombrePerfil,
+            String nombreUnidad
     ) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
@@ -47,6 +48,7 @@ public class JwtUtil {
                 .claim("isAdmin", isAdmin)
                 .claim("idFuncionario", idFuncionario)
                 .claim("nombrePerfil", nombrePerfil)
+                .claim("nombreUnidad", nombreUnidad)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, token.getBytes(StandardCharsets.UTF_8))

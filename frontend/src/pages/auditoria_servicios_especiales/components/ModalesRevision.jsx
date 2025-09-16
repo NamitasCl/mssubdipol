@@ -3,6 +3,7 @@
 import React, {useState} from "react";
 import {Button, Form, Modal} from "react-bootstrap";
 import {guardarRevisionMemo} from "../../../api/nodosApi.js";
+import {useAuth} from "../../../components/contexts/AuthContext.jsx";
 
 export default function ModalesRevision({
                                             // Modal Observar
@@ -20,10 +21,50 @@ export default function ModalesRevision({
                                             showNotification,
                                         }) {
     // Estados locales del componente
+    const {user} = useAuth();
+
     const [obsTexto, setObsTexto] = useState("");
     const [obsAprobTexto, setObsAprobTexto] = useState("");
     const [savingRev, setSavingRev] = useState(false);
     const [saveErr, setSaveErr] = useState("");
+
+    // Función para determinar el rol revisor basado en los roles del usuario
+    const determinarRolRevisor = (usuario) => {
+        if (!usuario || !usuario.roles) {
+            return "";
+        }
+
+        // Convertir roles a array de strings si es necesario
+        const userRoles = Array.isArray(usuario.roles)
+            ? usuario.roles.map(role => typeof role === 'string' ? role : role.nombre || role.authority)
+            : [];
+
+        // Solo pueden revisar usuarios con ROLE_REVISOR
+        if (!userRoles.includes('ROLE_REVISOR')) {
+            return "";
+        }
+
+        // Determinar el tipo de revisor:
+        // 1. Si tiene ROLE_JEFE y es JEFE por perfil -> JEFE
+        // 2. Si es FUNCIONARIO por perfil pero tiene ROLE_REVISOR -> PMAYOR
+        // 3. Si tiene roles especiales de contraloría -> CONTRALOR
+
+        if (userRoles.includes('ROLE_JEFE') && usuario.nombrePerfil === 'JEFE') {
+            return 'JEFE';
+        }
+
+        if (userRoles.includes('ROLE_CONTRALOR') || userRoles.includes('ROLE_CONTRALORIA')) {
+            return 'CONTRALOR';
+        }
+
+        // Si es funcionario con rol revisor (funcionario de plana mayor asignado como revisor)
+        if (usuario.nombrePerfil === 'FUNCIONARIO' && userRoles.includes('ROLE_REVISOR')) {
+            return 'PMAYOR';
+        }
+
+        // Por defecto, si tiene ROLE_REVISOR pero no encaja en las categorías anteriores
+        return 'PMAYOR';
+    };
 
     // Resetear estados cuando se abren/cierran modales
     React.useEffect(() => {
@@ -47,11 +88,17 @@ export default function ModalesRevision({
         try {
             const revision = {
                 memoId: selected.id,
+                nombreRevisor: user.nombreUsuario || user.nombre,
+                unidadRevisor: user.siglasUnidad,
+                usuarioRevisor: user.sub,
+                rolRevisor: determinarRolRevisor(user),
                 estado: "PENDIENTE", // O "OBSERVADO" según tu lógica de negocio
                 observaciones: obsTexto.trim(),
                 origen: "frontend",
-                requestId: `obs-${selected.id}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+                requestId: `obs-${selected.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             };
+
+            console.log("Revisión (observado):", revision); // Debug
 
             // Usar la API existente
             const token = localStorage.getItem("token");
@@ -90,15 +137,21 @@ export default function ModalesRevision({
         try {
             const revision = {
                 memoId: selected.id,
+                nombreRevisor: user.nombreUsuario || user.nombre,
+                unidadRevisor: user.siglasUnidad,
+                usuarioRevisor: user.sub,
+                rolRevisor: determinarRolRevisor(user),
                 estado: "APROBADO",
                 origen: "frontend",
-                requestId: `apb-${selected.id}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+                requestId: `apb-${selected.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             };
 
             // Incluir observación si hay texto
             if (obsAprobTexto.trim()) {
                 revision.observaciones = obsAprobTexto.trim();
             }
+
+            console.log("Revisión (aprobado):", revision); // Debug
 
             // Usar la API existente
             const token = localStorage.getItem("token");

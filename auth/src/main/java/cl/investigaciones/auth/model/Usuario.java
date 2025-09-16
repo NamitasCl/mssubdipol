@@ -1,9 +1,9 @@
 package cl.investigaciones.auth.model;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.EqualsAndHashCode;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -40,6 +40,9 @@ public class Usuario {
     private boolean locked;
     private boolean enabled;
     private boolean credentialsExpired;
+
+    @Column(name = "nombre_unidad")
+    private String nombreUnidad;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "usuario_roles",

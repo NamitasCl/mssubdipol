@@ -507,6 +507,7 @@ export default function AuditoriaMemos() {
 
     /* ------------------ Render ------------------ */
 
+    console.log(user)
 
     return (
         <Container fluid className="p-3">

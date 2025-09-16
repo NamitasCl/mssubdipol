@@ -1,3 +1,3 @@
 package cl.investigaciones.nodos.domain.auditoriamemos;
 
-public enum RolRevisor {JEFE, PLANA, PM, CONTRALOR}
+public enum RolRevisor {JEFE, PMAYOR, PM, CONTRALOR}

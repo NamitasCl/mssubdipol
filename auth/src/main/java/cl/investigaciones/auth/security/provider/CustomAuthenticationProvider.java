@@ -40,6 +40,9 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         Rol rolFuncionario = rolRepository.findByNombre("ROLE_FUNCIONARIO")
                 .orElseThrow(() -> new RuntimeException("No se encontró el rol ROL_FUNCIONARIO en la base de datos"));
 
+        Rol rolRevisor = rolRepository.findByNombre("ROLE_REVISOR")
+                .orElseThrow(() -> new RuntimeException("No se encontró el rol ROL_REVISOR en la base de datos"));
+
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
 
@@ -79,6 +82,15 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             rolesAsignados.add(rolFuncionario);
         }
 
+        if ("FUNCIONARIO".equalsIgnoreCase(usuarioAD.getNombrePerfil())
+                && usuarioAD.getNombreUnidad().toUpperCase().contains("PLANA MAYOR")) {
+
+            rolesAsignados.add(rolRevisor);
+        } else {
+            rolesAsignados.add(rolFuncionario);
+        }
+
+
         Optional<Usuario> optionalUsuario = usuarioRepository.findByUsernameIgnoreCase(username);
         Usuario usuarioBD;
 
@@ -97,6 +109,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             usuarioBD.setSiglasCargo(usuarioAD.getSiglasCargo());
             usuarioBD.setIdUnidad(usuarioAD.getIdUnidad());
             usuarioBD.setNombrePerfil(usuarioAD.getNombrePerfil());
+            usuarioBD.setNombreUnidad(usuarioAD.getNombreUnidad());
         } else {
             usuarioBD = new Usuario();
             usuarioBD.setUsername(usuarioAD.getUsuarioAD()); // username nuevo
@@ -114,6 +127,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             usuarioBD.setRoles(rolesAsignados);
             usuarioBD.setIdFun(usuarioAD.getIdFun());
             usuarioBD.setSiglasCargo(usuarioAD.getSiglasCargo());
+            usuarioBD.setNombreUnidad(usuarioAD.getNombreUnidad());
         }
 
         usuarioRepository.save(usuarioBD);

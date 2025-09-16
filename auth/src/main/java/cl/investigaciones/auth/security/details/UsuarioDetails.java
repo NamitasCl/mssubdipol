@@ -94,6 +94,10 @@ public class UsuarioDetails implements UserDetails {
         return usuario.getNombrePerfil();
     }
 
+    public String getNombreUnidad() {
+        return usuario.getNombreUnidad();
+    }
+
 
     @Override
     public boolean isAccountNonExpired() {
