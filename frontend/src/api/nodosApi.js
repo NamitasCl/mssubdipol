@@ -78,3 +78,20 @@ export async function consultaTodosMemosPMSUBDIPOL(consulta) {
     const res = await axios.post(`${API_SERVICIOS_ESPECIALES}/pmsubdipol/global`, consulta);
     return res.data;
 }
+
+export async function obtenerDetalleCompleto(tipo, id) {
+    const endpoints = {
+        persona: `/persona/detalle/${id}`,
+        vehiculo: `/vehiculo/detalle/${id}`,
+        arma: `/arma/detalle/${id}`,
+        droga: `/droga/detalle/${id}`,
+        memo: `/memo/detalle/${id}`
+    };
+
+    const endpoint = endpoints[tipo];
+    if (!endpoint) throw new Error(`Tipo no soportado: ${tipo}`);
+
+    const res = await axios.get(`${API_URL}${endpoint}`);
+    return res.data;
+}
+

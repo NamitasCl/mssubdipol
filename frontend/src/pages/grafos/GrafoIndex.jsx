@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import GrafoBusqueda from "./GrafoBusqueda";
 import GrafoD3 from "./GrafoD3";
-import { Spinner, Card } from "react-bootstrap";
+import {Card, Spinner} from "react-bootstrap";
 import {
     consultaPorCaracteristicasVehiculo,
     consultaPorPasaporte,
@@ -41,6 +41,7 @@ export default function GrafoIndex() {
             }
 
             setNodos(data.nodes);
+            console.log("Nodos busqueda: ", data)
             setLinks(data.links);
 
         } catch (err) {
@@ -120,7 +121,7 @@ export default function GrafoIndex() {
                     width: 500
                 }}>
                     <Card.Body>
-                        <GrafoBusqueda onBuscar={handleBuscar} />
+                        <GrafoBusqueda onBuscar={handleBuscar}/>
                     </Card.Body>
                 </Card>
 
@@ -130,12 +131,13 @@ export default function GrafoIndex() {
                         textAlign: "center",
                         margin: "40px auto 30px auto"
                     }}>
-                        <Spinner animation="border" style={{ color: azulBase, width: 36, height: 36 }} />
+                        <Spinner animation="border" style={{color: azulBase, width: 36, height: 36}}/>
                         <div style={{
                             color: textoPrincipal,
                             marginTop: 8,
                             fontSize: 15
-                        }}>Cargando resultados…</div>
+                        }}>Cargando resultados…
+                        </div>
                     </div>
                 )}
 
@@ -184,8 +186,13 @@ export default function GrafoIndex() {
                                     </span>
                                 </div>
                             }
-                            <div style={{ border: "1px solid #e5eaff", borderRadius: 10, padding: 12, background: "#fafcff" }}>
-                                <GrafoD3 nodes={nodos} links={links} />
+                            <div style={{
+                                border: "1px solid #e5eaff",
+                                borderRadius: 10,
+                                padding: 12,
+                                background: "#fafcff"
+                            }}>
+                                <GrafoD3 nodes={nodos} links={links}/>
                             </div>
                         </Card.Body>
                     </Card>
