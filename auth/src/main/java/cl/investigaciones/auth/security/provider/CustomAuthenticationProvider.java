@@ -102,13 +102,13 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             usuarioBD.setApellidoPaterno(usuarioAD.getApellidoPaternoFun());
             usuarioBD.setApellidoMaterno(usuarioAD.getApellidoMaternoFun());
             usuarioBD.setNombrePerfil(usuarioAD.getNombrePerfil());
+            usuarioBD.setSiglasUnidad(usuarioAD.getSiglasUnidad());
             usuarioBD.setEmail(usuarioAD.getEmailFun());
             usuarioBD.setAntiguedad(usuarioAD.getAntiguedad());
-            usuarioBD.setRoles(optionalUsuario.get().getRoles());
+            usuarioBD.setRoles(rolesAsignados);
             usuarioBD.setIdFun(usuarioAD.getIdFun());
             usuarioBD.setSiglasCargo(usuarioAD.getSiglasCargo());
             usuarioBD.setIdUnidad(usuarioAD.getIdUnidad());
-            usuarioBD.setNombrePerfil(usuarioAD.getNombrePerfil());
             usuarioBD.setNombreUnidad(usuarioAD.getNombreUnidad());
         } else {
             usuarioBD = new Usuario();

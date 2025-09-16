@@ -74,12 +74,12 @@ public class MemoRevisadoController {
                 if (rol == null) {
                     rol = mapPerfilToRol(principal.getNombrePerfil(), principal.getRoles());
                 }
-                memoRevisado.setRolRevisor(rol != null ? rol : RolRevisor.PLANA);
+                memoRevisado.setRolRevisor(rol != null ? rol : RolRevisor.PMAYOR);
             } else {
                 memoRevisado.setNombreRevisor(req.getNombreRevisor());
                 memoRevisado.setUnidadRevisor(req.getUnidadRevisor());
                 memoRevisado.setUsuarioRevisor(req.getUsuarioRevisor());
-                memoRevisado.setRolRevisor(req.getRolRevisor() != null ? req.getRolRevisor() : RolRevisor.PLANA);
+                memoRevisado.setRolRevisor(req.getRolRevisor() != null ? req.getRolRevisor() : RolRevisor.PMAYOR);
             }
 
             memoRevisado.setCreatedAt(req.getCreatedAt() != null ? req.getCreatedAt() : OffsetDateTime.now(ZoneOffset.UTC));
@@ -122,7 +122,7 @@ public class MemoRevisadoController {
             switch (mr.getRolRevisor()) {
                 case JEFE -> dto.setJefe(toDetalleDTO(mr));
                 case CONTRALOR -> dto.setContralor(toDetalleDTO(mr));
-                case PLANA, PM -> dto.setPlana(toDetalleDTO(mr));
+                case PMAYOR, PM -> dto.setPlana(toDetalleDTO(mr));
             }
         }
         // calcular estadoGlobal
@@ -160,10 +160,10 @@ public class MemoRevisadoController {
                 }
             }
         }
-        if (nombrePerfil == null) return RolRevisor.PLANA;
+        if (nombrePerfil == null) return RolRevisor.PMAYOR;
         String np = nombrePerfil.trim().toUpperCase(Locale.ROOT);
         if (np.equals("JEFE")) return RolRevisor.JEFE;
         // cualquier otro caso es PLANA
-        return RolRevisor.PLANA;
+        return RolRevisor.PMAYOR;
     }
 }
