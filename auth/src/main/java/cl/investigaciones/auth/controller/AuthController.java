@@ -1,10 +1,6 @@
 package cl.investigaciones.auth.controller;
 
-import cl.investigaciones.auth.dto.AuthRequest;
-import cl.investigaciones.auth.dto.AuthResponse;
-import cl.investigaciones.auth.dto.RefreshRequest;
-import cl.investigaciones.auth.dto.TokenActiveDirectoryDTO;
-import cl.investigaciones.auth.dto.TokenActiveDirectoryResultDTO;
+import cl.investigaciones.auth.dto.*;
 import cl.investigaciones.auth.model.Usuario;
 import cl.investigaciones.auth.repository.UsuarioRepository;
 import cl.investigaciones.auth.security.details.UsuarioDetails;
@@ -75,6 +71,8 @@ public class AuthController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
             @RequestBody(required = false) RefreshRequest refreshRequest
     ) {
+        System.out.println("[AUTH] Entrando a refresh");
+        System.out.println("[AUTH] Authorization: " + authorization);
         String refreshToken = null;
         if (authorization != null && authorization.toLowerCase().startsWith("bearer ")) {
             refreshToken = authorization.substring(7).trim();

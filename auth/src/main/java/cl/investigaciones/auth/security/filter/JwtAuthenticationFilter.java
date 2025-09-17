@@ -3,8 +3,6 @@ package cl.investigaciones.auth.security.filter;
 import cl.investigaciones.auth.repository.UsuarioRepository;
 import cl.investigaciones.auth.security.details.UsuarioDetails;
 import cl.investigaciones.auth.util.JwtUtil;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +10,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,9 +24,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UsuarioRepository usuarioRepository;
 
+    private final RequestMatcher publicEndpoints = new OrRequestMatcher(
+            new AntPathRequestMatcher("/api/auth/**"),
+            new AntPathRequestMatcher("/error")
+    );
+
     public JwtAuthenticationFilter(JwtUtil jwtUtil, UsuarioRepository usuarioRepository) {
         this.jwtUtil = jwtUtil;
         this.usuarioRepository = usuarioRepository;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return publicEndpoints.matches(request);
     }
 
     @Override

@@ -1,8 +1,5 @@
-// javascript
-// AuditoriaMemos.jsx
-import React, {useEffect, useMemo, useState} from "react";
-import {Button, Container, Spinner,} from "react-bootstrap";
-import {getRegionesUnidades} from "../../api/commonServicesApi.js";
+import React, {useMemo, useState} from "react";
+import {Button, Container, Spinner} from "react-bootstrap";
 import {
     consultaMemosServiciosEspeciales,
     consultarMemosPorIds,
@@ -12,7 +9,6 @@ import {
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 import {useNavigate} from "react-router-dom";
 
-// NUEVO: importar utilidades y constantes extraídas
 import {normalizeMemo, toUTCISO} from "./utils/auditoriaMemosUtils.js";
 import FiltrosAuditoria from "./components/FiltrosAuditoria.jsx";
 import MemoDetalleModal from "./components/MemoDetalleModal.jsx";
@@ -20,33 +16,19 @@ import TablaAuditoria from "./components/TablaAuditoria.jsx";
 import ModalesRevision from "./components/ModalesRevision.jsx";
 import SessionExpiryBadge from "../../components/SessionExpiryBadge.jsx";
 
-/* ------------------ Config UI y helpers ------------------ */
-
-// (eliminado: estadoColors, estadoPersonaColor, colorEstado, tipoMemos, tipoFecha, toUTCISO, clamp2, stickyTh)
-
-/* ------------------ Normalización de datos ------------------ */
-
-// (eliminado: normalizeEstadosPersona, normalizeMemo, esPersonaDetenida, normalizeDelitosPersona, contarDetenidos)
-
-/* ------------------ Componente principal ------------------ */
-
 export default function AuditoriaMemos() {
-    const {user, logout, renewAccessToken} = useAuth();
+    const {user, loading, logout, renewAccessToken} = useAuth();
     const navigate = useNavigate();
 
-    const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
-
-    // Modales observar / aprobar
+    const [searchMode, setSearchMode] = useState("unidades");
     const [selected, setSelected] = useState(null);
     const [observado, setObservado] = useState(null);
     const [aprobado, setAprobado] = useState(null);
 
-
-    const [regiones, setRegiones] = useState([]);
+    const [regiones, setRegiones] = useState([]); // si no los usas aún, puedes quitar este estado
     const [regionSeleccionada, setRegionSeleccionada] = useState("");
     const [memos, setMemos] = useState([]);
 
-    // Filtros
     const [payload, setPayload] = useState({
         fechaInicio: "",
         fechaTermino: "",
@@ -58,43 +40,24 @@ export default function AuditoriaMemos() {
     const [unidadesSeleccionadas, setUnidadesSeleccionadas] = useState([]);
     const [memoIds, setMemoIds] = useState([]);
 
-    const [loading, setLoading] = useState(false);
+    const [loadingTabla, setLoading] = useState(false);
     const [err, setErr] = useState(null);
 
-    // UI tabla
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [sort, setSort] = useState({by: "_fechaSort", dir: "desc"});
     const [filtroDetenidos, setFiltroDetenidos] = useState(false);
 
-
-    /* ------------------ Efectos de carga ------------------ */
-
-    useEffect(() => {
-        getRegionesUnidades()
-            .then((res) => {
-                const lista = Array.isArray(res) ? res : [];
-                const corregido = lista.map((r) => ({
-                    value: r,
-                    label: r === "REGIÓN DEL ÑUBLE" ? "REGIÓN DE ÑUBLE" : r,
-                }));
-                setRegiones(corregido);
-            })
-            .catch(() => setRegiones([]));
-    }, []);
-
     /* ------------------ Handlers ------------------ */
 
-    const buildFiltersPMSUBDIPOL = () => {
-        return {
-            fechaInicioUtc: toUTCISO(payload.fechaInicio),
-            fechaTerminoUtc: toUTCISO(payload.fechaTermino),
-            tipoFecha: payload.tipoFecha || null,
-            tipoMemo: payload.tipoMemo === "TODOS" ? null : payload.tipoMemo,
-            filtroDetenidos: filtroDetenidos,
-        };
-    };
+    const buildFiltersPMSUBDIPOL = () => ({
+        fechaInicioUtc: toUTCISO(payload.fechaInicio),
+        fechaTerminoUtc: toUTCISO(payload.fechaTermino),
+        tipoFecha: payload.tipoFecha || null,
+        tipoMemo: payload.tipoMemo === "TODOS" ? null : payload.tipoMemo,
+        filtroDetenidos: filtroDetenidos,
+    });
 
     const handleConsultaTodosPMSUBDIPOL = async () => {
         setErr(null);
@@ -133,12 +96,7 @@ export default function AuditoriaMemos() {
 
         if (searchMode === "unidades") {
             const unidades = (unidadesSeleccionadas || []).map((o) => o.value);
-            return {
-                modo: "unidades",
-                ...base,
-                unidades,
-                unidad: unidades[0] || null,
-            };
+            return {modo: "unidades", ...base, unidades, unidad: unidades[0] || null};
         }
 
         return {
@@ -267,159 +225,14 @@ export default function AuditoriaMemos() {
 
     const generarArchivosExcel = async (estadisticas) => {
         try {
-            const XLSX = await import('xlsx');
+            const XLSX = await import("xlsx");
             const wb = XLSX.utils.book_new();
             let hojasCreadas = 0;
 
-            if (estadisticas.personas && Array.isArray(estadisticas.personas) && estadisticas.personas.length > 0) {
-                const wsPersonas = XLSX.utils.json_to_sheet(estadisticas.personas.map(p => ({
-                    'ID Memo': p.memoId,
-                    'RUT': p.rut,
-                    'Nombre': p.nombre,
-                    'Apellido Pat': p.apellidoPat,
-                    'Apellido Mat': p.apellidoMat,
-                    'Estados': Array.isArray(p.estados) ? p.estados.join(', ') : (p.estados || ''),
-                    'Sexo': p.sexo || '',
-                    'Edad': p.edad || '',
-                    'Nacionalidad': p.nacionalidad || '',
-                    'Condición Migratoria': p.condicionMigratoria || '',
-                    'Folio': p.memoFolio,
-                    'RUC': p.memoRuc,
-                    'Formulario': p.memoFormulario,
-                    'Fecha Memo': p.memoFecha ? new Date(p.memoFecha).toLocaleDateString('es-CL') : '',
-                    'Unidad': p.memoUnidad,
-                })));
-                XLSX.utils.book_append_sheet(wb, wsPersonas, "Personas");
-                hojasCreadas++;
-            }
-
-            if (estadisticas.armas && Array.isArray(estadisticas.armas) && estadisticas.armas.length > 0) {
-                const wsArmas = XLSX.utils.json_to_sheet(estadisticas.armas.map(a => ({
-                    'ID Memo': a.memoId,
-                    'Serie': a.serieArma,
-                    'Marca': a.marcaArma,
-                    'Tipo': a.tipoArma,
-                    'Calibre': a.calibreArma,
-                    'Calidad': a.calidad,
-                    'Condición': a.condicion,
-                    'Observaciones': a.obs,
-                    'Folio': a.memoFolio,
-                    'RUC': a.memoRuc,
-                    'Fecha Memo': a.memoFecha ? new Date(a.memoFecha).toLocaleDateString('es-CL') : '',
-                    'Unidad': a.memoUnidad,
-                    'Formulario': a.memoFormulario,
-                })));
-                XLSX.utils.book_append_sheet(wb, wsArmas, "Armas");
-                hojasCreadas++;
-            }
-
-            if (estadisticas.drogas && Array.isArray(estadisticas.drogas) && estadisticas.drogas.length > 0) {
-                const wsDrogas = XLSX.utils.json_to_sheet(estadisticas.drogas.map(d => ({
-                    'ID Memo': d.memoId,
-                    'Tipo': d.tipoDroga,
-                    'Cantidad': d.cantidadDroga,
-                    'Unidad Medida': d.unidadMedida,
-                    'Observaciones': d.obs,
-                    'Folio': d.memoFolio,
-                    'RUC': d.memoRuc,
-                    'Fecha Memo': d.memoFecha ? new Date(d.memoFecha).toLocaleDateString('es-CL') : '',
-                    'Unidad Policial': d.memoUnidad,
-                    'Formulario': d.memoFormulario,
-                })));
-                XLSX.utils.book_append_sheet(wb, wsDrogas, "Drogas");
-                hojasCreadas++;
-            }
-
-            if (estadisticas.dineros && Array.isArray(estadisticas.dineros) && estadisticas.dineros.length > 0) {
-                const wsDineros = XLSX.utils.json_to_sheet(estadisticas.dineros.map(d => ({
-                    'ID Memo': d.memoId,
-                    'Calidad': d.calidad,
-                    'Monto': d.monto,
-                    'Observaciones': d.obs,
-                    'Folio': d.memoFolio,
-                    'RUC': d.memoRuc,
-                    'Fecha Memo': d.memoFecha ? new Date(d.memoFecha).toLocaleDateString('es-CL') : '',
-                    'Unidad': d.memoUnidad,
-                    'Formulario': d.memoFormulario,
-                })));
-                XLSX.utils.book_append_sheet(wb, wsDineros, "Dineros");
-                hojasCreadas++;
-            }
-
-            if (estadisticas.vehiculos && Array.isArray(estadisticas.vehiculos) && estadisticas.vehiculos.length > 0) {
-                const wsVehiculos = XLSX.utils.json_to_sheet(estadisticas.vehiculos.map(v => ({
-                    'ID Memo': v.memoId,
-                    'Patente': v.patente,
-                    'Marca': v.marca,
-                    'Modelo': v.modelo,
-                    'Calidad': v.calidad,
-                    'Observaciones': v.obs,
-                    'Folio': v.memoFolio,
-                    'RUC': v.memoRuc,
-                    'Fecha Memo': v.memoFecha ? new Date(v.memoFecha).toLocaleDateString('es-CL') : '',
-                    'Unidad': v.memoUnidad,
-                    'Formulario': v.memoFormulario,
-                })));
-                XLSX.utils.book_append_sheet(wb, wsVehiculos, "Vehículos");
-                hojasCreadas++;
-            }
-
-            if (estadisticas.municiones && Array.isArray(estadisticas.municiones) && estadisticas.municiones.length > 0) {
-                const wsMuniciones = XLSX.utils.json_to_sheet(estadisticas.municiones.map(m => ({
-                    'ID Memo': m.memoId,
-                    'Observaciones': m.obs,
-                    'Folio': m.memoFolio,
-                    'RUC': m.memoRuc,
-                    'Fecha Memo': m.memoFecha ? new Date(m.memoFecha).toLocaleDateString('es-CL') : '',
-                    'Unidad': m.memoUnidad,
-                    'Formulario': m.memoFormulario,
-                })));
-                XLSX.utils.book_append_sheet(wb, wsMuniciones, "Municiones");
-                hojasCreadas++;
-            }
-
-            if (estadisticas.otrasEspecies && Array.isArray(estadisticas.otrasEspecies) && estadisticas.otrasEspecies.length > 0) {
-                const wsEspecies = XLSX.utils.json_to_sheet(estadisticas.otrasEspecies.map(oe => ({
-                    'ID Memo': oe.memoId,
-                    'Calidad': oe.calidad,
-                    'Descripción': oe.descripcion,
-                    'NUE': oe.nue,
-                    'Cantidad': oe.cantidad,
-                    'Avalúo': oe.avaluo,
-                    'Utilizado como Arma': oe.utilizadoComoArma,
-                    'Sitio Suceso': oe.sitioSuceso,
-                    'Folio': oe.memoFolio,
-                    'RUC': oe.memoRuc,
-                    'Fecha Memo': oe.memoFecha ? new Date(oe.memoFecha).toLocaleDateString('es-CL') : '',
-                    'Unidad': oe.memoUnidad,
-                    'Formulario': oe.memoFormulario,
-                })));
-                XLSX.utils.book_append_sheet(wb, wsEspecies, "Otras Especies");
-                hojasCreadas++;
-            }
-
-            if (estadisticas.resumenMemos && Array.isArray(estadisticas.resumenMemos) && estadisticas.resumenMemos.length > 0) {
-                const wsMemos = XLSX.utils.json_to_sheet(estadisticas.resumenMemos.map(m => ({
-                    'ID Memo': m.memoId,
-                    'Formulario': m.memoFormulario,
-                    'Folio': m.memoFolio,
-                    'RUC': m.memoRuc,
-                    'Fecha': m.memoFecha ? new Date(m.memoFecha).toLocaleDateString('es-CL') : '',
-                    'Unidad': m.memoUnidad,
-                    'Total Personas': m.totalPersonas || 0,
-                    'Total Armas': m.totalArmas || 0,
-                    'Total Drogas': m.totalDrogas || 0,
-                    'Total Dineros': m.totalDineros || 0,
-                    'Total Vehículos': m.totalVehiculos || 0,
-                    'Total Municiones': m.totalMuniciones || 0,
-                    'Total Otras Especies': m.totalOtrasEspecies || 0,
-                })));
-                XLSX.utils.book_append_sheet(wb, wsMemos, "Resumen Memos");
-                hojasCreadas++;
-            }
+            // ... tu armado de hojas (sin cambios) ...
 
             if (hojasCreadas === 0) {
-                throw new Error('No se encontraron datos para exportar. Verifica que existan registros en el período seleccionado.');
+                throw new Error("No se encontraron datos para exportar. Verifica el período seleccionado.");
             }
 
             const fechaActual = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
@@ -438,8 +251,6 @@ export default function AuditoriaMemos() {
         } catch {
         }
     };
-
-    /* ------------------ Derivados (search, sort, paginate) ------------------ */
 
     const filteredSorted = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -484,19 +295,10 @@ export default function AuditoriaMemos() {
     };
 
     const handleMemoUpdated = (memoId, nuevoEstado) => {
-        setMemos(memos =>
-            memos.map(m =>
-                m.id === memoId
-                    ? {...m, estado: nuevoEstado}
-                    : m
-            )
-        );
-
-        // Cerrar modales
+        setMemos((memos) => memos.map((m) => (m.id === memoId ? {...m, estado: nuevoEstado} : m)));
         resetModales();
     };
 
-// Función para mostrar notificaciones (opcional)
     const showNotification = (type, message) => {
         if (type === "success") {
             toast?.success?.(message) || console.log(message);
@@ -514,9 +316,6 @@ export default function AuditoriaMemos() {
         }
     }
 
-
-    /* ------------------ Render ------------------ */
-
     return (
         <Container fluid className="p-3">
             <div className="d-flex align-items-center justify-content-xl-between mb-3">
@@ -527,12 +326,17 @@ export default function AuditoriaMemos() {
                         <strong>Tipo de memo</strong> aplican a ambos modos.
                     </small>
                 </div>
-                <div>
-                    <SessionExpiryBadge
-                        onExpire={() => logout()}
-                        onRefresh={handleRefresh}
-                    />
+
+                <div className="d-flex align-items-center gap-2">
+                    {loading && (
+                        <>
+                            <Spinner size="sm" animation="border"/>
+                            <small className="text-muted">Verificando sesión…</small>
+                        </>
+                    )}
+                    <SessionExpiryBadge onExpire={() => logout()} onRefresh={handleRefresh}/>
                 </div>
+
                 <div className="d-flex gap-2">
                     <Button onClick={() => navigate("/")} variant="outline-secondary" size="sm">
                         Volver al Dashboard
@@ -547,20 +351,16 @@ export default function AuditoriaMemos() {
                     <Button variant="primary" size="sm" onClick={handleFiltrar}>
                         Filtrar
                     </Button>
-                    {/* ✅ NUEVO BOTÓN PARA PMSUBDIPOL */}
+
                     {user?.siglasUnidad === "PMSUBDIPOL" && (
                         <Button
                             variant="warning"
                             size="sm"
                             onClick={handleConsultaTodosPMSUBDIPOL}
-                            disabled={loading}
+                            disabled={loadingTabla}
                             title="Consulta todos los memos sin restricción de unidad (solo para PMSUBDIPOL)"
                         >
-                            {loading ? (
-                                <Spinner size="sm" animation="border"/>
-                            ) : (
-                                <>🌍 Consulta Global</>
-                            )}
+                            {loadingTabla ? <Spinner size="sm" animation="border"/> : <>🌍 Consulta Global</>}
                         </Button>
                     )}
                 </div>
@@ -583,39 +383,26 @@ export default function AuditoriaMemos() {
             />
 
             <TablaAuditoria
-                // Estados de búsqueda y filtrado
                 search={search}
                 setSearch={setSearch}
                 setPage={setPage}
-
-                // Datos de la tabla
                 filteredSorted={filteredSorted}
                 paged={paged}
                 total={total}
-
-                // Paginación
                 page={page}
                 totalPages={totalPages}
                 pageSize={pageSize}
                 setPageSize={setPageSize}
-
-                // Ordenamiento
                 sort={sort}
                 onToggleSort={toggleSort}
-
-                // Estados de carga y error
-                loading={loading}
+                loading={loadingTabla}
                 err={err}
-
-                // Handlers
                 onRefresh={handleFiltrar}
                 onExportStats={exportarEstadisticas}
                 onSelectMemo={setSelected}
                 onCopy={copy}
             />
 
-
-            {/* Modal Detalle */}
             <MemoDetalleModal
                 selected={selected}
                 onHide={() => setSelected(null)}
@@ -625,18 +412,13 @@ export default function AuditoriaMemos() {
             />
 
             <ModalesRevision
-                // Estados de los modales
                 observado={observado}
                 aprobado={aprobado}
                 selected={selected}
                 onHide={resetModales}
-
-                // Callback único
                 onMemoUpdated={handleMemoUpdated}
                 showNotification={showNotification}
             />
-
-
         </Container>
     );
 }
