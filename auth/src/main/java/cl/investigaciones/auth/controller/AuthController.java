@@ -2,11 +2,14 @@ package cl.investigaciones.auth.controller;
 
 import cl.investigaciones.auth.dto.AuthRequest;
 import cl.investigaciones.auth.dto.AuthResponse;
+import cl.investigaciones.auth.dto.RefreshRequest;
 import cl.investigaciones.auth.dto.TokenActiveDirectoryDTO;
 import cl.investigaciones.auth.dto.TokenActiveDirectoryResultDTO;
+import cl.investigaciones.auth.model.Usuario;
 import cl.investigaciones.auth.repository.UsuarioRepository;
 import cl.investigaciones.auth.security.details.UsuarioDetails;
 import cl.investigaciones.auth.util.JwtUtil;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,8 +28,8 @@ import java.util.Map;
 public class AuthController {
 
     private final UsuarioRepository usuarioRepository;
-    private AuthenticationManager authenticationManager;
-    private JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UsuarioRepository usuarioRepository) {
         this.authenticationManager = authenticationManager;
@@ -44,7 +48,7 @@ public class AuthController {
 
         UsuarioDetails usuarioDetails = (UsuarioDetails) auth.getPrincipal();
 
-        String token = jwtUtil.generateToken(
+        String access = jwtUtil.generateAccessToken(
                 usuarioDetails.getUsername(),
                 usuarioDetails.getRoles(),
                 usuarioDetails.getNombreCompleto(),
@@ -56,11 +60,63 @@ public class AuthController {
                 usuarioDetails.getPermisos(),
                 usuarioDetails.getNombrePerfil(),
                 usuarioDetails.getNombreUnidad()
-
         );
+        String refresh = jwtUtil.generateRefreshToken(usuarioDetails.getUsername());
 
         SecurityContextHolder.getContext().setAuthentication(auth);
-        return ResponseEntity.ok(new AuthResponse(token));
+        return ResponseEntity.ok(new AuthResponse(access, refresh, jwtUtil.getExpEpochSeconds(access)));
+    }
+
+    /**
+     * Renovación de access token usando refresh JWT (sin cookies)
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+            @RequestBody(required = false) RefreshRequest refreshRequest
+    ) {
+        String refreshToken = null;
+        if (authorization != null && authorization.toLowerCase().startsWith("bearer ")) {
+            refreshToken = authorization.substring(7).trim();
+        }
+        if ((refreshToken == null || refreshToken.isEmpty()) && refreshRequest != null) {
+            refreshToken = refreshRequest.getRefreshToken();
+        }
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Refresh token requerido");
+        }
+
+        try {
+            if (!jwtUtil.isRefresh(refreshToken) || jwtUtil.isExpired(refreshToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token inválido o expirado");
+            }
+            String username = jwtUtil.getUsername(refreshToken);
+
+            Optional<Usuario> optUser = usuarioRepository.findByUsernameIgnoreCase(username);
+            if (!optUser.isPresent()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no encontrado");
+            }
+            UsuarioDetails usuarioDetails = new UsuarioDetails(optUser.get());
+
+            String access = jwtUtil.generateAccessToken(
+                    usuarioDetails.getUsername(),
+                    usuarioDetails.getRoles(),
+                    usuarioDetails.getNombreCompleto(),
+                    usuarioDetails.getNombreCargo(),
+                    usuarioDetails.getSiglasUnidad(),
+                    usuarioDetails.getIdUnidad(),
+                    usuarioDetails.isAdmin(),
+                    usuarioDetails.getId(),
+                    usuarioDetails.getPermisos(),
+                    usuarioDetails.getNombrePerfil(),
+                    usuarioDetails.getNombreUnidad()
+            );
+
+            // No rotamos refresh por defecto (se puede ajustar a rotación si se requiere)
+            return ResponseEntity.ok(new AuthResponse(access, refreshToken, jwtUtil.getExpEpochSeconds(access)));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido");
+        }
     }
 
     /**

@@ -101,7 +101,7 @@ export default function ModalesRevision({
             console.log("Revisión (observado):", revision); // Debug
 
             // Usar la API existente
-            const token = localStorage.getItem("token");
+            const token = user?.token;
             await guardarRevisionMemo(revision, token);
 
             // Mostrar notificación de éxito
@@ -154,7 +154,7 @@ export default function ModalesRevision({
             console.log("Revisión (aprobado):", revision); // Debug
 
             // Usar la API existente
-            const token = localStorage.getItem("token");
+            const token = user?.token;
             await guardarRevisionMemo(revision, token);
 
             // Mostrar notificación de éxito

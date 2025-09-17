@@ -94,12 +94,12 @@ export default function FiltrosAuditoria({
                             onChange={(e) => setPayload((p) => ({...p, tipoMemo: e.target.value}))}
                         >
                             {tipoMemos
-                                .filter((t) => {
+                                /*.filter((t) => {
                                     if (user?.siglasUnidad !== "PMSUBDIPOL" && t.value === "TODOS") {
                                         return false;
                                     }
                                     return true;
-                                })
+                                })*/
                                 .map((t) => (
                                     <option key={t.value} value={t.value}>
                                         {t.value}

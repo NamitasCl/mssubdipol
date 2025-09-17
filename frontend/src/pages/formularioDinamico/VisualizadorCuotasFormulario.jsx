@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Table, Button, ProgressBar, Alert } from "react-bootstrap";
 import axios from "axios";
 import DelegarCuotaFormulario from "./DelegarCuotaFormulario";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 export default function VisualizadorCuotasFormulario({ formularioId }) {
+    const { user } = useAuth();
     const [cuotas, setCuotas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -14,7 +16,7 @@ export default function VisualizadorCuotasFormulario({ formularioId }) {
         try {
             const { data } = await axios.get(
                 `${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/formulario/${formularioId}`,
-                { headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } }
+                { headers: { Authorization: `Bearer ${user?.token}` } }
             );
             setCuotas(data);
         } catch (e) {

@@ -4,6 +4,7 @@ import cl.investigaciones.auth.repository.UsuarioRepository;
 import cl.investigaciones.auth.security.details.UsuarioDetails;
 import cl.investigaciones.auth.util.JwtUtil;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,8 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwtToken = authHeader.substring(7);
 
         try {
-            Claims claims = jwtUtil.parseToken(jwtToken);
-            String username = claims.getSubject();
+            if (!jwtUtil.isAccess(jwtToken) || jwtUtil.isExpired(jwtToken)) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
+                return;
+            }
+            String username = jwtUtil.getUsername(jwtToken);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 var usuario = usuarioRepository.findByUsernameIgnoreCase(username);

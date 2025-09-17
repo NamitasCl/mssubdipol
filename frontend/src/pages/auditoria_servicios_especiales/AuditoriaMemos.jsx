@@ -18,6 +18,7 @@ import FiltrosAuditoria from "./components/FiltrosAuditoria.jsx";
 import MemoDetalleModal from "./components/MemoDetalleModal.jsx";
 import TablaAuditoria from "./components/TablaAuditoria.jsx";
 import ModalesRevision from "./components/ModalesRevision.jsx";
+import SessionExpiryBadge from "../../components/SessionExpiryBadge.jsx";
 
 /* ------------------ Config UI y helpers ------------------ */
 
@@ -30,7 +31,7 @@ import ModalesRevision from "./components/ModalesRevision.jsx";
 /* ------------------ Componente principal ------------------ */
 
 export default function AuditoriaMemos() {
-    const {user} = useAuth();
+    const {user, logout, renewAccessToken} = useAuth();
     const navigate = useNavigate();
 
     const [searchMode, setSearchMode] = useState("unidades"); // "unidades" | "folio"
@@ -504,20 +505,33 @@ export default function AuditoriaMemos() {
         }
     };
 
+    async function handleRefresh() {
+        try {
+            await renewAccessToken();
+        } catch (e) {
+            console.error("No se pudo renovar el token", e);
+            logout();
+        }
+    }
+
 
     /* ------------------ Render ------------------ */
 
-    console.log(user)
-
     return (
         <Container fluid className="p-3">
-            <div className="d-flex align-items-center justify-content-between mb-3">
+            <div className="d-flex align-items-center justify-content-xl-between mb-3">
                 <div>
-                    <h4 className="mb-0">📋 Auditoría de Memos</h4>
+                    <h4 className="mb-0">📋 Auditoría de Registros RAC</h4>
                     <small className="text-muted">
                         Busca por <strong>Unidades</strong> o por <strong>Folio</strong>. Las fechas y el{" "}
                         <strong>Tipo de memo</strong> aplican a ambos modos.
                     </small>
+                </div>
+                <div>
+                    <SessionExpiryBadge
+                        onExpire={() => logout()}
+                        onRefresh={handleRefresh}
+                    />
                 </div>
                 <div className="d-flex gap-2">
                     <Button onClick={() => navigate("/")} variant="outline-secondary" size="sm">

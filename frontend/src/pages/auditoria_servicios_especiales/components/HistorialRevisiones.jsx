@@ -31,7 +31,7 @@ const formatFecha = (iso) => {
 
 export default function HistorialRevisiones({memoId}) {
     const {user} = useAuth();
-    const token = user?.token || localStorage.getItem("token");
+    const token = user?.token;
 
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState("");
