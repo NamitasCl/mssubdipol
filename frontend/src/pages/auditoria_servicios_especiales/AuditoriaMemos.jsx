@@ -15,8 +15,12 @@ import MemoDetalleModal from "./components/MemoDetalleModal.jsx";
 import TablaAuditoria from "./components/TablaAuditoria.jsx";
 import ModalesRevision from "./components/ModalesRevision.jsx";
 import SessionExpiryBadge from "../../components/SessionExpiryBadge.jsx";
+import toast from "bootstrap/js/src/toast.js";
 
 export default function AuditoriaMemos() {
+
+    console.log("Modo: ", import.meta.env.VITE_MODE_ACTUAL)
+
     const {user, loading, logout, renewAccessToken} = useAuth();
     const navigate = useNavigate();
 

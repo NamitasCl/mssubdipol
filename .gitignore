@@ -82,3 +82,5 @@ coverage/
 *.spec.js
 *.spec.ts
 clave.key
+
+rac_backups/

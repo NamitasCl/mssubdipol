@@ -3,6 +3,7 @@ package cl.investigaciones.nodos.domain.entidadesconsulta;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaCalidadPersona;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaDelito;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaNacionalidad;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,7 +17,7 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(exclude = {"delitos", "estados", "memo"})
 @Immutable
-
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class FichaPersona {
 
     @Id
@@ -40,6 +41,7 @@ public class FichaPersona {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "\"nacionalidadP_id\"")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private ListaNacionalidad nacionalidad;
 
     @Column(name = "\"nombreViaP\"")
@@ -80,6 +82,7 @@ public class FichaPersona {
 
     @ManyToOne
     @JoinColumn(name = "memos_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private FichaMemo memo;
 
     // >>> relación muchos-a-muchos con delitos
@@ -91,6 +94,7 @@ public class FichaPersona {
             joinColumns = @JoinColumn(name = "\"persona_id\"", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "delitos_id", referencedColumnName = "id")
     )
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private java.util.Set<ListaDelito> delitos = new java.util.HashSet<>();
 
     // >>> relación muchos-a-muchos con estado
@@ -102,6 +106,7 @@ public class FichaPersona {
             joinColumns = @JoinColumn(name = "\"persona_id\"", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "calidadpersona_id", referencedColumnName = "id")
     )
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Set<ListaCalidadPersona> estados = new java.util.HashSet<>();
 
 }
