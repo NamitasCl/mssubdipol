@@ -10,6 +10,7 @@ public class FichaMemoDTO {
     private Long id;
     private String formulario;
     private OffsetDateTime fecha;
+    private OffsetDateTime createdAt;
     private String folioBrain;
     private String ruc;
     private String modusDescripcion;
@@ -24,5 +25,6 @@ public class FichaMemoDTO {
     private List<FichaMunicionDTO> fichaMuniciones;
     private List<FichaVehiculoDTO> fichaVehiculos;
     private List<FichaOtrasEspeciesDTO> fichaOtrasEspecies;
+    private List<FichaSitioSucesoDTO> fichaSitioSucesos;
 
 }

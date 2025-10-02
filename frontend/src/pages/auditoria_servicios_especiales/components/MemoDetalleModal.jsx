@@ -1,7 +1,7 @@
 // javascript
 // frontend/src/pages/auditoria_servicios_especiales/components/MemoDetalleModal.jsx
 import React from "react";
-import {Badge, Button, Card, Col, ListGroup, Modal, Row, Tab, Tabs,} from "react-bootstrap";
+import {Alert, Badge, Button, Card, Col, ListGroup, Modal, Row, Tab, Tabs,} from "react-bootstrap";
 import {colorEstado, esPersonaDetenida, estadoColors} from "../utils/auditoriaMemosUtils.js";
 import HistorialRevisiones from "./HistorialRevisiones.jsx";
 
@@ -10,9 +10,14 @@ export default function MemoDetalleModal({
                                              onHide,
                                              onAprobar,
                                              onObservar,
+                                             onJenadep,
                                              onCopy,
+                                             user
                                          }) {
     if (!selected) return null;
+
+    const rolesPermitidosJenadep = ["ROLE_JENADEP", "ROLE_JEFE", "ROLE_ADMINISTRADOR"];
+    const rolesPermitidosAuditoria = ["ROLE_REVISOR", "ROLE_JEFE", "ROLE_ADMINISTRADOR"]
 
     return (
         <Modal show={!!selected} onHide={onHide} fullscreen="lg-down" fullscreen>
@@ -413,7 +418,7 @@ export default function MemoDetalleModal({
                     {/* Nueva pestaña: Historial de Revisiones */}
                     <Tab eventKey="historial" title="Historial de Revisiones">
                         <div className="mt-2">
-                            <HistorialRevisiones memoId={selected.id} />
+                            <HistorialRevisiones memoId={selected.id}/>
                         </div>
                     </Tab>
                 </Tabs>
@@ -421,12 +426,29 @@ export default function MemoDetalleModal({
 
             <Modal.Footer>
                 <div className="me-auto text-muted small">ID: {selected.id}</div>
-                <Button variant="success" size="sm" onClick={() => onAprobar?.(selected)}>
-                    Aprobar
-                </Button>
-                <Button variant="warning" size="sm" onClick={() => onObservar?.(selected)}>
-                    Observar
-                </Button>
+                {
+                    rolesPermitidosJenadep.some(valor => user.roles.includes(valor)) && (
+                        <Button variant="danger" size="sm" onClick={() => onJenadep?.(selected)}>
+                            Revisión JENADEP
+                        </Button>
+                    )
+                }
+                {
+                    rolesPermitidosAuditoria.some(valor => user.roles.includes(valor)) && (
+                        <>
+                            <Button variant="success" size="sm" onClick={() => onAprobar?.(selected)}>
+                                Aprobar
+                            </Button>
+                            <Button variant="warning" size="sm" onClick={() => onObservar?.(selected)}>
+                                Observar
+                            </Button>
+                        </>
+                    )
+                }
+                <Alert variant="info" className="mt-2">
+                    En caso de no ver botones de acción y ser Jefe o pertenecer a una Plana Mayor, Jenadep, contacte con
+                    el administrador del sistema.
+                </Alert>
             </Modal.Footer>
         </Modal>
     );

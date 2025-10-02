@@ -9,6 +9,7 @@ import cl.investigaciones.auth.model.Usuario;
 import cl.investigaciones.auth.repository.RolRepository;
 import cl.investigaciones.auth.repository.UsuarioRepository;
 import cl.investigaciones.auth.security.details.UsuarioDetails;
+import jakarta.transaction.Transactional;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,7 +19,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
@@ -33,105 +37,79 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
+    @Transactional
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        System.out.println("Entrando a authenticate localhost");
+
         Rol rolJefe = rolRepository.findByNombre("ROLE_JEFE")
                 .orElseThrow(() -> new RuntimeException("No se encontró el rol ROL_JEFE en la base de datos"));
-
         Rol rolFuncionario = rolRepository.findByNombre("ROLE_FUNCIONARIO")
                 .orElseThrow(() -> new RuntimeException("No se encontró el rol ROL_FUNCIONARIO en la base de datos"));
-
         Rol rolRevisor = rolRepository.findByNombre("ROLE_REVISOR")
                 .orElseThrow(() -> new RuntimeException("No se encontró el rol ROL_REVISOR en la base de datos"));
 
         String username = authentication.getName();
-        String password = authentication.getCredentials().toString();
-
+        String password = String.valueOf(authentication.getCredentials());
 
         ActiveDirectoryUserResponseDTO respuesta = consultaUsuarioActiveDirectory(username, password);
-
         if (!respuesta.isSuccess()) {
             throw new BadCredentialsException("Credenciales incorrectas");
         }
-
-
         UsuarioActiveDirectoryDTO usuarioAD = respuesta.getResult();
-        /*
-        UsuarioActiveDirectoryDTO usuarioAD = new UsuarioActiveDirectoryDTO(
-            "ERAMIREZS",
-                "15783070",
-                "8",
-                "ENZO ALEJANDRO",
-                "RAMIREZ",
-                12254,
-                "SUBCOMISARIO (OPP)",
-                "SILVA",
-                "BRIGADA INVESTIGADORA DE DELITOS ECONOMICOS METROPOLITANA",
-                "FUNCIONARIO",
-                "BRIDECMET",
-                "SUBCOMISARIO (OPP)",
-                "ERAMIREZS@INVESTIGACIONES.CL",
-                "14"
-        );
-        */
 
-        // 🔄 Mutable set para evitar java.lang.UnsupportedOperationException
-        Set<Rol> rolesAsignados = new HashSet<>();
+        // Cargar o crear usuario desde BD (FUENTE DE VERDAD DE ROLES)
+        Usuario usuarioBD = usuarioRepository.findByUsernameIgnoreCase(username)
+                .orElseGet(Usuario::new);
+
+        if (usuarioBD.getId() == null) {
+            // Crear: setear username y rol por defecto UNA sola vez
+            usuarioBD.setUsername(usuarioAD.getUsuarioAD());
+            Set<Rol> rolesIniciales = new HashSet<>();
+            if ("JEFE".equalsIgnoreCase(usuarioAD.getNombrePerfil())) {
+                rolesIniciales.add(rolJefe);
+            } else {
+                rolesIniciales.add(rolFuncionario);
+            }
+            usuarioBD.setRoles(rolesIniciales);
+        }
+
+        // Actualizar campos no sensibles
+        usuarioBD.setNombre(usuarioAD.getNombreFun());
+        usuarioBD.setApellidoPaterno(usuarioAD.getApellidoPaternoFun());
+        usuarioBD.setApellidoMaterno(usuarioAD.getApellidoMaternoFun());
+        usuarioBD.setNombrePerfil(usuarioAD.getNombrePerfil());
+        usuarioBD.setSiglasUnidad(usuarioAD.getSiglasUnidad());
+        usuarioBD.setEmail(usuarioAD.getEmailFun());
+        usuarioBD.setAntiguedad(usuarioAD.getAntiguedad());
+        usuarioBD.setIdFun(usuarioAD.getIdFun());
+        usuarioBD.setSiglasCargo(usuarioAD.getSiglasCargo());
+        usuarioBD.setIdUnidad(usuarioAD.getIdUnidad());
+        usuarioBD.setNombreUnidad(usuarioAD.getNombreUnidad());
+        usuarioBD.setRut(usuarioAD.getRunFun());
+        usuarioBD.setDv(usuarioAD.getDvFun());
+        usuarioBD.setNombreCargo(usuarioAD.getNombreCargo());
+
+        // === Reglas de roles: CONSERVAR lo existente y AGREGAR si aplica ===
+        Set<Rol> rolesActuales = new HashSet<>(usuarioBD.getRoles() == null ? Set.of() : usuarioBD.getRoles());
+
+        // Regla 1: por perfil AD, agrega si no está (no quites lo que ya tenía)
         if ("JEFE".equalsIgnoreCase(usuarioAD.getNombrePerfil())) {
-            rolesAsignados.add(rolJefe);
+            rolesActuales.add(rolJefe);
         } else {
-            rolesAsignados.add(rolFuncionario);
+            rolesActuales.add(rolFuncionario);
         }
 
+        // Regla 2: condición extra (PLANA MAYOR) => agrega REVISOR sin quitar otros
         if ("FUNCIONARIO".equalsIgnoreCase(usuarioAD.getNombrePerfil())
+                && usuarioAD.getNombreUnidad() != null
                 && usuarioAD.getNombreUnidad().toUpperCase().contains("PLANA MAYOR")) {
-
-            rolesAsignados.add(rolRevisor);
-        } else {
-            rolesAsignados.add(rolFuncionario);
+            rolesActuales.add(rolRevisor);
         }
 
-
-        Optional<Usuario> optionalUsuario = usuarioRepository.findByUsernameIgnoreCase(username);
-        Usuario usuarioBD;
-
-        if (optionalUsuario.isPresent()) {
-            usuarioBD = optionalUsuario.get(); // ya tiene ID, JPA hará UPDATE
-
-            // Solo actualizas lo necesario:
-            usuarioBD.setNombre(usuarioAD.getNombreFun());
-            usuarioBD.setApellidoPaterno(usuarioAD.getApellidoPaternoFun());
-            usuarioBD.setApellidoMaterno(usuarioAD.getApellidoMaternoFun());
-            usuarioBD.setNombrePerfil(usuarioAD.getNombrePerfil());
-            usuarioBD.setSiglasUnidad(usuarioAD.getSiglasUnidad());
-            usuarioBD.setEmail(usuarioAD.getEmailFun());
-            usuarioBD.setAntiguedad(usuarioAD.getAntiguedad());
-            usuarioBD.setRoles(rolesAsignados);
-            usuarioBD.setIdFun(usuarioAD.getIdFun());
-            usuarioBD.setSiglasCargo(usuarioAD.getSiglasCargo());
-            usuarioBD.setIdUnidad(usuarioAD.getIdUnidad());
-            usuarioBD.setNombreUnidad(usuarioAD.getNombreUnidad());
-        } else {
-            usuarioBD = new Usuario();
-            usuarioBD.setUsername(usuarioAD.getUsuarioAD()); // username nuevo
-            usuarioBD.setNombre(usuarioAD.getNombreFun());
-            usuarioBD.setApellidoPaterno(usuarioAD.getApellidoPaternoFun());
-            usuarioBD.setApellidoMaterno(usuarioAD.getApellidoMaternoFun());
-            usuarioBD.setNombrePerfil(usuarioAD.getNombrePerfil());
-            usuarioBD.setRut(usuarioAD.getRunFun());
-            usuarioBD.setDv(usuarioAD.getDvFun());
-            usuarioBD.setSiglasUnidad(usuarioAD.getSiglasUnidad());
-            usuarioBD.setIdUnidad(usuarioAD.getIdUnidad());
-            usuarioBD.setNombreCargo(usuarioAD.getNombreCargo());
-            usuarioBD.setEmail(usuarioAD.getEmailFun());
-            usuarioBD.setAntiguedad(usuarioAD.getAntiguedad());
-            usuarioBD.setRoles(rolesAsignados);
-            usuarioBD.setIdFun(usuarioAD.getIdFun());
-            usuarioBD.setSiglasCargo(usuarioAD.getSiglasCargo());
-            usuarioBD.setNombreUnidad(usuarioAD.getNombreUnidad());
-        }
+        // Importante: NO eliminar roles que el admin haya dado manualmente
+        usuarioBD.setRoles(rolesActuales);
 
         usuarioRepository.save(usuarioBD);
-
 
         UsuarioDetails userDetails = new UsuarioDetails(usuarioBD);
         return new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());

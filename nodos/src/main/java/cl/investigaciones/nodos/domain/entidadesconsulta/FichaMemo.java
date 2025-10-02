@@ -67,8 +67,11 @@ public class FichaMemo {
     @OrderBy("createdAt DESC")
     private List<MemoRevisado> revisiones;
 
+    @OneToMany(mappedBy = "memo", fetch = FetchType.LAZY)
+    private List<FichaSitioSuceso> fichaSitioSucesos;
 
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "\"unidad_id\"")
     private ListaUnidad unidad;
 }

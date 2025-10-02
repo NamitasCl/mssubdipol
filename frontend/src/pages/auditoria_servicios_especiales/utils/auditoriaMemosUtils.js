@@ -108,6 +108,7 @@ export const contarDetenidos = (memos) => {
 // Normalizador principal de memos
 export const normalizeMemo = (m) => {
     const fecha = m.fecha ? new Date(m.fecha) : null;
+    const fecha_createdat = m.createdAt ? new Date(m.createdAt) : null;
 
     const personas = (m.fichaPersonas || []).map((p) => ({
         id: p.id ?? `${m.id}-persona-${p.rut || Math.random()}`,
@@ -174,6 +175,18 @@ export const normalizeMemo = (m) => {
         sitioSuceso: oe.sitioSuceso || "",
     }));
 
+    const sitiosDeSuceso = (m.fichaSitioSucesos || []).map((ss) => ({
+        calle: ss.calle || "",
+        numero: ss.numero || "",
+        block: ss.block || "",
+        depto: ss.depto || "",
+        comuna: ss.comuna || "",
+        region: ss.region || "",
+        fechaConcurrencia: ss.fechaConcurrencia ? new Date(ss.fechaConcurrencia).toLocaleString("es-CL", {timeZone: "America/Santiago"}) : null,
+        tipoSitioSuceso: ss.tipoSitioSuceso || "",
+
+    }))
+
     const relatoPlano = (m.modusDescripcion || "")
         .replace(/\r?\n/g, " ")
         .replace(/\s+/g, " ")
@@ -191,6 +204,7 @@ export const normalizeMemo = (m) => {
     return {
         id: m.id,
         fecha: fecha ? fecha.toLocaleString("es-CL", {timeZone: "America/Santiago"}) : "—",
+        createdAt: fecha_createdat ? fecha_createdat.toLocaleString("es-Cl", {timeZone: "America/Santiago"}) : "-",
         _fechaSort: fecha ? fecha.getTime() : 0,
         tipo: m.formulario || "—",
         tipoDeMemo: m.tipo || "—",
@@ -208,6 +222,7 @@ export const normalizeMemo = (m) => {
         municiones,
         otrasEspecies,
         revision,
+        sitiosDeSuceso,
         issues: m.issues || [],
         _raw: m,
     };

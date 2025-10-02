@@ -186,6 +186,7 @@ public class ServiciosEspecialesService {
             dto.setId(registro.getId());
             dto.setFormulario(registro.getFormulario());
             dto.setFecha(registro.getFecha());
+            dto.setCreatedAt(registro.getCreatedAt());
             dto.setFolioBrain(registro.getFolioBrain());
             dto.setRuc(registro.getRuc());
             dto.setModusDescripcion(registro.getModusDescripcion());
@@ -261,6 +262,21 @@ public class ServiciosEspecialesService {
                     veh.setCalidad(vehiculo.getCalidad());
                     veh.setObs(vehiculo.getObs());
                     return veh;
+                }).toList());
+            }
+
+            if (registro.getFichaSitioSucesos() != null) {
+                dto.setFichaSitioSucesos(registro.getFichaSitioSucesos().stream().map(fichaSs -> {
+                    FichaSitioSucesoDTO sitio = new FichaSitioSucesoDTO();
+                    sitio.setFechaConcurrenciaSs(fichaSs.getFechaConcurrenciaSs());
+                    sitio.setCalle(fichaSs.getCalle());
+                    sitio.setNumero(fichaSs.getNumero());
+                    sitio.setDepto(fichaSs.getDepto());
+                    sitio.setBlock(fichaSs.getBlock());
+                    sitio.setComuna(fichaSs.getComuna());
+                    sitio.setRegion(fichaSs.getRegion());
+                    sitio.setTipoSitioSuceso(fichaSs.getTipoSitioSuceso());
+                    return sitio;
                 }).toList());
             }
 
@@ -296,10 +312,12 @@ public class ServiciosEspecialesService {
 
         // ---- Mapping a DTO (igual que tenías, con null-safety puntual) ----
         return memos.stream().map(registro -> {
+
             FichaMemoDTO dto = new FichaMemoDTO();
             dto.setId(registro.getId());
             dto.setFormulario(registro.getFormulario());
             dto.setFecha(registro.getFecha());
+            dto.setCreatedAt(registro.getCreatedAt());
             dto.setFolioBrain(registro.getFolioBrain());
             dto.setRuc(registro.getRuc());
             dto.setModusDescripcion(registro.getModusDescripcion());
@@ -375,6 +393,21 @@ public class ServiciosEspecialesService {
                     veh.setCalidad(vehiculo.getCalidad());
                     veh.setObs(vehiculo.getObs());
                     return veh;
+                }).toList());
+            }
+
+            if (registro.getFichaSitioSucesos() != null) {
+                dto.setFichaSitioSucesos(registro.getFichaSitioSucesos().stream().map(fichaSs -> {
+                    FichaSitioSucesoDTO sitio = new FichaSitioSucesoDTO();
+                    sitio.setFechaConcurrenciaSs(fichaSs.getFechaConcurrenciaSs());
+                    sitio.setCalle(fichaSs.getCalle());
+                    sitio.setNumero(fichaSs.getNumero());
+                    sitio.setDepto(fichaSs.getDepto());
+                    sitio.setBlock(fichaSs.getBlock());
+                    sitio.setComuna(fichaSs.getComuna());
+                    sitio.setRegion(fichaSs.getRegion());
+                    sitio.setTipoSitioSuceso(fichaSs.getTipoSitioSuceso());
+                    return sitio;
                 }).toList());
             }
 
@@ -416,6 +449,7 @@ public class ServiciosEspecialesService {
             fe.setId(dto.getId());
             fe.setFormulario(dto.getFormulario());
             fe.setFecha(dto.getFecha());
+            fe.setCreatedAt(dto.getCreatedAt());
             fe.setFolioBrain(dto.getFolioBrain());
             fe.setRuc(dto.getRuc());
             fe.setModusDescripcion(dto.getModusDescripcion());
@@ -428,6 +462,7 @@ public class ServiciosEspecialesService {
             fe.setFichaFuncionarios(dto.getFichaFuncionarios());
             fe.setFichaMuniciones(dto.getFichaMuniciones());
             fe.setFichaVehiculos(dto.getFichaVehiculos());
+            fe.setFichaSitioSucesos(dto.getFichaSitioSucesos());
             fe.setFichaOtrasEspecies(dto.getFichaOtrasEspecies());
 
             MemoRevisado r = porId.get(dto.getId());
@@ -462,6 +497,7 @@ public class ServiciosEspecialesService {
             fe.setId(dto.getId());
             fe.setFormulario(dto.getFormulario());
             fe.setFecha(dto.getFecha());
+            fe.setCreatedAt(dto.getCreatedAt());
             fe.setFolioBrain(dto.getFolioBrain());
             fe.setRuc(dto.getRuc());
             fe.setModusDescripcion(dto.getModusDescripcion());
@@ -474,6 +510,7 @@ public class ServiciosEspecialesService {
             fe.setFichaFuncionarios(dto.getFichaFuncionarios());
             fe.setFichaMuniciones(dto.getFichaMuniciones());
             fe.setFichaVehiculos(dto.getFichaVehiculos());
+            fe.setFichaSitioSucesos(dto.getFichaSitioSucesos());
             fe.setFichaOtrasEspecies(dto.getFichaOtrasEspecies());
 
             MemoRevisado r = porId.get(dto.getId());

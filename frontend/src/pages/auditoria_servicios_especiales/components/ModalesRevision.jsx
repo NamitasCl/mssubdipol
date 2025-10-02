@@ -1,7 +1,7 @@
 // javascript
 // frontend/src/pages/auditoria_servicios_especiales/components/ModalesRevision.jsx
-import React, {useState} from "react";
-import {Button, Form, Modal} from "react-bootstrap";
+import React, {useEffect, useState} from "react";
+import {Button, Col, Form, Modal, Row} from "react-bootstrap";
 import {guardarRevisionMemo} from "../../../api/nodosApi.js";
 import {useAuth} from "../../../components/contexts/AuthContext.jsx";
 
@@ -10,23 +10,38 @@ export default function ModalesRevision({
                                             observado,
                                             selected,
                                             onHide,
-
+                                            //Modal JENADEP
+                                            jenadep,
                                             // Modal Aprobar
                                             aprobado,
-
                                             // Callback único para notificar cambios al padre
                                             onMemoUpdated,
-
                                             // Sistema de notificaciones (opcional)
                                             showNotification,
                                         }) {
     // Estados locales del componente
     const {user} = useAuth();
 
+    console.log("Selected: ", selected)
+
     const [obsTexto, setObsTexto] = useState("");
     const [obsAprobTexto, setObsAprobTexto] = useState("");
     const [savingRev, setSavingRev] = useState(false);
     const [saveErr, setSaveErr] = useState("");
+
+    //JENADEP
+    const [relato, setRelato] = useState('');
+
+    useEffect(() => {
+        if (!jenadep) {
+            setRelato('');
+
+        }
+    }, [jenadep]);
+
+    const handleSave = () => {
+        console.log("Guardado para jenadep")
+    };
 
     // Función para determinar el rol revisor basado en los roles del usuario
     const determinarRolRevisor = (usuario) => {
@@ -39,10 +54,10 @@ export default function ModalesRevision({
             ? usuario.roles.map(role => typeof role === 'string' ? role : role.nombre || role.authority)
             : [];
 
-        // Solo pueden revisar usuarios con ROLE_REVISOR
+        /*// Solo pueden revisar usuarios con ROLE_REVISOR
         if (!userRoles.includes('ROLE_REVISOR')) {
             return "";
-        }
+        }*/
 
         // Determinar el tipo de revisor:
         // 1. Si tiene ROLE_JEFE y es JEFE por perfil -> JEFE
@@ -63,7 +78,7 @@ export default function ModalesRevision({
         }
 
         // Por defecto, si tiene ROLE_REVISOR pero no encaja en las categorías anteriores
-        return 'PMAYOR';
+        return '';
     };
 
     // Resetear estados cuando se abren/cierran modales
@@ -77,6 +92,13 @@ export default function ModalesRevision({
 
     // Handler para guardar observación
     const handleGuardarObservado = async () => {
+
+        const rolRevisor = determinarRolRevisor(user);
+        if (rolRevisor === '') {
+            setSaveErr("No tienes permiso para revisar este memo");
+            return;
+        }
+
         if (!selected || !obsTexto.trim()) {
             setSaveErr("Las observaciones son requeridas");
             return;
@@ -91,7 +113,7 @@ export default function ModalesRevision({
                 nombreRevisor: user.nombreUsuario || user.nombre,
                 unidadRevisor: user.siglasUnidad,
                 usuarioRevisor: user.sub,
-                rolRevisor: determinarRolRevisor(user),
+                rolRevisor: rolRevisor,
                 estado: "PENDIENTE", // O "OBSERVADO" según tu lógica de negocio
                 observaciones: obsTexto.trim(),
                 origen: "frontend",
@@ -127,9 +149,17 @@ export default function ModalesRevision({
         }
     };
 
+    const sitiosPrincipioEjecucion = selected && selected.sitiosDeSuceso.filter(ss => ss.tipoSitioSuceso === 'PRINCIPIO DE EJECUCION');
+
     // Handler para guardar aprobación
     const handleGuardarAprobado = async () => {
         if (!selected) return;
+
+        const rolRevisor = determinarRolRevisor(user);
+        if (rolRevisor === '') {
+            setSaveErr("No tienes permiso para revisar este memo");
+            return;
+        }
 
         setSavingRev(true);
         setSaveErr("");
@@ -140,7 +170,7 @@ export default function ModalesRevision({
                 nombreRevisor: user.nombreUsuario || user.nombre,
                 unidadRevisor: user.siglasUnidad,
                 usuarioRevisor: user.sub,
-                rolRevisor: determinarRolRevisor(user),
+                rolRevisor: rolRevisor,
                 estado: "APROBADO",
                 origen: "frontend",
                 requestId: `apb-${selected.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -258,6 +288,74 @@ export default function ModalesRevision({
                     </>
                 )}
             </Modal>
+
+            {/* Modal para JENADEP */}
+            <Modal show={!!jenadep} onHide={onHide} centered size="xl">
+                <Modal.Header closeButton>
+                    <Modal.Title>Registrar relato asociado a Ficha ID: {selected && selected.id}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {/* Campo para el Relato */}
+                    <Form.Group as={Row}>
+                        <Form.Label column sm={2}>Unidad</Form.Label>
+                        <Col sm={10} className="pt-2">
+                            <span className="text-body">{selected?.unidad || "—"}</span>
+                        </Col>
+                    </Form.Group>
+
+                    <Form.Group as={Row}>
+                        <Form.Label column sm={2}>Lugar</Form.Label>
+                        <Col sm={10} className="pt-2">
+                            <span
+                                className="text-body">{sitiosPrincipioEjecucion?.[0]?.comuna?.toUpperCase() || "—"}</span>
+                        </Col>
+                    </Form.Group>
+
+                    <Form.Group as={Row}>
+                        <Form.Label column sm={2}>Fecha</Form.Label>
+                        <Col sm={10} className="pt-2">
+                            <span className="text-body">{selected?.fecha.split(",")[0] || "—"}</span>
+                        </Col>
+                    </Form.Group>
+
+                    <Form.Group as={Row} className="mb-3">
+                        <Form.Label column sm={2}>Hecho</Form.Label>
+                        <Col sm={10} className="pt-2">
+                            <Form.Control as={"input"} type={"text"}/>
+                        </Col>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Relato de los hechos (requerido)</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={6}
+                            placeholder="Describa el suceso, involucrados, y el contexto general..."
+                            value={relato}
+                            onChange={(e) => setRelato(e.target.value)}
+                            disabled={savingRev}
+                        />
+                    </Form.Group>
+
+                    {/* Fila para los contadores de Homicidios */}
+
+
+                </Modal.Body>
+
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={onHide} disabled={savingRev}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleSave}
+                        disabled={savingRev || !relato.trim()} // El botón se deshabilita si se está guardando o si el relato está vacío
+                    >
+                        {savingRev ? 'Guardando…' : 'Guardar Relato'}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
         </>
     );
 }

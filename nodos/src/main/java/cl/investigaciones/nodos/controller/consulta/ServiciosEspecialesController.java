@@ -97,7 +97,7 @@ public class ServiciosEspecialesController {
             }
             // Importante: no setear unidades, unidad, región, ni memoIds para evitar restricciones
 
-            var resultados = serviciosEspecialesService.listarMemosConEstado(filtroGlobal);
+            List<FichaMemoConEstadoDTO> resultados = serviciosEspecialesService.listarMemosConEstado(filtroGlobal);
             System.out.println("[PMSUBDIPOL] Se encontraron " + (resultados != null ? resultados.size() : 0) + " memos globales");
 
             return ResponseEntity.ok(resultados);

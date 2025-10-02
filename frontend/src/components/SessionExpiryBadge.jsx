@@ -25,7 +25,7 @@ function parseExpFromJwt(token) {
 const normalizeToken = (t) => (t && t.startsWith("Bearer ") ? t.slice(7) : t);
 
 export default function SessionExpiryBadge({onExpire, onRefresh}) {
-    const {user, token: ctxToken, loading} = useAuth();
+    const {user, token: ctxToken, loading, logout} = useAuth();
     const navigate = useNavigate();
 
     // 1) exp desde contexto
@@ -111,7 +111,8 @@ export default function SessionExpiryBadge({onExpire, onRefresh}) {
             setGraceRemainingMs(remaining);
             if (remaining === 0) {
                 if (storageKey) sessionStorage.removeItem(storageKey);
-                navigate("/");
+                logout();
+                navigate("/login");
             }
         }, 250);
         return () => clearInterval(id);

@@ -1,9 +1,10 @@
 package cl.investigaciones.auth.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.Set;
 @Table(name = "rol")
 @Getter
 @Setter
+@NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Rol {
 
@@ -36,5 +38,9 @@ public class Rol {
                 "id=" + id +
                 ", nombre='" + nombre + '\'' +
                 '}';
+    }
+
+    public Rol(String rol) {
+        this.nombre = rol;
     }
 }

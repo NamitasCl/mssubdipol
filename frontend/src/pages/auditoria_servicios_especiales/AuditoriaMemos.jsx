@@ -28,8 +28,8 @@ export default function AuditoriaMemos() {
     const [selected, setSelected] = useState(null);
     const [observado, setObservado] = useState(null);
     const [aprobado, setAprobado] = useState(null);
+    const [jenadep, setJenadep] = useState(null);
 
-    const [regiones, setRegiones] = useState([]); // si no los usas aún, puedes quitar este estado
     const [regionSeleccionada, setRegionSeleccionada] = useState("");
     const [memos, setMemos] = useState([]);
 
@@ -142,6 +142,7 @@ export default function AuditoriaMemos() {
             } else if (searchMode === "folio") {
                 data = await consultarMemosPorIds(filtros);
             }
+            console.log("Data: ", data)
             const normalizados = (Array.isArray(data) ? data : []).map(normalizeMemo);
             setMemos(normalizados);
             setPage(1);
@@ -295,6 +296,7 @@ export default function AuditoriaMemos() {
     const resetModales = () => {
         setObservado(null);
         setAprobado(null);
+        setJenadep(null);
         setSelected(null);
     };
 
@@ -412,12 +414,15 @@ export default function AuditoriaMemos() {
                 onHide={() => setSelected(null)}
                 onAprobar={(memo) => setAprobado(memo)}
                 onObservar={(memo) => setObservado(memo)}
+                onJenadep={(memo) => setJenadep(memo)}
                 onCopy={copy}
+                user={user}
             />
 
             <ModalesRevision
                 observado={observado}
                 aprobado={aprobado}
+                jenadep={jenadep}
                 selected={selected}
                 onHide={resetModales}
                 onMemoUpdated={handleMemoUpdated}

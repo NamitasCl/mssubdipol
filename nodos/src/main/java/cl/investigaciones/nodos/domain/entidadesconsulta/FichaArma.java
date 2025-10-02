@@ -1,7 +1,6 @@
 package cl.investigaciones.nodos.domain.entidadesconsulta;
 
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaCalibre;
-import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaModelo;
 import cl.investigaciones.nodos.domain.entidadesconsulta.listas.ListaTipoArma;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -39,8 +38,7 @@ public class FichaArma {
     @Column(name = "\"obs\"")
     private String obs;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "\"id_memo_id\"")
     private FichaMemo memo;
-
 }
