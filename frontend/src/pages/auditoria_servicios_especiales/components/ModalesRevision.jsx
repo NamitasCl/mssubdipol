@@ -2,7 +2,7 @@
 // frontend/src/pages/auditoria_servicios_especiales/components/ModalesRevision.jsx
 import React, {useEffect, useState} from "react";
 import {Button, Col, Form, Modal, Row} from "react-bootstrap";
-import {guardarRevisionMemo} from "../../../api/nodosApi.js";
+import {guardarRevisionMemo, registrarRelatoJenadep} from "../../../api/nodosApi.js";
 import {useAuth} from "../../../components/contexts/AuthContext.jsx";
 
 export default function ModalesRevision({
@@ -30,6 +30,7 @@ export default function ModalesRevision({
     const [saveErr, setSaveErr] = useState("");
 
     //JENADEP
+    const [hecho, setHecho] = useState('');
     const [relato, setRelato] = useState('');
 
     useEffect(() => {
@@ -38,10 +39,6 @@ export default function ModalesRevision({
 
         }
     }, [jenadep]);
-
-    const handleSave = () => {
-        console.log("Guardado para jenadep")
-    };
 
     // Función para determinar el rol revisor basado en los roles del usuario
     const determinarRolRevisor = (usuario) => {
@@ -150,6 +147,35 @@ export default function ModalesRevision({
     };
 
     const sitiosPrincipioEjecucion = selected && selected.sitiosDeSuceso.filter(ss => ss.tipoSitioSuceso === 'PRINCIPIO DE EJECUCION');
+
+    const handleSave = async () => {
+        const payload = {
+            unidad: selected.unidad,
+            lugar: sitiosPrincipioEjecucion[0].comuna ? sitiosPrincipioEjecucion[0].comuna : '',
+            fecha: selected._raw.fecha,
+            hecho,
+            relato,
+            memo: selected.id,
+        }
+
+        setSavingRev(true);
+        setSaveErr("");
+
+        try {
+            const data = await registrarRelatoJenadep(payload);
+            console.log("Relato registrado:", data);
+            // Mostrar notificación de éxito
+            showNotification?.("success", "Registro guardado exitosamente");
+
+            setRelato('');
+            setHecho('');
+            setSaveErr("");
+            onHide();
+        } catch (e) {
+            console.error("Error al registrar relato:", e);
+        }
+    };
+
 
     // Handler para guardar aprobación
     const handleGuardarAprobado = async () => {
@@ -321,7 +347,8 @@ export default function ModalesRevision({
                     <Form.Group as={Row} className="mb-3">
                         <Form.Label column sm={2}>Hecho</Form.Label>
                         <Col sm={10} className="pt-2">
-                            <Form.Control as={"input"} type={"text"}/>
+                            <Form.Control as={"input"} type={"text"} value={hecho}
+                                          onChange={(e) => setHecho(e.target.value)}/>
                         </Col>
                     </Form.Group>
 

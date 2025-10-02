@@ -3,6 +3,7 @@ import axios from "axios";
 const API_URL = `${import.meta.env.VITE_NODOS_CONSULTA_API_URL}/consulta`;
 const API_SERVICIOS_ESPECIALES = `${import.meta.env.VITE_NODOS_CONSULTA_API_URL}/servicios-especiales`;
 const API_SERVICIOS_ESPECIALES_MEMOS_REVISADOS = `${import.meta.env.VITE_NODOS_CONSULTA_API_URL}/memo-revisado`;
+const API_RELATO_JENADEP = `${import.meta.env.VITE_NODOS_CONSULTA_API_URL}/relatojenadep`;
 
 // Consulta por RUT (formateado)
 export async function consultaPorRutFormateado(rutFormateado) {
@@ -92,6 +93,11 @@ export async function obtenerDetalleCompleto(tipo, id) {
     if (!endpoint) throw new Error(`Tipo no soportado: ${tipo}`);
 
     const res = await axios.get(`${API_URL}${endpoint}`);
+    return res.data;
+}
+
+export async function registrarRelatoJenadep(payload) {
+    const res = await axios.post(`${API_RELATO_JENADEP}/guardar`, payload);
     return res.data;
 }
 

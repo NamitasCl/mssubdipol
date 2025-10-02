@@ -445,10 +445,15 @@ export default function MemoDetalleModal({
                         </>
                     )
                 }
-                <Alert variant="info" className="mt-2">
-                    En caso de no ver botones de acción y ser Jefe o pertenecer a una Plana Mayor, Jenadep, contacte con
-                    el administrador del sistema.
-                </Alert>
+                {
+                    !(rolesPermitidosJenadep.some(valor => user.roles.includes(valor))) &&
+                    !(rolesPermitidosAuditoria.some(valor => user.roles.includes(valor))) &&
+                    <Alert variant="info" className="mt-2">
+                        En caso de no ver botones de acción y ser Jefe o pertenecer a una Plana Mayor, Jenadep, contacte
+                        con
+                        el administrador del sistema.
+                    </Alert>
+                }
             </Modal.Footer>
         </Modal>
     );
