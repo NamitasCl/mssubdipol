@@ -4,7 +4,7 @@ import {useAuth} from "./contexts/AuthContext.jsx";
 import {useSessionTimer} from "../utils/useSessionTimer.js";
 import {formatChile} from "../utils/formatChile.js";
 
-const GRACE_MS = 10_000;
+const GRACE_MS = 120_000;
 const STORAGE_PREFIX = "graceRedirectDeadline_";
 const SS_USER = "user";
 const SS_TOKEN = "token";

@@ -170,6 +170,7 @@ export default function ModalesRevision({
             setRelato('');
             setHecho('');
             setSaveErr("");
+            setSavingRev(false);
             onHide();
         } catch (e) {
             console.error("Error al registrar relato:", e);
