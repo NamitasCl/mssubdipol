@@ -5,6 +5,7 @@ import {Button, ButtonGroup, Card, Col, Form, Row} from "react-bootstrap";
 import UnidadesAsyncMulti from "../../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
 import AsyncMultiMemoIdsSelect from "../../../components/ComponentesAsyncSelect/AsyncMultiMemoIdsSelect.jsx";
 import {tipoFecha, tipoMemos} from "../utils/auditoriaMemosUtils.js";
+import DelitosAsyncMulti from "../../../components/ComponentesAsyncSelect/AsyncDelitosSelectAct.jsx";
 
 export default function FiltrosAuditoria({
                                              user,
@@ -16,6 +17,8 @@ export default function FiltrosAuditoria({
                                              setUnidadesSeleccionadas,
                                              memoIds,
                                              setMemoIds,
+                                             delitosSeleccionados,
+                                             setDelitosSeleccionados,
                                              regionSeleccionada,
                                              setRegionSeleccionada,
                                              filtroDetenidos,
@@ -47,6 +50,16 @@ export default function FiltrosAuditoria({
                                 }}
                             >
                                 Por ID memo
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={searchMode === "delitos" ? "primary" : "outline-primary"}
+                                onClick={() => {
+                                    setSearchMode("delitos");
+                                    setUnidadesSeleccionadas([]);
+                                }}
+                            >
+                                Por Delitos
                             </Button>
                         </ButtonGroup>
                     </div>
@@ -94,12 +107,6 @@ export default function FiltrosAuditoria({
                             onChange={(e) => setPayload((p) => ({...p, tipoMemo: e.target.value}))}
                         >
                             {tipoMemos
-                                /*.filter((t) => {
-                                    if (user?.siglasUnidad !== "PMSUBDIPOL" && t.value === "TODOS") {
-                                        return false;
-                                    }
-                                    return true;
-                                })*/
                                 .map((t) => (
                                     <option key={t.value} value={t.value}>
                                         {t.value}
@@ -133,6 +140,17 @@ export default function FiltrosAuditoria({
                             <AsyncMultiMemoIdsSelect value={memoIds} onChange={setMemoIds}/>
                             {!!memoIds.length && (
                                 <div className="small text-muted mt-1">IDs seleccionados: {memoIds.length}</div>
+                            )}
+                        </Col>
+                    )}
+
+                    {searchMode === "delitos" && (
+                        <Col md={8}>
+                            <Form.Label className="mb-1">Delitos</Form.Label>
+                            <DelitosAsyncMulti value={delitosSeleccionados} onChange={setDelitosSeleccionados}/>
+                            {!!delitosSeleccionados.length && (
+                                <div className="small text-muted mt-1">Delitos
+                                    seleccionados: {delitosSeleccionados.length}</div>
                             )}
                         </Col>
                     )}

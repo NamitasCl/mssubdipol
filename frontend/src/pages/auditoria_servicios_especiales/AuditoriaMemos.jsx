@@ -43,6 +43,7 @@ export default function AuditoriaMemos() {
 
     const [unidadesSeleccionadas, setUnidadesSeleccionadas] = useState([]);
     const [memoIds, setMemoIds] = useState([]);
+    const [delitosSeleccionados, setDelitosSeleccionados] = useState([]);
 
     const [loadingTabla, setLoading] = useState(false);
     const [err, setErr] = useState(null);
@@ -382,6 +383,8 @@ export default function AuditoriaMemos() {
                 setUnidadesSeleccionadas={setUnidadesSeleccionadas}
                 memoIds={memoIds}
                 setMemoIds={setMemoIds}
+                delitosSeleccionados={delitosSeleccionados}
+                setDelitos={setDelitosSeleccionados}
                 regionSeleccionada={regionSeleccionada}
                 setRegionSeleccionada={setRegionSeleccionada}
                 filtroDetenidos={filtroDetenidos}

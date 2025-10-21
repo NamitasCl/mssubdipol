@@ -1,27 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import {
     Accordion,
-    Form,
+    Alert,
     Button,
-    Row,
     Col,
+    Form,
+    ListGroup,
+    Modal,
+    OverlayTrigger,
+    Row,
     Spinner,
     Table,
-    Modal,
-    Alert,
-    ListGroup,
-    Tooltip,
-    OverlayTrigger
+    Tooltip
 } from "react-bootstrap";
-import { useAuth } from "../../components/contexts/AuthContext.jsx";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 import AgregarPlantillasMes from "../turnos/AgregarPlantillasMes.jsx";
 // import PlantillasTurnoCrudModal from "./PlantillasTurnoCrudModal"; // ← descomenta si lo usas
-import {
-    eliminarCalendario,
-    listarCalendarios,
-    crearCalendario,
-    actualizarCalendario
-} from "../../api/calendarApi.js";
+import {actualizarCalendario, crearCalendario, eliminarCalendario, listarCalendarios} from "../../api/calendarApi.js";
 import UnidadSelect from "./UnidadSelect.jsx";
 
 /* ====== RESTRICCIONES DISPONIBLES ====== */
@@ -105,14 +100,26 @@ const restriccionesDisponibles = [
 /* ======================================= */
 
 const tipos = [
-    { value: "UNIDAD", label: "Unidad", rolesAutorizados: ["ROLE_TURNOS", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"] },
-    { value: "COMPLEJO", label: "Complejo", rolesAutorizados: ["ROLE_TURNOS", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"] },
-    { value: "RONDA", label: "Servicio de Ronda", rolesAutorizados: ["ROLE_ADMINISTRADOR", "ROLE_TURNOS_RONDA"] },
-    { value: "PROCEPOL", label: "Procedimientos Policiales", rolesAutorizados: ["ROLE_ADMINISTRADOR", "ROLE_TURNOS_PROCEPOL"]}
+    {
+        value: "UNIDAD",
+        label: "Unidad",
+        rolesAutorizados: ["ROLE_TURNOS", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
+    },
+    {
+        value: "COMPLEJO",
+        label: "Complejo",
+        rolesAutorizados: ["ROLE_TURNOS", "ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
+    },
+    {value: "RONDA", label: "Servicio de Ronda", rolesAutorizados: ["ROLE_ADMINISTRADOR", "ROLE_TURNOS_RONDA"]},
+    {
+        value: "PROCEPOL",
+        label: "Procedimientos Policiales",
+        rolesAutorizados: ["ROLE_ADMINISTRADOR", "ROLE_TURNOS_PROCEPOL"]
+    }
 ];
 
-export default function CreadorCalendarios({ onSeleccionar }) {
-    const { user } = useAuth();
+export default function CreadorCalendarios({onSeleccionar}) {
+    const {user} = useAuth();
 
     /* ---------- estado general ---------- */
     const [calendarios, setCalendarios] = useState([]);
@@ -200,7 +207,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
 
     /* ---------- tooltip ---------- */
     const tooltip = txt => <Tooltip id="tt">{txt}</Tooltip>;
-    const Overlay = ({ children, mensaje }) => (
+    const Overlay = ({children, mensaje}) => (
         <OverlayTrigger placement="top-start" overlay={tooltip(mensaje)}>
             {children}
         </OverlayTrigger>
@@ -208,8 +215,8 @@ export default function CreadorCalendarios({ onSeleccionar }) {
 
     /* ---------- handlers ---------- */
     const handleChange = e => {
-        const { name, value } = e.target;
-        setForm(f => ({ ...f, [name]: value }));
+        const {name, value} = e.target;
+        setForm(f => ({...f, [name]: value}));
     };
 
     const handleUnidadChange = unidad => {
@@ -234,9 +241,9 @@ export default function CreadorCalendarios({ onSeleccionar }) {
     /* --- restricciones --- */
     const handleCheckRestriccion = (key, checked) =>
         setRestricciones(prev => {
-            const copy = { ...prev };
+            const copy = {...prev};
             if (checked)
-                copy[key] = { ...copy[key], activa: true, fuerte: copy[key]?.fuerte ?? false };
+                copy[key] = {...copy[key], activa: true, fuerte: copy[key]?.fuerte ?? false};
             else delete copy[key];
             return copy;
         });
@@ -244,13 +251,13 @@ export default function CreadorCalendarios({ onSeleccionar }) {
     const handleValorRestriccion = (key, v) =>
         setRestricciones(prev => ({
             ...prev,
-            [key]: { ...prev[key], activa: true, valor: v }
+            [key]: {...prev[key], activa: true, valor: v}
         }));
 
     const handleFuerteRestriccion = (key, checked) =>
         setRestricciones(prev => ({
             ...prev,
-            [key]: { ...prev[key], activa: true, fuerte: checked }
+            [key]: {...prev[key], activa: true, fuerte: checked}
         }));
 
     /* ---------- crear / actualizar ---------- */
@@ -268,8 +275,8 @@ export default function CreadorCalendarios({ onSeleccionar }) {
             const payload = {
                 ...form,
                 idPlantillasUsadas: plantillasSeleccionadas.map(p => p.id),
-                configuracionCalendario: { parametrosJson: restricciones },
-                ...(form.tipo === "COMPLEJO" ? { idUnidad: null } : { nombreComplejo: "" })
+                configuracionCalendario: {parametrosJson: restricciones},
+                ...(form.tipo === "COMPLEJO" ? {idUnidad: null} : {nombreComplejo: ""})
             };
 
             editarCalendario
@@ -293,7 +300,6 @@ export default function CreadorCalendarios({ onSeleccionar }) {
         setRefresh(r => !r);
         setEliminarId(null);
     };
-
 
 
     /* ---------- render ---------- */
@@ -325,9 +331,9 @@ export default function CreadorCalendarios({ onSeleccionar }) {
                                     <Form.Group>
                                         <Form.Label>Mes</Form.Label>
                                         <Form.Select name="mes" value={form.mes} onChange={handleChange}>
-                                            {Array.from({ length: 12 }, (_, i) => (
+                                            {Array.from({length: 12}, (_, i) => (
                                                 <option value={i + 1} key={i}>
-                                                    {new Date(2000, i).toLocaleString("es-CL", { month: "long" })}
+                                                    {new Date(2000, i).toLocaleString("es-CL", {month: "long"})}
                                                 </option>
                                             ))}
                                         </Form.Select>
@@ -351,7 +357,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
 
                             <Row className="mt-3 mb-3">
                                 <Col md={12} className="d-flex gap-3">
-                                    <Form.Group style={{ width: 300 }}>
+                                    <Form.Group style={{width: 300}}>
                                         <Form.Label>Tipo</Form.Label>
                                         <Form.Control
                                             as="select"
@@ -364,7 +370,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
                                                     key={t.value}
                                                     value={t.value}
                                                     disabled={
-                                                        t.value === "COMPLEJO" && !user.roles.includes("ROLE_TURNOS") ||
+                                                        t.value === "COMPLEJO" && !user.roles.includes("ROLE_JEFE") ||
                                                         t.value === "RONDA" && !user.roles.includes("ROLE_TURNOS_RONDA")
                                                     }
                                                 >
@@ -374,9 +380,9 @@ export default function CreadorCalendarios({ onSeleccionar }) {
                                         </Form.Control>
                                     </Form.Group>
 
-                                    <Form.Group style={{ width: 600 }}>
+                                    <Form.Group style={{width: 600}}>
                                         <Form.Label>
-                                            {form.tipo === "COMPLEJO" ? "Nombre Complejo": form.tipo === "UNIDAD" ? "Unidad" : ""}
+                                            {form.tipo === "COMPLEJO" ? "Nombre Complejo" : form.tipo === "UNIDAD" ? "Unidad" : ""}
                                         </Form.Label>
                                         {form.tipo === "COMPLEJO" && (
                                             <Form.Control
@@ -388,7 +394,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
                                             />
                                         )}
                                         {form.tipo === "UNIDAD" && (
-                                            <UnidadSelect value={unidadSeleccionada} onChange={handleUnidadChange} />
+                                            <UnidadSelect value={unidadSeleccionada} onChange={handleUnidadChange}/>
                                         )}
                                         {form.tipo === "RONDA" && (
                                             ""
@@ -418,7 +424,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
 
                                                             {r.requiereValor && restricciones[r.key]?.activa && (
                                                                 <Form.Control
-                                                                    style={{ width: 100 }}
+                                                                    style={{width: 100}}
                                                                     type={r.tipoValor}
                                                                     value={restricciones[r.key]?.valor ?? ""}
                                                                     min={r.tipoValor === "number" ? 1 : undefined}
@@ -460,7 +466,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
                                 }
 
                                 <Button variant="success" type="submit" disabled={saving}>
-                                    {saving ? <Spinner size="sm" /> : editarCalendario ? "Actualizar" : "Crear"}
+                                    {saving ? <Spinner size="sm"/> : editarCalendario ? "Actualizar" : "Crear"}
                                 </Button>
 
                                 {formError && (
@@ -477,7 +483,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
                                         {plantillasSeleccionadas.map(p => (
                                             <ListGroup.Item key={p.id}>
                                                 <strong>{p.nombre}</strong>{" "}
-                                                <span className="text-muted" style={{ fontSize: 13 }}>
+                                                <span className="text-muted" style={{fontSize: 13}}>
                           {p.descripcion}
                         </span>
                                             </ListGroup.Item>
@@ -504,7 +510,7 @@ export default function CreadorCalendarios({ onSeleccionar }) {
 
             {/* ░░░ 3. Tabla de calendarios ░░░ */}
             <h5 className="mt-4 mb-3">Mis calendarios</h5>
-            {loading && <Spinner />}
+            {loading && <Spinner/>}
             <Table striped bordered hover>
                 <thead>
                 <tr>
