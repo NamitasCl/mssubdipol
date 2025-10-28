@@ -2,6 +2,7 @@ package cl.investigaciones.nodos.service.consulta;
 
 import cl.investigaciones.nodos.domain.auditoriamemos.MemoRevisado;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaMemo;
+import cl.investigaciones.nodos.domain.entidadesconsulta.FichaPersona;
 import cl.investigaciones.nodos.dto.consulta.*;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
 import cl.investigaciones.nodos.mapper.consulta.FichaPersonaSimpleMapper;
@@ -553,5 +554,72 @@ public class ServiciosEspecialesService {
                         estadoUpper.contains("DETE");
             });
         });
+    }
+
+    @Transactional(readOnly = true)
+    public List<FichaPersonaModificableDTO> listarPersonas() {
+        // Usar una consulta optimizada con fetch joins para evitar lazy loading issues
+        List<FichaPersona> personas = personaRepo.findAllWithRelations();
+
+        return personas.stream().map(persona -> {
+            FichaPersonaModificableDTO dto = new FichaPersonaModificableDTO();
+            dto.setRut(persona.getRut());
+            dto.setCreatedAt(persona.getCreatedAt());
+            dto.setNombre(persona.getNombre());
+            dto.setApellidoPat(persona.getApellidoPat());
+            dto.setApellidoMat(persona.getApellidoMat());
+            dto.setDireccion(persona.getDireccion());
+            dto.setDireccionNumero(persona.getDireccionNumero());
+            dto.setDepartamento(persona.getDepartamento());
+            dto.setBlock(persona.getBlock());
+            dto.setCondicionMigratoria(persona.getCondicionMigratoria());
+            dto.setApodo(persona.getApodo());
+            dto.setCiudadNacimiento(persona.getCiudadNacimiento());
+            dto.setObservaciones(persona.getObservaciones());
+            dto.setFono(persona.getFono());
+            dto.setCorreoElectronico(persona.getCorreoElectronico());
+            dto.setSexo(persona.getSexo());
+            dto.setEdad(persona.getEdad());
+
+
+            // Mapeo seguro de nacionalidad
+            if (persona.getNacionalidad() != null) {
+                dto.setNacionalidadNombre(persona.getNacionalidad().getNacionalidad());
+            }
+
+            // Mapeo seguro de delitos
+            if (persona.getDelitos() != null) {
+                dto.setDelitosNombres(persona.getDelitos().stream()
+                        .filter(Objects::nonNull)
+                        .map(delito -> delito.getDelito())
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
+            } else {
+                dto.setDelitosNombres(new HashSet<>());
+            }
+
+            // Mapeo seguro de estados
+            if (persona.getEstados() != null) {
+                dto.setEstadosNombres(persona.getEstados().stream()
+                        .filter(Objects::nonNull)
+                        .map(estado -> estado.getCalidad())
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
+            } else {
+                dto.setEstadosNombres(new HashSet<>());
+            }
+
+            // Mapeo seguro del memo y tipo de diligencia
+            if (persona.getMemo() != null) {
+                dto.setMemoId(persona.getMemo().getId());
+                // Mapeo seguro del tipo de diligencia
+                dto.setTipoDiligencia(persona.getMemo().getTipo());
+                dto.setFechaHecho(persona.getMemo().getFecha());
+            } else {
+                dto.setMemoId(null);
+                dto.setTipoDiligencia(null);
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

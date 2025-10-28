@@ -29,12 +29,14 @@ import PlantillaTurnoBuilder from "./pages/calendarios/PlantillaTurnoBuilder.jsx
 import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
 import PanelAdministracionAportes from "./pages/admin/PanelAdministracionAportes.jsx";
 import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemos.jsx";
+import TablaJose from "./pages/TablaJose.jsx";
 
 
 export default function App() {
     return (
         <Router basename="/turnos">
             <Routes>
+                <Route path="/jose" element={<TablaJose/>}/>
                 <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout/></RestrictedAreaAdmin>}>
                     <Route index element={<Admin/>}/>
                     <Route path="plantillas" element={<PlantillaTurnoBuilder/>}/>

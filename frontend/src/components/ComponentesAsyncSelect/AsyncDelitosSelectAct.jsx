@@ -53,7 +53,7 @@ export default function DelitosAsyncMulti({
             const params = new URLSearchParams();
             params.set("nombre", q);
 
-            const url = `${BASE}/api/nodos/listas/delitos?${params.toString()}`;
+            const url = `${BASE}/listas/delitos?${params.toString()}`;
 
             try {
                 const res = await axios.get(url, {

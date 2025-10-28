@@ -18,7 +18,7 @@ export default function FiltrosAuditoria({
                                              memoIds,
                                              setMemoIds,
                                              delitosSeleccionados,
-                                             setDelitosSeleccionados,
+                                             setDelitos,
                                              regionSeleccionada,
                                              setRegionSeleccionada,
                                              filtroDetenidos,
@@ -147,7 +147,7 @@ export default function FiltrosAuditoria({
                     {searchMode === "delitos" && (
                         <Col md={8}>
                             <Form.Label className="mb-1">Delitos</Form.Label>
-                            <DelitosAsyncMulti value={delitosSeleccionados} onChange={setDelitosSeleccionados}/>
+                            <DelitosAsyncMulti value={delitosSeleccionados} onChange={setDelitos}/>
                             {!!delitosSeleccionados.length && (
                                 <div className="small text-muted mt-1">Delitos
                                     seleccionados: {delitosSeleccionados.length}</div>
