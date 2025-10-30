@@ -1,5 +1,5 @@
 import React from "react";
-import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
 import Layout from "./Layout";
 import Dashboard from "./Dashboard.jsx";
 import AsignacionTurnosMensual from "./pages/turnos/AsignacionTurnosMensual.jsx";
@@ -30,6 +30,11 @@ import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
 import PanelAdministracionAportes from "./pages/admin/PanelAdministracionAportes.jsx";
 import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemos.jsx";
 import TablaJose from "./pages/TablaJose.jsx";
+import DevLayout from "./pages/desarrollo/DevLayout.jsx";
+import PlantillasPage from "./pages/turnosv2/PlantillasPage.jsx";
+import CalendariosPage from "./pages/turnosv2/CalendariosPage.jsx";
+import ConfiguracionCalendarioPage from "./pages/turnosv2/ConfiguracionCalendarioPage.jsx";
+import VisualizacionCalendarioPage from "./pages/turnosv2/VisualizacionCalendarioPage.jsx";
 
 
 export default function App() {
@@ -37,6 +42,35 @@ export default function App() {
         <Router basename="/turnos">
             <Routes>
                 <Route path="/jose" element={<TablaJose/>}/>
+                <Route path="/dev" element={<DevLayout/>}>
+                    {/* Ruta para la gestión de plantillas */}
+                    {/* URL final: /dev/plantillas */}
+                    <Route path="plantillas" element={<PlantillasPage/>}/>
+
+                    {/* Ruta para el dashboard de calendarios */}
+                    {/* URL final: /dev/calendarios */}
+                    <Route path="calendarios" element={<CalendariosPage/>}/>
+
+                    {/* Ruta para la página de configuración (con ID dinámico) */}
+                    {/* URL final: /dev/calendarios/1/configurar */}
+                    <Route
+                        path="calendarios/:id/configurar"
+                        element={<ConfiguracionCalendarioPage/>}
+                    />
+
+                    {/* Ruta para la página de visualización (con ID dinámico) */}
+                    {/* URL final: /dev/calendarios/1/ver */}
+                    <Route
+                        path="calendarios/:id/ver"
+                        element={<VisualizacionCalendarioPage/>}
+                    />
+
+                    {/* Esta es la ruta "index" del grupo /dev.
+            Si un usuario va a /dev o /dev/, será redirigido
+            automáticamente a /dev/calendarios.
+          */}
+                    <Route index element={<Navigate to="calendarios" replace/>}/>
+                </Route>
                 <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout/></RestrictedAreaAdmin>}>
                     <Route index element={<Admin/>}/>
                     <Route path="plantillas" element={<PlantillaTurnoBuilder/>}/>

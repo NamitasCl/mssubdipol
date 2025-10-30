@@ -4,6 +4,7 @@ import cl.investigaciones.turnosv2.domain.enums.EstadoCalendario;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -15,10 +16,14 @@ public class Calendario {
     private Long id;
 
     private String nombre;
-    private Integer dias;
+    private LocalDate fechaInicio;
+    private LocalDate fechaFin;
 
     @Enumerated(EnumType.STRING)
     private EstadoCalendario estado;
+
+    @OneToMany(mappedBy = "calendario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DiaCalendario> diasDelCalendario;
 
     @OneToMany(mappedBy = "calendario")
     private List<Slot> slotsRequeridos;

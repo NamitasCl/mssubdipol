@@ -9,6 +9,7 @@ import axios from "axios";
 const TablaJose = () => {
 
     const [fichas, setFichas] = React.useState([]);
+    const [fechaVisualizar, setFechaVisualizar] = React.useState(null);
 
     const API_URL = "http://localhost:8013/api/nodos/servicios-especiales/personas";
 
@@ -50,8 +51,8 @@ const TablaJose = () => {
         if (!fechaString) return 'N/A';
         try {
             // new Date() puede interpretar OffsetDateTime sin problemas
-            return new Date(fechaString).toLocaleString("es-Cl");
-            console.log(fechaString);
+            const fecha = new Date(fechaString).toLocaleString("es-Cl");
+            return fecha.replace(",", "");
         } catch (e) {
             return fechaString; // Devuelve el string original si falla
         }
@@ -78,7 +79,9 @@ const TablaJose = () => {
             "Edad": ficha.edad,
             "Sexo": ficha.sexo,
             "Memo ID": ficha.memoId,
-            "Fecha Creación": formatFecha(ficha.createdAt),
+            "Fecha Creación": new Date(ficha.createdAt),
+            "Fecha Hecho": new Date(ficha.fechaHecho),
+            "Fecha Memo": new Date(ficha.fechaRegistroMemo),
             "Dirección": `${ficha.direccion || ''} ${ficha.direccionNumero || ''}`.trim(),
             "Departamento": ficha.departamento,
             "Block": ficha.block,
@@ -111,6 +114,8 @@ const TablaJose = () => {
         th: {border: '1px solid #ddd', padding: '8px', backgroundColor: '#f4f4f4', textAlign: 'left'},
         td: {border: '1px solid #ddd', padding: '8px', verticalAlign: 'top'},
         boton: {
+            marginTop: '15px',
+            marginLeft: '10px',
             marginBottom: '10px',
             padding: '8px 12px',
             cursor: 'pointer',
@@ -131,7 +136,7 @@ const TablaJose = () => {
                 Exportar a Excel
             </button>
 
-            <table style={styles.tabla}>
+            {/*<table style={styles.tabla}>
                 <thead>
                 <tr>
                     <th style={styles.th}>RUT</th>
@@ -143,6 +148,7 @@ const TablaJose = () => {
                     <th style={styles.th}>Memo ID</th>
                     <th style={styles.th}>Sexo</th>
                     <th style={styles.th}>Tipo Diligencia</th>
+                    <th style={styles.th}>Fecha Hecho</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -157,10 +163,11 @@ const TablaJose = () => {
                         <td style={styles.td}>{ficha.memoId}</td>
                         <td style={styles.td}>{ficha.sexo}</td>
                         <td style={styles.td}>{ficha.tipoDiligencia}</td>
+                        <td style={styles.td}>{formatFecha(ficha.fechaHecho)}</td>
                     </tr>
                 ))}
                 </tbody>
-            </table>
+            </table>*/}
         </div>
     );
 };

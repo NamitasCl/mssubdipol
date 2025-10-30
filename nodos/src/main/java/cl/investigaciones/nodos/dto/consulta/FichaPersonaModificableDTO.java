@@ -17,6 +17,7 @@ public class FichaPersonaModificableDTO {
     private String rut;
     private OffsetDateTime createdAt;
     private OffsetDateTime fechaHecho;
+    private OffsetDateTime fechaRegistroMemo;
     private String nombre;
     private String apellidoPat;
     private String apellidoMat;

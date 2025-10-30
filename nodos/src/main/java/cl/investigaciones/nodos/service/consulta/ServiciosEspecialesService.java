@@ -615,6 +615,7 @@ public class ServiciosEspecialesService {
                 // Mapeo seguro del tipo de diligencia
                 dto.setTipoDiligencia(persona.getMemo().getTipo());
                 dto.setFechaHecho(persona.getMemo().getFecha());
+                dto.setFechaRegistroMemo(persona.getMemo().getCreatedAt());
             } else {
                 dto.setMemoId(null);
                 dto.setTipoDiligencia(null);
