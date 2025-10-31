@@ -19,10 +19,10 @@ import toast from "bootstrap/js/src/toast.js";
 
 export default function AuditoriaMemos() {
 
-    console.log("Modo: ", import.meta.env.VITE_MODE_ACTUAL)
-
     const {user, loading, logout, renewAccessToken} = useAuth();
     const navigate = useNavigate();
+
+    console.log("User en auditoria: ", user);
 
     const [searchMode, setSearchMode] = useState("unidades");
     const [selected, setSelected] = useState(null);
@@ -334,7 +334,7 @@ export default function AuditoriaMemos() {
                     </small>
                 </div>
 
-                <div className="d-flex align-items-center gap-2">
+                {/*<div className="d-flex align-items-center gap-2">
                     {loading && (
                         <>
                             <Spinner size="sm" animation="border"/>
@@ -342,7 +342,7 @@ export default function AuditoriaMemos() {
                         </>
                     )}
                     <SessionExpiryBadge onExpire={() => logout()} onRefresh={handleRefresh}/>
-                </div>
+                </div>*/}
 
                 <div className="d-flex gap-2">
                     <Button onClick={() => navigate("/")} variant="outline-secondary" size="sm">

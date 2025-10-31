@@ -22,8 +22,6 @@ export default function ModalesRevision({
     // Estados locales del componente
     const {user} = useAuth();
 
-    console.log("Selected: ", selected)
-
     const [obsTexto, setObsTexto] = useState("");
     const [obsAprobTexto, setObsAprobTexto] = useState("");
     const [savingRev, setSavingRev] = useState(false);
