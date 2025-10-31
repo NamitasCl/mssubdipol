@@ -327,7 +327,7 @@ export default function AuditoriaMemos() {
                     </small>
                 </div>
 
-                <div className="d-flex align-items-center gap-2">
+                {/*<div className="d-flex align-items-center gap-2">
                     {loading && (
                         <>
                             <Spinner size="sm" animation="border"/>
@@ -335,7 +335,7 @@ export default function AuditoriaMemos() {
                         </>
                     )}
                     <SessionExpiryBadge onExpire={() => logout()} onRefresh={handleRefresh}/>
-                </div>
+                </div>*/}
 
                 <div className="d-flex gap-2">
                     <Button onClick={() => navigate("/")} variant="outline-secondary" size="sm">
