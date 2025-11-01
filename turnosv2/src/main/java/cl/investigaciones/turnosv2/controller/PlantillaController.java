@@ -15,7 +15,7 @@ public class PlantillaController {
 
     private final PlantillaService plantillaService; // El Service hará el trabajo
 
-    public PlantillaController(PlantilaService plantilaService) {
+    public PlantillaController(PlantillaService plantilaService) {
         this.plantillaService = plantilaService;
     }
 

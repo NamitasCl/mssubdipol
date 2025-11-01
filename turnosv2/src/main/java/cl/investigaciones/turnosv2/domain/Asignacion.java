@@ -1,6 +1,7 @@
 package cl.investigaciones.turnosv2.domain;
 
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
+import ai.timefold.solver.core.api.domain.lookup.PlanningId;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -43,5 +44,9 @@ public class Asignacion {
             return null;
         }
         return this.funcionario.getId();
+    }
+
+    public Asignacion(Slot slot) {
+        this.slot = slot;
     }
 }

@@ -1,9 +1,27 @@
 package cl.investigaciones.turnosv2.service;
 
+import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.solver.SolutionManager;
+import ai.timefold.solver.core.api.solver.SolverJob;
+import ai.timefold.solver.core.api.solver.SolverManager;
 import ai.timefold.solver.core.api.solver.SolverStatus;
-import cl.investigaciones.turnosv2.domain.*;
-import cl.investigaciones.turnosv2.repository.*;
+import cl.investigaciones.turnosv2.domain.Asignacion;
+import cl.investigaciones.turnosv2.domain.Calendario;
+import cl.investigaciones.turnosv2.domain.DiaCalendario;
+import cl.investigaciones.turnosv2.domain.Funcionario;
+import cl.investigaciones.turnosv2.domain.PlanificacionTurnos;
+import cl.investigaciones.turnosv2.domain.PlantillaRequerimiento;
+import cl.investigaciones.turnosv2.domain.RequerimientoDia;
+import cl.investigaciones.turnosv2.domain.Slot;
+import cl.investigaciones.turnosv2.domain.UnidadParticipante;
+import cl.investigaciones.turnosv2.domain.enums.EstadoCalendario;
+import cl.investigaciones.turnosv2.repository.AsignacionRepository;
+import cl.investigaciones.turnosv2.repository.CalendarioRepository;
+import cl.investigaciones.turnosv2.repository.DiaCalendarioRepository;
+import cl.investigaciones.turnosv2.repository.FuncionarioRepository;
+import cl.investigaciones.turnosv2.repository.PlantillaRequerimientoRepository;
+import cl.investigaciones.turnosv2.repository.SlotRepository;
+import cl.investigaciones.turnosv2.repository.UnidadParticipanteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,36 +36,34 @@ import java.util.stream.Collectors;
 @Transactional
 public class CalendarioConfigService {
 
-    // --- Inyección de todos los Repositorios ---
-    @Autowired
-    private CalendarioRepository calendarioRepository;
-    @Autowired
-    private DiaCalendarioRepository diaCalendarioRepository;
-    @Autowired
-    private PlantillaRequerimientoRepository plantillaRepository;
-    @Autowired
-    private SlotRepository slotRepository;
-    @Autowired
-    private FuncionarioRepository funcionarioRepository;
-    @Autowired
-    private AsignacionRepository asignacionRepository;
-    @Autowired
-    private UnidadParticipanteRepository unidadRepository;
+    // --- Repositorios ---
+    @Autowired private CalendarioRepository calendarioRepository;
+    @Autowired private DiaCalendarioRepository diaCalendarioRepository;
+    @Autowired private PlantillaRequerimientoRepository plantillaRepository;
+    @Autowired private SlotRepository slotRepository;
+    @Autowired private FuncionarioRepository funcionarioRepository;
+    @Autowired private AsignacionRepository asignacionRepository;
+    @Autowired private UnidadParticipanteRepository unidadRepository;
 
-    // --- ¡Inyección del Solver de OptaPlanner! ---
+    // --- Timefold ---
+    // SolverManager: ejecuta el solver (ID del problema = Long)
     @Autowired
-    private SolutionManager<PlanificacionTurnos, Long> solutionManager; // <-- ¡ESTO ES CORRECTO!
+    private SolverManager<PlanificacionTurnos, Long> solverManager;
 
+    // SolutionManager: útil para explicar el score (Score = HardSoftScore)
+    @Autowired
+    private SolutionManager<PlanificacionTurnos, HardSoftScore> solutionManager;
 
-    // --- MÉTODOS DE FASE 1 (Llamados por el Controller) ---
+    // --- FASE 1 ---
 
     public Calendario createCalendario(Calendario calendario) {
-        // Lógica para asegurar que las unidades están conectadas
         List<UnidadParticipante> unidades = unidadRepository.findAllById(
-                calendario.getUnidadParticipantes().stream().map(UnidadParticipante::getId).collect(Collectors.toList())
+                calendario.getUnidadParticipantes().stream()
+                        .map(UnidadParticipante::getId)
+                        .collect(Collectors.toList())
         );
         calendario.setUnidadParticipantes(unidades);
-        calendario.setEstado(cl.investigaciones.turnosv2.domain.enums.EstadoCalendario.EN_CONFIGURACION);
+        calendario.setEstado(EstadoCalendario.EN_CONFIGURACION);
         return calendarioRepository.save(calendario);
     }
 
@@ -74,7 +90,6 @@ public class CalendarioConfigService {
             DiaCalendario dia = new DiaCalendario();
             dia.setCalendario(calendario);
             dia.setFecha(fecha);
-            // plantillaRequerimiento es null por defecto
             nuevosDias.add(dia);
         }
         return diaCalendarioRepository.saveAll(nuevosDias);
@@ -91,7 +106,7 @@ public class CalendarioConfigService {
         diaCalendarioRepository.saveAll(dias);
     }
 
-    // --- FASE 1: Botón "1. Generar Slots" ---
+    // --- FASE 1: Generar Slots según plantilla ---
     public void generarSlots(Long calendarioId) {
         Calendario calendario = findCalendarioById(calendarioId);
         List<DiaCalendario> dias = diaCalendarioRepository.findByCalendarioId(calendarioId);
@@ -99,10 +114,8 @@ public class CalendarioConfigService {
 
         for (DiaCalendario dia : dias) {
             if (dia.getPlantillaRequerimiento() != null) {
-                // Leemos la plantilla y sus requerimientos (1 Jefe, 2 Ayudantes...)
                 PlantillaRequerimiento plantilla = dia.getPlantillaRequerimiento();
                 for (RequerimientoDia req : plantilla.getRequerimientos()) {
-                    // Creamos 'cantidad' slots para ese rol/día
                     for (int i = 0; i < req.getCantidad(); i++) {
                         Slot slot = new Slot();
                         slot.setCalendario(calendario);
@@ -116,49 +129,59 @@ public class CalendarioConfigService {
         slotRepository.saveAll(slotsAGenerar);
     }
 
-
-    // --- FASE 2: Botón "2. Generar Turnos" (¡La llamada a OptaPlanner!) ---
+    // --- FASE 2: Resolver Turnos con Timefold ---
     public void resolverTurnos(Long calendarioId) {
         Calendario calendario = findCalendarioById(calendarioId);
 
-        // 1. Cargar Oferta (Funcionarios)
+        // 1) Oferta: funcionarios de las unidades participantes
         List<Long> unidadIds = calendario.getUnidadParticipantes().stream()
-                .map(UnidadParticipante::getId).collect(Collectors.toList());
+                .map(UnidadParticipante::getId)
+                .collect(Collectors.toList());
         List<Funcionario> funcionarios = funcionarioRepository.findByIdUnidadIn(unidadIds);
 
-        // 2. Cargar Demanda (Slots)
+        // 2) Demanda: slots del calendario
         List<Slot> slots = slotRepository.findByCalendarioId(calendarioId);
 
-        // 3. Preparar Decisión (Asignaciones vacías)
+        // 3) Decisiones: asignaciones vacías (funcionario = null)
         List<Asignacion> asignacionesVacias = new ArrayList<>();
         for (Slot slot : slots) {
-            asignacionesVacias.add(new Asignacion(slot)); // 'funcionario' es null
+            asignacionesVacias.add(new Asignacion(slot));
         }
 
-        // 4. Empaquetar el problema
+        // 4) Problema de planificación
         PlanificacionTurnos problema = new PlanificacionTurnos(
                 calendarioId, funcionarios, slots, asignacionesVacias
         );
 
-        // 5. ¡LLAMAR AL GENIO! (OptaPlanner)
-        // (Nota: solve() puede tardar. Para producción se usa solveAndListen())
-        SolverStatus status = solutionManager.getSolverStatus(problema.getCalendarioId());
+        // 5) Estado del solver
+        SolverStatus status = solverManager.getSolverStatus(calendarioId);
         if (status != SolverStatus.NOT_SOLVING) {
-            throw new IllegalStateException("El solver ya está corriendo para este calendario.");
+            throw new IllegalStateException("El solver ya está corriendo para este calendario: " + calendarioId);
         }
-        PlanificacionTurnos solucion = solutionManager.solve(problema.getCalendarioId(), problema);
 
-        // 6. Guardar la solución
-        if (solucion.getScore().isFeasible()) {
-            // ¡La solución es viable! La guardamos.
-            asignacionRepository.saveAll(solucion.getAsignaciones());
+        try {
+            // 6) Ejecutar solver y obtener la mejor solución final
+            SolverJob<PlanificacionTurnos, Long> job = solverManager.solve(calendarioId, problema);
+            PlanificacionTurnos solucion = job.getFinalBestSolution();
 
-            // Actualizamos el estado del calendario
-            calendario.setEstado(cl.investigaciones.turnosv2.domain.enums.EstadoCalendario.RESUELTO);
-            calendarioRepository.save(calendario);
-        } else {
-            // La solución no es viable (rompe reglas duras)
-            throw new RuntimeException("No se pudo encontrar una solución viable. Revisa las reglas o los datos.");
+            // (Opcional) Explicación del score (API nueva)
+            try {
+                var explanation = solutionManager.explain(solucion);
+                System.out.println("[Timefold] Score: " + solucion.getScore());
+                System.out.println("[Timefold] Explicación: " + explanation);
+            } catch (Exception ignore) { /* diagnóstico opcional */ }
+
+            // 7) Persistir si es factible
+            HardSoftScore score = solucion.getScore();
+            if (score != null && score.isFeasible()) {
+                asignacionRepository.saveAll(solucion.getAsignaciones());
+                calendario.setEstado(EstadoCalendario.RESUELTO);
+                calendarioRepository.save(calendario);
+            } else {
+                throw new RuntimeException("No se encontró solución viable (score=" + score + "). Revisa reglas/datos.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error al resolver los turnos para calendario " + calendarioId, e);
         }
     }
 }

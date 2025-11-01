@@ -14,6 +14,6 @@ public class UnidadParticipante {
     private Long id;
 
     private String nombre;
-    private String siglas;
+    private String sigla;
 
 }

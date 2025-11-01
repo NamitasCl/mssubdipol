@@ -3,6 +3,7 @@ package cl.investigaciones.turnosv2.domain;
 // Importa el Enum que crearemos a continuación
 
 import cl.investigaciones.turnosv2.domain.enums.RolServicio;
+import cl.investigaciones.turnosv2.domain.enums.TipoTurno;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -34,4 +35,7 @@ public class RequerimientoDia {
      * La cantidad de funcionarios que se necesitan para este rol específico.
      */
     private int cantidad;
+
+    @Enumerated(EnumType.STRING)
+    private TipoTurno tipoTurno;
 }

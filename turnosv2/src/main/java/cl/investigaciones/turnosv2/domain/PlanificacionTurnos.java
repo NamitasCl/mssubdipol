@@ -1,5 +1,6 @@
 package cl.investigaciones.turnosv2.domain;
 
+import ai.timefold.solver.core.api.domain.lookup.PlanningId;
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
@@ -21,6 +22,7 @@ import java.util.List;
 public class PlanificacionTurnos {
 
     // --- El Identificador del Problema (Útil para logs) ---
+    @PlanningId
     private Long calendarioId;
 
     // --- LOS DATOS FIJOS (Hechos del Problema) ---
