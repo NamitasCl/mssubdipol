@@ -112,7 +112,7 @@ export default function FiltrosAuditoria({
     return (
         <Card className="mb-3">
             <Card.Body>
-                <div className="d-flex flex-wrap align-items-center gap-3">
+                <div className="d-flex flex-column flex-wrap align-items-left gap-3">
                     <div className="d-flex align-items-center gap-2">
                         <span className="text-muted small">Modo de búsqueda:</span>
                         <ButtonGroup>
@@ -149,8 +149,32 @@ export default function FiltrosAuditoria({
                         </ButtonGroup>
                     </div>
 
-                    <div className="w-100 d-flex flex-wrap align-items-center gap-2">
-                        <Form.Label className="mb-0 small text-muted ms-2">Tipo de fecha</Form.Label>
+                    {searchMode === "delitos" && (
+                        <Row className="mt-1">
+                            <Col>
+                                <div className="position-relative rounded-3 border border-info bg-info bg-opacity-10 p-3" role="alert" aria-live="polite">
+                                    <div className="d-flex align-items-center gap-2">
+                                        <span className="badge text-bg-info">🎯 Filtro grupal</span>
+                                        <strong className="text-info">Requisitos obligatorios</strong>
+                                    </div>
+
+                                    <div className="small mt-2 text-secondary">
+                                        Para ejecutar el filtro grupal debes seleccionar:
+                                        <strong> Tipo de fecha</strong>, <strong>Fecha inicio</strong>, <strong>Fecha término</strong> y
+                                        <strong> Tipo de memo</strong>.
+                                        <br/>
+                                        El filtro <u>solo</u> se ejecuta si escoges una
+                                        <strong> Región Policial</strong>, <strong> Jefatura Nacional</strong> o una
+                                        <strong> Prefectura</strong> específica.
+                                    </div>
+                                </div>
+                            </Col>
+
+                        </Row>
+                    )}
+
+                    <div className="w-100 d-flex flex-wrap align-items-center gap-3">
+                        <Form.Label className="mb-0 small text-muted">Tipo de fecha</Form.Label>
                         <Form.Select
                             size="sm"
                             style={{maxWidth: 160}}

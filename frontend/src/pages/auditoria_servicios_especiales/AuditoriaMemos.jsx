@@ -23,7 +23,7 @@ export default function AuditoriaMemos() {
     const {user, loading, logout, renewAccessToken} = useAuth();
     const navigate = useNavigate();
 
-    console.log("User en auditoria: ", user);
+    /*console.log("User en auditoria: ", user);*/
 
     const [searchMode, setSearchMode] = useState("unidades");
     const [selected, setSelected] = useState(null);
@@ -69,9 +69,9 @@ export default function AuditoriaMemos() {
             .catch(err => console.log(err));
     }, []);
 
-    useEffect(() => {
+    /*useEffect(() => {
         console.log("idSeleccion: ", idSeleccion);
-    }, [idSeleccion]);
+    }, [idSeleccion]);*/
 
 
 
@@ -112,8 +112,8 @@ export default function AuditoriaMemos() {
     };
 
     const buildFilters = () => {
-        console.log("Memos Ids: ", memoIds)
-        console.log("SerchMode: ", searchMode)
+        /*console.log("Memos Ids: ", memoIds)
+        console.log("SerchMode: ", searchMode)*/
 
         const base = {
             fechaInicioUtc: toUTCISO(payload.fechaInicio),
@@ -159,9 +159,9 @@ export default function AuditoriaMemos() {
                 return;
             }
         } else if (searchMode === "delitos") { // ⭐ AGREGAR VALIDACIÓN PARA MODO DELITOS
-            console.log("🔍 Validando modo delitos...");
+            /*console.log("🔍 Validando modo delitos...");
             console.log("📋 idSeleccion actual:", idSeleccion);
-            console.log("📊 Cantidad de IDs:", idSeleccion?.length);
+            console.log("📊 Cantidad de IDs:", idSeleccion?.length);*/
 
             if (!idSeleccion || idSeleccion.length === 0) {
                 setErr("Debes seleccionar al menos una Región Policial, Jefatura Nacional o Prefectura.");
@@ -171,24 +171,24 @@ export default function AuditoriaMemos() {
 
         const filtros = buildFilters();
 
-        console.log("📦 Filtros construidos para enviar:", filtros);
+        /*console.log("📦 Filtros construidos para enviar:", filtros);*/
 
         setLoading(true);
         setSelected(null);
 
         try {
             if (searchMode === "unidades") {
-                console.log("🔵 Consultando por UNIDADES");
+                /*console.log("🔵 Consultando por UNIDADES");*/
                 data = await consultaMemosServiciosEspeciales(filtros);
             } else if (searchMode === "folio") {
-                console.log("🟢 Consultando por FOLIO");
+                /*console.log("🟢 Consultando por FOLIO");*/
                 data = await consultarMemosPorIds(filtros);
             } else if (searchMode === "delitos") { // ⭐ CASO EXPLÍCITO PARA DELITOS
-                console.log("🟣 Consultando por DELITOS/JERARQUÍA");
-                console.log("📨 Enviando al backend:", filtros);
+                /*console.log("🟣 Consultando por DELITOS/JERARQUÍA");
+                console.log("📨 Enviando al backend:", filtros);*/
                 data = await consultaMemosServiciosEspeciales(filtros);
             }
-            console.log("Data: ", data)
+            /*console.log("Data: ", data)*/
             const normalizados = (Array.isArray(data) ? data : []).map(normalizeMemo);
             setMemos(normalizados);
             setPage(1);
@@ -353,7 +353,7 @@ export default function AuditoriaMemos() {
 
     const showNotification = (type, message) => {
         if (type === "success") {
-            toast?.success?.(message) || console.log(message);
+            toast?.success?.(message) /*|| console.log(message)*/;
         } else if (type === "error") {
             toast?.error?.(message) || console.error(message);
         }
