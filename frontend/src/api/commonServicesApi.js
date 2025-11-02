@@ -52,6 +52,11 @@ export async function getJefaturasNacionalesPrefecturas() {
     return data;
 }
 
+export async function getUnidadesConJerarquia() {
+    const {data} = await axios.get(`${UNIDADES_BASE}`);
+    return data;
+}
+
 export default {
     searchFuncionarios,
     searchFuncionariosPorUnidad,

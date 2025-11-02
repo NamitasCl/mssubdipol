@@ -27,4 +27,7 @@ public class ListaUnidad {
 
     @Column(name = "nombreUnidadReporta")
     private String nombreUnidadReporta;
+
+    @Column(name = "idUnidad")
+    private String idUnidad;
 }

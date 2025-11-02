@@ -24,4 +24,7 @@ public interface ListaUnidadRepository extends JpaRepository<ListaUnidad, Long> 
             where upper(trim(u.nombreUnidad)) = upper(trim(:nombre))
             """)
     ListaUnidad findOneByNombreUnidadNormalized(@Param("nombre") String nombre);
+
+    @Query("select u.id from ListaUnidad u where u.idUnidad in :ids")
+    List<Long> findIdsByIdUnidadIn(@Param("ids") List<Long> ids);
 }

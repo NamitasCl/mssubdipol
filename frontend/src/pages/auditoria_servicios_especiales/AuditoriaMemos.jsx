@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useMemo, useState, useEffect} from "react";
 import {Button, Container, Spinner} from "react-bootstrap";
 import {
     consultaMemosServiciosEspeciales,
@@ -16,6 +16,7 @@ import TablaAuditoria from "./components/TablaAuditoria.jsx";
 import ModalesRevision from "./components/ModalesRevision.jsx";
 import SessionExpiryBadge from "../../components/SessionExpiryBadge.jsx";
 import toast from "bootstrap/js/src/toast.js";
+import {getUnidadesConJerarquia} from "../../api/commonServicesApi.js";
 
 export default function AuditoriaMemos() {
 
@@ -54,6 +55,26 @@ export default function AuditoriaMemos() {
     const [sort, setSort] = useState({by: "_fechaSort", dir: "desc"});
     const [filtroDetenidos, setFiltroDetenidos] = useState(false);
 
+    const [jerarquiaUnidades, setJerarquiaUnidades] = useState([]);
+
+    /**
+     * Búsqueda por Subdireccion -> Region o Jefatura Nacional -> Prefectura -> Unidad
+     * aqui obtengo los id's de unidades que voy a buscar en los memos
+     * */
+    const [idSeleccion, setIdSeleccion] = useState([]);
+
+    useEffect(() => {
+        getUnidadesConJerarquia()
+            .then(res => setJerarquiaUnidades(res))
+            .catch(err => console.log(err));
+    }, []);
+
+    useEffect(() => {
+        console.log("idSeleccion: ", idSeleccion);
+    }, [idSeleccion]);
+
+
+
     /* ------------------ Handlers ------------------ */
 
     const buildFiltersPMSUBDIPOL = () => ({
@@ -91,6 +112,9 @@ export default function AuditoriaMemos() {
     };
 
     const buildFilters = () => {
+        console.log("Memos Ids: ", memoIds)
+        console.log("SerchMode: ", searchMode)
+
         const base = {
             fechaInicioUtc: toUTCISO(payload.fechaInicio),
             fechaTerminoUtc: toUTCISO(payload.fechaTermino),
@@ -102,6 +126,10 @@ export default function AuditoriaMemos() {
         if (searchMode === "unidades") {
             const unidades = (unidadesSeleccionadas || []).map((o) => o.value);
             return {modo: "unidades", ...base, unidades, unidad: unidades[0] || null};
+        }
+
+        if (searchMode === "delitos") {
+            return {modo: "delitos", ...base, identificadoresUnidades: idSeleccion}
         }
 
         return {
@@ -130,18 +158,35 @@ export default function AuditoriaMemos() {
                 setErr("Debes ingresar al menos un ID de memo.");
                 return;
             }
+        } else if (searchMode === "delitos") { // ⭐ AGREGAR VALIDACIÓN PARA MODO DELITOS
+            console.log("🔍 Validando modo delitos...");
+            console.log("📋 idSeleccion actual:", idSeleccion);
+            console.log("📊 Cantidad de IDs:", idSeleccion?.length);
+
+            if (!idSeleccion || idSeleccion.length === 0) {
+                setErr("Debes seleccionar al menos una Región Policial, Jefatura Nacional o Prefectura.");
+                return;
+            }
         }
 
         const filtros = buildFilters();
+
+        console.log("📦 Filtros construidos para enviar:", filtros);
 
         setLoading(true);
         setSelected(null);
 
         try {
             if (searchMode === "unidades") {
+                console.log("🔵 Consultando por UNIDADES");
                 data = await consultaMemosServiciosEspeciales(filtros);
             } else if (searchMode === "folio") {
+                console.log("🟢 Consultando por FOLIO");
                 data = await consultarMemosPorIds(filtros);
+            } else if (searchMode === "delitos") { // ⭐ CASO EXPLÍCITO PARA DELITOS
+                console.log("🟣 Consultando por DELITOS/JERARQUÍA");
+                console.log("📨 Enviando al backend:", filtros);
+                data = await consultaMemosServiciosEspeciales(filtros);
             }
             console.log("Data: ", data)
             const normalizados = (Array.isArray(data) ? data : []).map(normalizeMemo);
@@ -389,6 +434,8 @@ export default function AuditoriaMemos() {
                 setRegionSeleccionada={setRegionSeleccionada}
                 filtroDetenidos={filtroDetenidos}
                 setFiltroDetenidos={setFiltroDetenidos}
+                jerarquiaUnidades={jerarquiaUnidades}
+                setIdSeleccion={setIdSeleccion}
             />
 
             <TablaAuditoria

@@ -39,6 +39,8 @@ public class ServiciosEspecialesService {
         this.fichaPersonaSimpleMapper = fichaPersonaSimpleMapper;
     }
 
+
+
     @Transactional(readOnly = true)
     public List<FichaMemoDTO> listarMemos(FichaMemoRequestDTO solicitud) {
 
@@ -69,6 +71,25 @@ public class ServiciosEspecialesService {
             }
         }
 
+        // ⭐ NUEVO: Procesamiento de identificadoresUnidades (IDs de idUnidad)
+        List<Long> unidadIdsDesdeIdentificadores = null;
+        if (solicitud.getIdentificadoresUnidades() != null && !solicitud.getIdentificadoresUnidades().isEmpty()) {
+            System.out.println("[DEBUG] Procesando identificadoresUnidades: " + solicitud.getIdentificadoresUnidades());
+
+            // Convertir los IDs a List<Long> si es necesario
+            List<Long> identificadores = solicitud.getIdentificadoresUnidades();
+
+            // Llamar al método del repositorio que convierte idUnidad -> id
+            unidadIdsDesdeIdentificadores = unidadRepo.findIdsByIdUnidadIn(identificadores);
+
+            System.out.println("[DEBUG] IDs de ListaUnidades obtenidos: " + unidadIdsDesdeIdentificadores);
+
+            if (unidadIdsDesdeIdentificadores == null || unidadIdsDesdeIdentificadores.isEmpty()) {
+                System.out.println("[WARN] No se encontraron unidades para los identificadores proporcionados");
+                return List.of();
+            }
+        }
+
         // 1) Unificar unidad (string) + unidades (lista) en una sola lista de nombres únicos
         List<String> nombresUnidades = new ArrayList<>();
         if (solicitud.getUnidades() != null) {
@@ -89,7 +110,43 @@ public class ServiciosEspecialesService {
 
         List<FichaMemo> memos;
 
-        if (!nombresUnidades.isEmpty()) {
+        // ⭐ PRIORIDAD A identificadoresUnidades si vienen
+        if (unidadIdsDesdeIdentificadores != null && !unidadIdsDesdeIdentificadores.isEmpty()) {
+            System.out.println("[DEBUG] Consultando memos con IDs de unidades: " + unidadIdsDesdeIdentificadores);
+
+            if (filtroDetenidos) {
+                memos = memoRepo.findByIdsAndUnidadIdIn(idsMemosConDetenidos, unidadIdsDesdeIdentificadores);
+                if (filtraTipo) {
+                    memos = memos.stream().filter(m -> tipoMemo.equals(m.getFormulario())).toList();
+                }
+            } else if (filtraTipo) {
+                if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
+                    memos = memoRepo.findByFormularioAndFechaBetweenAndUnidadIdIn(
+                            tipoMemo, fechaInicio, fechaTermino, unidadIdsDesdeIdentificadores
+                    );
+                } else {
+                    memos = memoRepo.findByFormularioAndCreatedAtBetweenAndUnidadIdIn(
+                            tipoMemo, fechaInicio, fechaTermino, unidadIdsDesdeIdentificadores
+                    );
+                }
+            } else {
+                // No filtrar por tipo de memo: obtenemos por fecha y filtramos por unidades
+                if (solicitud.getTipoFecha() != null && solicitud.getTipoFecha().equals("FECHA DEL HECHO")) {
+                    List<FichaMemo> todosPorFecha = memoRepo.findByFechaBetween(fechaInicio, fechaTermino);
+                    Set<Long> setUnidadIds = new HashSet<>(unidadIdsDesdeIdentificadores);
+                    memos = todosPorFecha.stream()
+                            .filter(m -> m.getUnidad() != null && m.getUnidad().getId() != null && setUnidadIds.contains(m.getUnidad().getId()))
+                            .toList();
+                } else {
+                    List<FichaMemo> todosPorFecha = memoRepo.findByCreatedAtBetween(fechaInicio, fechaTermino);
+                    Set<Long> setUnidadIds = new HashSet<>(unidadIdsDesdeIdentificadores);
+                    memos = todosPorFecha.stream()
+                            .filter(m -> m.getUnidad() != null && m.getUnidad().getId() != null && setUnidadIds.contains(m.getUnidad().getId()))
+                            .toList();
+                }
+            }
+
+        } else if (!nombresUnidades.isEmpty()) {
             // 2) Resolver cada unidad por nombre normalizado (tolerante a mayúsculas/espacios)
             List<Long> unidadIds = new ArrayList<>();
             for (String nombre : nombresUnidades) {

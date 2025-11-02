@@ -194,8 +194,8 @@ public class UnidadesService {
         // Agrupar por Región -> Jefatura
         Map<String, Map<String, List<Unidad>>> porRegionLuegoJefatura = unidades.stream()
                 .collect(Collectors.groupingBy(
-                        u -> nvl(u.getNombreRegion()),
-                        Collectors.groupingBy(u -> nvl(u.getNombreUnidadReporta()))
+                        u -> nvl(u.getNombreUnidadReporta()),
+                        Collectors.groupingBy(u -> nvl(u.getNombreUnidad()))
                 ));
 
         // Construcción de DTOs

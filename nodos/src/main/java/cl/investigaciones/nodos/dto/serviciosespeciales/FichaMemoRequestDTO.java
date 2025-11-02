@@ -16,6 +16,7 @@ public class FichaMemoRequestDTO {
     private String unidad;
     private List<String> unidades;
     private List<Long> memoIds;
+    private List<Long> identificadoresUnidades;
 
     // Nuevo filtro opcional para mostrar solo memos con personas detenidas
     private Boolean filtroDetenidos;

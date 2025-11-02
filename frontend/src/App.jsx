@@ -42,35 +42,35 @@ export default function App() {
         <Router basename="/turnos">
             <Routes>
                 <Route path="/jose" element={<TablaJose/>}/>
-                <Route path="/dev" element={<DevLayout/>}>
-                    {/* Ruta para la gestión de plantillas */}
-                    {/* URL final: /dev/plantillas */}
+                {/*<Route path="/dev" element={<DevLayout/>}>
+                     Ruta para la gestión de plantillas
+                     URL final: /dev/plantillas
                     <Route path="plantillas" element={<PlantillasPage/>}/>
 
-                    {/* Ruta para el dashboard de calendarios */}
-                    {/* URL final: /dev/calendarios */}
+                     Ruta para el dashboard de calendarios
+                     URL final: /dev/calendarios
                     <Route path="calendarios" element={<CalendariosPage/>}/>
 
-                    {/* Ruta para la página de configuración (con ID dinámico) */}
-                    {/* URL final: /dev/calendarios/1/configurar */}
+                     Ruta para la página de configuración (con ID dinámico)
+                     URL final: /dev/calendarios/1/configurar
                     <Route
                         path="calendarios/:id/configurar"
                         element={<ConfiguracionCalendarioPage/>}
                     />
 
-                    {/* Ruta para la página de visualización (con ID dinámico) */}
-                    {/* URL final: /dev/calendarios/1/ver */}
+                     Ruta para la página de visualización (con ID dinámico)
+                     URL final: /dev/calendarios/1/ver
                     <Route
                         path="calendarios/:id/ver"
                         element={<VisualizacionCalendarioPage/>}
                     />
 
-                    {/* Esta es la ruta "index" del grupo /dev.
+                     Esta es la ruta "index" del grupo /dev.
             Si un usuario va a /dev o /dev/, será redirigido
             automáticamente a /dev/calendarios.
-          */}
+
                     <Route index element={<Navigate to="calendarios" replace/>}/>
-                </Route>
+                </Route>*/}
                 <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout/></RestrictedAreaAdmin>}>
                     <Route index element={<Admin/>}/>
                     <Route path="plantillas" element={<PlantillaTurnoBuilder/>}/>
