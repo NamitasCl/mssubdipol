@@ -11,7 +11,7 @@ const TablaJose = () => {
     const [fichas, setFichas] = React.useState([]);
     const [fechaVisualizar, setFechaVisualizar] = React.useState(null);
 
-    const API_URL = "http://localhost:8013/api/nodos/servicios-especiales/personas";
+    const API_URL = "https://rac.investigaciones.cl/api/nodos/servicios-especiales/personas";
 
     useEffect(() => {
         const getFichas = async () => {
