@@ -3,12 +3,14 @@ package cl.investigaciones.nodos.service.consulta;
 import cl.investigaciones.nodos.domain.auditoriamemos.MemoRevisado;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaMemo;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaPersona;
+import cl.investigaciones.nodos.domain.entidadesconsulta.FichaVehiculo;
 import cl.investigaciones.nodos.dto.consulta.*;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
 import cl.investigaciones.nodos.mapper.consulta.FichaPersonaSimpleMapper;
 import cl.investigaciones.nodos.repository.auditoriamemos.MemoRevisadoRepository;
 import cl.investigaciones.nodos.repository.consulta.FichaMemoRepository;
 import cl.investigaciones.nodos.repository.consulta.FichaPersonaRepository;
+import cl.investigaciones.nodos.repository.consulta.FichaVehiculoRepository;
 import cl.investigaciones.nodos.repository.consulta.ListaUnidadRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,20 +27,22 @@ public class ServiciosEspecialesService {
     private final FichaPersonaRepository personaRepo;
     private final MemoRevisadoRepository memoRevisadoRepository;
     private final FichaPersonaSimpleMapper fichaPersonaSimpleMapper;
+    private final FichaVehiculoRepository fichaVehiculoRepository;
 
 
     public ServiciosEspecialesService(FichaMemoRepository memoRepo,
                                       ListaUnidadRepository unidadRepo,
                                       FichaPersonaRepository personaRepo,
                                       MemoRevisadoRepository memoRevisadoRepository,
-                                      FichaPersonaSimpleMapper fichaPersonaSimpleMapper) {
+                                      FichaPersonaSimpleMapper fichaPersonaSimpleMapper,
+                                      FichaVehiculoRepository fichaVehiculoRepository) {
         this.memoRepo = memoRepo;
         this.unidadRepo = unidadRepo;
         this.personaRepo = personaRepo;
         this.memoRevisadoRepository = memoRevisadoRepository;
         this.fichaPersonaSimpleMapper = fichaPersonaSimpleMapper;
+        this.fichaVehiculoRepository = fichaVehiculoRepository;
     }
-
 
 
     @Transactional(readOnly = true)
@@ -669,14 +673,56 @@ public class ServiciosEspecialesService {
             // Mapeo seguro del memo y tipo de diligencia
             if (persona.getMemo() != null) {
                 dto.setMemoId(persona.getMemo().getId());
-                // Mapeo seguro del tipo de diligencia
                 dto.setTipoDiligencia(persona.getMemo().getTipo());
                 dto.setFechaHecho(persona.getMemo().getFecha());
                 dto.setFechaRegistroMemo(persona.getMemo().getCreatedAt());
+
+                var unidad = persona.getMemo().getUnidad();
+                dto.setUnidad(unidad != null ? unidad.getNombreUnidad() : null);
             } else {
                 dto.setMemoId(null);
                 dto.setTipoDiligencia(null);
+                dto.setFechaHecho(null);
+                dto.setFechaRegistroMemo(null);
+                dto.setUnidad(null);
             }
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<FichaVehiculoModificableDTO> listarVehiculos() {
+
+        List<FichaVehiculo> vehiculos = fichaVehiculoRepository.findAllWithRelations();
+
+        return vehiculos.stream().map(vehiculo -> {
+            FichaVehiculoModificableDTO dto = new FichaVehiculoModificableDTO();
+
+            dto.setId(vehiculo.getId());
+            dto.setPatente(vehiculo.getPatente());
+            dto.setCreatedAt(vehiculo.getMemo() != null ? vehiculo.getMemo().getCreatedAt() : null);
+            dto.setCalidad(vehiculo.getCalidad());
+            dto.setObservaciones(vehiculo.getObs());
+
+            // Relaciones básicas
+            if (vehiculo.getMarca() != null) {
+                dto.setMarca(vehiculo.getMarca().getMarca());
+            }
+
+            if (vehiculo.getModelo() != null) {
+                dto.setModelo(vehiculo.getModelo().getModelo());
+            }
+
+            // Memo asociado (y unidad si existe)
+            if (vehiculo.getMemo() != null) {
+                dto.setMemoId(vehiculo.getMemo().getId());
+                dto.setTipo(vehiculo.getTipo().getTipoVehiculo());
+
+                if (vehiculo.getMemo().getUnidad() != null) {
+                    dto.setUnidad(vehiculo.getMemo().getUnidad().getNombreUnidad());
+                }
+            }
+
             return dto;
         }).collect(Collectors.toList());
     }

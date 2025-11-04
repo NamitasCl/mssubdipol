@@ -61,7 +61,7 @@ export default function TablaAuditoria({
             <div className="d-flex align-items-center justify-content-between mb-2">
                 <div className="d-flex align-items-center gap-2">
                     <div className="d-flex align-items-center gap-2">
-                        <Badge bg="dark" pill>
+                        <Badge bg="dark" style={{width: 300, fontSize: "1rem"}}>
                             {total} resultado{total === 1 ? "" : "s"}
                             {total > 0 && (
                                 <>

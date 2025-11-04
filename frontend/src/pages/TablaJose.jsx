@@ -9,16 +9,19 @@ import axios from "axios";
 const TablaJose = () => {
 
     const [fichas, setFichas] = React.useState([]);
-    const [fechaVisualizar, setFechaVisualizar] = React.useState(null);
+    const [vehiculos, setVehiculos] = React.useState([]);
 
-    const API_URL = "https://rac.investigaciones.cl/api/nodos/servicios-especiales/personas";
+    const API_URL_PERSONAS = "http://localhost:8013/api/nodos/servicios-especiales/personas";
+    const API_URL_VEHICULOS = "http://localhost:8013/api/nodos/servicios-especiales/vehiculos";
 
     useEffect(() => {
         const getFichas = async () => {
             try {
-                const response = await axios.get(API_URL);
-                setFichas(response.data);
-                console.log(response.data);
+                const responsePersonas = await axios.get(API_URL_PERSONAS);
+                const responseVehiculos = await axios.get(API_URL_VEHICULOS);
+                setFichas(responsePersonas.data);
+                setVehiculos(responseVehiculos.data);
+                console.log(responsePersonas.data);
             } catch (error) {
                 console.error("Error al obtener las fichas:", error);
             }
@@ -91,6 +94,39 @@ const TablaJose = () => {
             "Fono": ficha.fono,
             "Email": ficha.correoElectronico,
             "Observaciones": ficha.observaciones,
+            "unidad": ficha.unidad,
+            //"Tipo de diligencia": ficha.tipoDiligencia,
+        }));
+
+        // 2. Creamos la hoja de cálculo (Worksheet)
+        const ws = XLSX.utils.json_to_sheet(datosParaExcel);
+
+        // 3. Creamos el libro (Workbook) y añadimos la hoja
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "FichasPersonas"); // "FichasPersonas" es el nombre de la pestaña
+
+        // 4. Generamos el archivo y disparamos la descarga
+        XLSX.writeFile(wb, "reporte_fichas_persona.xlsx");
+    };
+
+    /**
+     * Manejador del clic del botón para exportar a Excel.
+     */
+    const handleExportarVehiculos = () => {
+        // 1. Mapeamos los datos al formato deseado para Excel
+        //    (Aquí sí incluimos TODOS los campos del DTO)
+        const datosParaExcel = vehiculos.map(vehiculo => ({
+            "ID": vehiculo.id,
+            "Fecha Creación": new Date(vehiculo.createdAt),
+            "Patente": vehiculo.patente,
+            "Tipo": vehiculo.tipo,
+            "Marca": vehiculo.marca,
+            "Modelo": vehiculo.modelo,
+            "Color": vehiculo.color,
+            "Calidad": vehiculo.calidad,
+            "Unidad": vehiculo.unidad,
+            "Observacion": vehiculo.observaciones,
+            "Memo id": vehiculo.memoId
             //"Tipo de diligencia": ficha.tipoDiligencia,
         }));
 
@@ -126,14 +162,18 @@ const TablaJose = () => {
         }
     };
 
-    if (!fichas || fichas.length === 0) {
+    /*if (!fichas || fichas.length === 0) {
         return <p>No hay fichas para mostrar.</p>;
-    }
+    }*/
 
     return (
         <div>
             <button onClick={handleExportar} style={styles.boton}>
-                Exportar a Excel
+                Personas
+            </button>
+
+            <button onClick={handleExportarVehiculos} style={styles.boton}>
+                Vehiculos
             </button>
 
             {/*<table style={styles.tabla}>

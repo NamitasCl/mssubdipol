@@ -32,11 +32,15 @@ public interface FichaPersonaRepository extends JpaRepository<FichaPersona, Long
                                                               @Param("fechaFin") OffsetDateTime fechaFin);
 
 
-    @Query("select distinct f from FichaPersona f " +
-            "left join fetch f.nacionalidad n " +
-            "left join fetch f.estados e " +
-            "left join fetch f.delitos d " +
-            "left join fetch f.memo m")
+    @Query("""
+            select distinct f
+            from FichaPersona f
+            left join fetch f.nacionalidad n
+            left join fetch f.estados e
+            left join fetch f.delitos d
+            left join fetch f.memo m
+            left join fetch m.unidad mu
+            """)
     List<FichaPersona> findAllWithRelations();
 
 }

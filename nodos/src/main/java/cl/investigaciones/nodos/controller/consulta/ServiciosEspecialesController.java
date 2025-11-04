@@ -112,9 +112,18 @@ public class ServiciosEspecialesController {
         try {
             return ResponseEntity.ok(serviciosEspecialesService.listarPersonas());
         } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage() + "");
             return ResponseEntity.badRequest().build();
         }
+    }
 
-
+    @GetMapping("/vehiculos")
+    public ResponseEntity<?> listarVehiculos() {
+        try {
+            return ResponseEntity.ok(serviciosEspecialesService.listarVehiculos());
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage() + "");
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
