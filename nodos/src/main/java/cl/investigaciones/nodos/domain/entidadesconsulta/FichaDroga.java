@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Immutable;
 
+import java.time.OffsetDateTime;
+
 @Entity
 @Table(name = "ficha_drogas", schema = "public")
 @Data
@@ -12,6 +14,9 @@ public class FichaDroga {
 
     @Id
     private Long id;
+
+    @Column(name = "\"created_at\"")
+    private OffsetDateTime createdAt;
 
     @Column(name = "\"droga\"")
     private String tipoDroga;

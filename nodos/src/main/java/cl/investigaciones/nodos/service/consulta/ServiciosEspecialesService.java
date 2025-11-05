@@ -1,6 +1,7 @@
 package cl.investigaciones.nodos.service.consulta;
 
 import cl.investigaciones.nodos.domain.auditoriamemos.MemoRevisado;
+import cl.investigaciones.nodos.domain.entidadesconsulta.FichaDroga;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaMemo;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaPersona;
 import cl.investigaciones.nodos.domain.entidadesconsulta.FichaVehiculo;
@@ -8,10 +9,7 @@ import cl.investigaciones.nodos.dto.consulta.*;
 import cl.investigaciones.nodos.dto.serviciosespeciales.FichaMemoRequestDTO;
 import cl.investigaciones.nodos.mapper.consulta.FichaPersonaSimpleMapper;
 import cl.investigaciones.nodos.repository.auditoriamemos.MemoRevisadoRepository;
-import cl.investigaciones.nodos.repository.consulta.FichaMemoRepository;
-import cl.investigaciones.nodos.repository.consulta.FichaPersonaRepository;
-import cl.investigaciones.nodos.repository.consulta.FichaVehiculoRepository;
-import cl.investigaciones.nodos.repository.consulta.ListaUnidadRepository;
+import cl.investigaciones.nodos.repository.consulta.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +26,7 @@ public class ServiciosEspecialesService {
     private final MemoRevisadoRepository memoRevisadoRepository;
     private final FichaPersonaSimpleMapper fichaPersonaSimpleMapper;
     private final FichaVehiculoRepository fichaVehiculoRepository;
+    private final FichaDrogaRepository fichaDrogaRepository;
 
 
     public ServiciosEspecialesService(FichaMemoRepository memoRepo,
@@ -35,13 +34,15 @@ public class ServiciosEspecialesService {
                                       FichaPersonaRepository personaRepo,
                                       MemoRevisadoRepository memoRevisadoRepository,
                                       FichaPersonaSimpleMapper fichaPersonaSimpleMapper,
-                                      FichaVehiculoRepository fichaVehiculoRepository) {
+                                      FichaVehiculoRepository fichaVehiculoRepository,
+                                      FichaDrogaRepository fichaDrogaRepository) {
         this.memoRepo = memoRepo;
         this.unidadRepo = unidadRepo;
         this.personaRepo = personaRepo;
         this.memoRevisadoRepository = memoRevisadoRepository;
         this.fichaPersonaSimpleMapper = fichaPersonaSimpleMapper;
         this.fichaVehiculoRepository = fichaVehiculoRepository;
+        this.fichaDrogaRepository = fichaDrogaRepository;
     }
 
 
@@ -722,6 +723,27 @@ public class ServiciosEspecialesService {
                     dto.setUnidad(vehiculo.getMemo().getUnidad().getNombreUnidad());
                 }
             }
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<FichaDrogaModificableDTO> listarDroga() {
+
+        List<FichaDroga> drogaEncontrada = fichaDrogaRepository.findAll();
+
+        return drogaEncontrada.stream().map(itemDroga -> {
+            FichaDrogaModificableDTO dto = new FichaDrogaModificableDTO();
+
+            dto.setId(itemDroga.getId());
+            dto.setCreatedAt(itemDroga.getCreatedAt());
+            dto.setTipoDroga(itemDroga.getTipoDroga());
+            dto.setUnidadMedida(itemDroga.getUnidadMedida());
+            dto.setCantidadDroga(itemDroga.getCantidadDroga());
+            dto.setObs(itemDroga.getObs());
+            dto.setMemo(itemDroga.getMemo().getId());
+            dto.setFechaHechoMemo(itemDroga.getMemo().getFecha());
 
             return dto;
         }).collect(Collectors.toList());

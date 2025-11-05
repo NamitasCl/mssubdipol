@@ -10,18 +10,24 @@ const TablaJose = () => {
 
     const [fichas, setFichas] = React.useState([]);
     const [vehiculos, setVehiculos] = React.useState([]);
+    const [drogas, setDrogas] = React.useState([]);
 
     const API_URL_PERSONAS = "http://localhost:8013/api/nodos/servicios-especiales/personas";
     const API_URL_VEHICULOS = "http://localhost:8013/api/nodos/servicios-especiales/vehiculos";
+    const API_URL_DROGAS = "http://localhost:8013/api/nodos/servicios-especiales/drogas";
 
     useEffect(() => {
         const getFichas = async () => {
             try {
                 const responsePersonas = await axios.get(API_URL_PERSONAS);
                 const responseVehiculos = await axios.get(API_URL_VEHICULOS);
+                const responseDrogas = await axios.get(API_URL_DROGAS);
                 setFichas(responsePersonas.data);
                 setVehiculos(responseVehiculos.data);
-                console.log(responsePersonas.data);
+                setDrogas(responseDrogas.data);
+                console.log("Personas:", responsePersonas.data.length);
+                console.log("Vehiculos:", responseVehiculos.data.length);
+                console.log("Droga:", responseDrogas.data.length);
             } catch (error) {
                 console.error("Error al obtener las fichas:", error);
             }
@@ -141,6 +147,35 @@ const TablaJose = () => {
         XLSX.writeFile(wb, "reporte_fichas_persona.xlsx");
     };
 
+    /**
+     * Manejador del clic del botón para exportar a Excel.
+     */
+    const handleExportarDroga = () => {
+        // 1. Mapeamos los datos al formato deseado para Excel
+        //    (Aquí sí incluimos TODOS los campos del DTO)
+        const datosParaExcel = drogas.map(droga => ({
+            "ID": droga.id,
+            "Fecha Creación": new Date(droga.createdAt),
+            "Fecha hecho memo": new Date(droga.fechaHechoMemo),
+            "Tipo": droga.tipoDroga,
+            "Unidad medida": droga.unidadMedida,
+            "Cantidad": parseFloat(droga.cantidadDroga),
+            "Observacion": droga.obs,
+            "Memo id": droga.memoId
+            //"Tipo de diligencia": ficha.tipoDiligencia,
+        }));
+
+        // 2. Creamos la hoja de cálculo (Worksheet)
+        const ws = XLSX.utils.json_to_sheet(datosParaExcel);
+
+        // 3. Creamos el libro (Workbook) y añadimos la hoja
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "FichasPersonas"); // "FichasPersonas" es el nombre de la pestaña
+
+        // 4. Generamos el archivo y disparamos la descarga
+        XLSX.writeFile(wb, "reporte_fichas_persona.xlsx");
+    };
+
 
     // --- SECCIÓN DE RENDERIZADO (JSX) ---
 
@@ -174,6 +209,10 @@ const TablaJose = () => {
 
             <button onClick={handleExportarVehiculos} style={styles.boton}>
                 Vehiculos
+            </button>
+
+            <button onClick={handleExportarDroga} style={styles.boton}>
+                Droga
             </button>
 
             {/*<table style={styles.tabla}>

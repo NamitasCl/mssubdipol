@@ -126,4 +126,14 @@ public class ServiciosEspecialesController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @GetMapping("/drogas")
+    public ResponseEntity<?> listarDrogas() {
+        try {
+            return ResponseEntity.ok(serviciosEspecialesService.listarDroga());
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage() + "");
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
