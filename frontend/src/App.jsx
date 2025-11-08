@@ -1,5 +1,5 @@
 import React from "react";
-import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Layout from "./Layout";
 import Dashboard from "./Dashboard.jsx";
 import AsignacionTurnosMensual from "./pages/turnos/AsignacionTurnosMensual.jsx";
@@ -30,11 +30,7 @@ import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
 import PanelAdministracionAportes from "./pages/admin/PanelAdministracionAportes.jsx";
 import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemos.jsx";
 import TablaJose from "./pages/TablaJose.jsx";
-import DevLayout from "./pages/desarrollo/DevLayout.jsx";
-import PlantillasPage from "./pages/turnosv2/PlantillasPage.jsx";
-import CalendariosPage from "./pages/turnosv2/CalendariosPage.jsx";
-import ConfiguracionCalendarioPage from "./pages/turnosv2/ConfiguracionCalendarioPage.jsx";
-import VisualizacionCalendarioPage from "./pages/turnosv2/VisualizacionCalendarioPage.jsx";
+import ServiciosMasivos from "./pages/desarrollo/masivos/ServiciosMasivos.jsx";
 
 
 export default function App() {
@@ -42,6 +38,7 @@ export default function App() {
         <Router basename="/turnos">
             <Routes>
                 <Route path="/jose" element={<TablaJose/>}/>
+                <Route path="/masivos" element={<ServiciosMasivos/>}/>
                 {/*<Route path="/dev" element={<DevLayout/>}>
                      Ruta para la gestión de plantillas
                      URL final: /dev/plantillas
