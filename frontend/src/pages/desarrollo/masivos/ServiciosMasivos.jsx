@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import AsyncSelect from 'react-select/async';
 // 1. Ya no importamos el CSS Module
 import HeaderMasivos from "./HeaderMasivos.jsx";
+import {Card, Container} from "react-bootstrap";
 
 // --- Funciones de Validación (Módulo 11) ---
 // ... (Esta lógica no cambia en absoluto)
@@ -123,10 +124,10 @@ function FormularioDetencion() {
     // 2. Aquí aplicamos las clases de Bootstrap
     return (
         <div>
-            <HeaderMasivos/>
+            <HeaderMasivos />
 
-            <div className="container-fluid mt-4 mb-5">
-                <div className="card shadow-sm border-0">
+            <Container>
+                <Card>
                     <div className="card-body p-4 p-md-5">
 
                         <h2 className="text-center mb-4 h3">Formulario de Detención</h2>
@@ -375,8 +376,8 @@ function FormularioDetencion() {
                             </button>
                         </form>
                     </div>
-                </div>
-            </div>
+                </Card>
+            </Container>
         </div>
     );
 }

@@ -31,6 +31,7 @@ import PanelAdministracionAportes from "./pages/admin/PanelAdministracionAportes
 import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemos.jsx";
 import TablaJose from "./pages/TablaJose.jsx";
 import ServiciosMasivos from "./pages/desarrollo/masivos/ServiciosMasivos.jsx";
+import ServiciosMasivosRHF from "./pages/desarrollo/masivos/ServiciosMasivosRHF.jsx";
 
 
 export default function App() {
@@ -38,7 +39,7 @@ export default function App() {
         <Router basename="/turnos">
             <Routes>
                 <Route path="/jose" element={<TablaJose/>}/>
-                <Route path="/masivos" element={<ServiciosMasivos/>}/>
+                <Route path="/masivos" element={<ServiciosMasivosRHF />}/>
                 {/*<Route path="/dev" element={<DevLayout/>}>
                      Ruta para la gestión de plantillas
                      URL final: /dev/plantillas
