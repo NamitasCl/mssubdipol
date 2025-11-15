@@ -6,6 +6,7 @@ import PermissionsManager from "./PermissionsManager";
 import QuotasManager from "./QuotasManager";
 import FormPreview from "./FormPreview";
 import { FIELD_TYPES } from "../mockData";
+import {FaTrash} from "react-icons/fa";
 
 export default function FormularioBuilder({ formulario, onGuardar, onCancelar }) {
     // Estados del formulario
@@ -583,7 +584,7 @@ export default function FormularioBuilder({ formulario, onGuardar, onCancelar })
                                                                                         style={{ borderRadius: "6px" }}
                                                                                         title="Duplicar"
                                                                                     >
-                                                                                        <i className="bi bi-files"></i>
+                                                                                        Duplicar
                                                                                     </Button>
                                                                                     <Button
                                                                                         variant="outline-danger"
@@ -595,7 +596,7 @@ export default function FormularioBuilder({ formulario, onGuardar, onCancelar })
                                                                                         style={{ borderRadius: "6px" }}
                                                                                         title="Eliminar"
                                                                                     >
-                                                                                        <i className="bi bi-trash"></i>
+                                                                                        <FaTrash />
                                                                                     </Button>
                                                                                 </div>
                                                                             </div>

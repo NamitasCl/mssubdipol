@@ -121,7 +121,33 @@ export const AuthProvider = ({children}) => {
         };
     }, []);
 
+    const fakeLogin = () => {
+        const mockUser = {
+            roles: ["ROLE_ADMINISTRADOR", "ROLE_JEFE", "ROLE_FUNCIONARIO"],
+            isAuthenticated: true,
+            nombreCargo: "",
+            nombreUsuario: "ENZO ALEJANDRO RAMIREZ SILVA",
+            nombreUnidad: "PLANA MAYOR DE LA SUBDIPOL",
+            siglasUnidad: "PMSUBDIPOL",
+            isAdmin: true,
+            idFuncionario: 12254
+        }
+        setUser(mockUser);
+        setIsAuth(true);
+        sessionStorage.setItem(SS_USER, JSON.stringify(mockUser));
+
+        // --- ¡AQUÍ ESTÁ EL CAMBIO! ---
+        const FAKE_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOSVNUUkFET1IiLCJST0xFX0pFRkUiLCJST0xFX0ZVTkNJT05BUklPIl0sIm5vbWJyZVVzdWFyaW8iOiJFTlpPIEFMRUpBTkRSTyBSQU1JUkVaIFNJTFZBIiwibm9tYnJlVW5pZGFkIjoiUExBTkEgTUFZT1IgREUgTEEgU1VCRElQT0wiLCJzaWdsYXNVbmlkYWQiOiJQTVNVQkRJUE9MIiwiaXNBZG1pbiI6dHJ1ZSwic3ViIjoiRVJBTUlSRVpTIiwiaWF0IjoxNjc4ODg2NDAwLCJleHAiOjk5OTk5OTk5OTl9.Mz09GJfnGENN1GmoKfKTQfZUMGh51NQJeR7eEPRQnrs";
+        sessionStorage.setItem(SS_TOKEN, FAKE_JWT);
+    }
+
     const login = async (credentials) => {
+
+        if (import.meta.env.VITE_MODE_ACTUAL === "desarrollo") {
+            fakeLogin();
+            return;
+        }
+
         const res = await fetch(`${import.meta.env.VITE_AUTH_API_URL}/login`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
