@@ -19,6 +19,10 @@ export default function MemoDetalleModal({
     const rolesPermitidosJenadep = ["ROLE_JENADEP", "ROLE_JEFE", "ROLE_ADMINISTRADOR"];
     const rolesPermitidosAuditoria = ["ROLE_REVISOR", "ROLE_JEFE", "ROLE_ADMINISTRADOR"]
 
+    /**
+     * Comentario para hacer un push
+     * */
+
     return (
         <Modal show={!!selected} onHide={onHide} fullscreen="lg-down" fullscreen>
             <Modal.Header closeButton>
