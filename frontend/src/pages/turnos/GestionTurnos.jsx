@@ -18,7 +18,7 @@ import UnitAssignmentView from "./UnitAssignmentView.jsx";
 import { FaArrowLeft } from "react-icons/fa";
 import PlantillasTurnoCrudModal from "./PlantillasTurnoCrudModal.jsx";
 import AgregarPlantillasMes from "./AgregarPlantillasMes.jsx";
-import {useAuth} from "../../components/contexts/AuthContext.jsx";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
 
 // Paleta institucional
 const azulPDI = "#17355A";
@@ -29,7 +29,7 @@ const grisClaro = "#eceff4";
 const textoSecundario = "#4a5975";
 
 function GestionTurnos({ setModo }) {
-    const {user} = useAuth();
+    const { user } = useAuth();
     const today = new Date();
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
     const [selectedYear, setSelectedYear] = useState(today.getFullYear());
@@ -41,6 +41,14 @@ function GestionTurnos({ setModo }) {
     const [showAgregarPlantillas, setShowAgregarPlantillas] = useState(false);
     const [loading, setLoading] = useState(false);
     const [nombreTurnos, setNombreTurnos] = useState(null);
+    const [calendario, setCalendario] = useState(null);
+    const [showObservarModal, setShowObservarModal] = useState(false);
+    const [observacion, setObservacion] = useState("");
+    const [processingRevision, setProcessingRevision] = useState(false);
+
+    // Permisos
+    const roles = user?.roles || [];
+    const puedeRevisar = roles.some(r => ["ROLE_JEFE_UNIDAD", "ROLE_SUBJEFE_UNIDAD", "ROLE_JEFE"].includes(r));
 
     // Carga estado de apertura y plantillas usadas en el mes (si existe TurnoAsignacion)
     useEffect(() => {
@@ -56,11 +64,13 @@ function GestionTurnos({ setModo }) {
                 params: { mes: selectedMonth + 1, anio: selectedYear }
             });
             const dto = resp.data;
-            setIsMonthOpen(true); // Si hay registro, está abierto (ajusta si tienes flag)
-            // Asume que tu DTO incluye las plantillas usadas en el mes, si no, carga por otro endpoint
+            setCalendario(dto);
+            setIsMonthOpen(dto.estado === 'ABIERTO');
+            setNombreTurnos(dto.nombre);
             setPlantillasSeleccionadas(dto.plantillasUsadas ?? []);
         } catch (err) {
             setIsMonthOpen(false);
+            setCalendario(null);
             setPlantillasSeleccionadas([]);
         } finally {
             setLoading(false);
@@ -172,6 +182,47 @@ function GestionTurnos({ setModo }) {
         return new Date(anio, mes, 0).getDate(); // mes: 1=enero, 12=diciembre
     }
 
+    const handleAprobar = async () => {
+        if (!window.confirm("¿Seguro de APROBAR este calendario?")) return;
+        try {
+            setProcessingRevision(true);
+            await axios.post(`${import.meta.env.VITE_TURNOS_API_URL}/aprobar`, null, {
+                params: {
+                    idCalendario: calendario.id,
+                    aprobador: user.idFuncionario
+                }
+            });
+            alert("Calendario aprobado exitosamente.");
+            fetchMesData();
+        } catch (e) {
+            console.error(e);
+            alert("Error al aprobar");
+        } finally {
+            setProcessingRevision(false);
+        }
+    };
+
+    const handleConfirmarObservacion = async () => {
+        if (!observacion.trim()) return alert("Ingrese un motivo para observar.");
+        try {
+            setProcessingRevision(true);
+            await axios.post(`${import.meta.env.VITE_TURNOS_API_URL}/observar`, {
+                idCalendario: calendario.id,
+                observador: user.idFuncionario,
+                motivo: observacion
+            });
+            alert("Calendario observado. Se ha notificado al encargado.");
+            setShowObservarModal(false);
+            setObservacion("");
+            fetchMesData();
+        } catch (e) {
+            console.error(e);
+            alert("Error al observar");
+        } finally {
+            setProcessingRevision(false);
+        }
+    };
+
     return (
         <div style={{
             background: blanco,
@@ -183,7 +234,7 @@ function GestionTurnos({ setModo }) {
             margin: "0 auto"
         }}>
             <div className="d-flex align-items-baseline mb-2 gap-3">
-                <div style={{minWidth: "500px"}}>
+                <div style={{ minWidth: "500px" }}>
                     <Button variant={"secondary"} size={"sm"} style={{ width: "auto", marginBottom: 10 }} onClick={() => setModo(null)}>
                         <FaArrowLeft style={{ marginRight: 7, fontSize: 17 }} />
                         Volver
@@ -202,7 +253,7 @@ function GestionTurnos({ setModo }) {
                         Gestión de Turnos Mensuales
                     </h2>
                 </div>
-                <div style={{width: "100%"}}>
+                <div style={{ width: "100%" }}>
                     <div style={{ width: "100%" }}>
                         {(() => {
                             // Asume que tienes mes y anio en variables, por ejemplo:
@@ -250,8 +301,8 @@ function GestionTurnos({ setModo }) {
                                                     marginLeft: 12,
                                                 }}
                                             >
-                            Faltan {faltan}
-                        </span>
+                                                Faltan {faltan}
+                                            </span>
                                         ) : (
                                             requeridos > 0 && (
                                                 <span
@@ -261,8 +312,8 @@ function GestionTurnos({ setModo }) {
                                                         marginLeft: 12,
                                                     }}
                                                 >
-                                ¡Completo!
-                            </span>
+                                                    ¡Completo!
+                                                </span>
                                             )
                                         )}
                                     </div>
@@ -421,6 +472,39 @@ function GestionTurnos({ setModo }) {
                                 </OverlayTrigger>
                             </div>
 
+                            {/* SECCION REVISION (Solo si existe calendario, no está abierto, y tengo permisos) */}
+                            {calendario && !isMonthOpen && puedeRevisar && (
+                                <div className="mt-3 p-3" style={{ backgroundColor: "#f0f4f8", borderRadius: 12 }}>
+                                    <h6 className="fw-bold mb-2">Revisión Jefatura</h6>
+                                    <div className="mb-2">Estado: <b>{calendario.estado}</b></div>
+                                    {calendario.observacionRevision && (
+                                        <div className="alert alert-warning p-2 small mb-2">
+                                            <b>Obs:</b> {calendario.observacionRevision}
+                                        </div>
+                                    )}
+                                    <div className="d-flex gap-2">
+                                        <Button
+                                            variant="success"
+                                            size="sm"
+                                            className="w-100"
+                                            onClick={handleAprobar}
+                                            disabled={processingRevision || calendario.estado === 'APROBADO'}
+                                        >
+                                            Aprobar
+                                        </Button>
+                                        <Button
+                                            variant="warning"
+                                            size="sm"
+                                            className="w-100"
+                                            onClick={() => setShowObservarModal(true)}
+                                            disabled={processingRevision}
+                                        >
+                                            Observar
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="mt-3">
                                 <MonthSelector
                                     selectedMonth={selectedMonth}
@@ -496,8 +580,50 @@ function GestionTurnos({ setModo }) {
                     </div>
                 </Col>
             </Row>
+
+            <ObservarModal
+                show={showObservarModal}
+                onHide={() => setShowObservarModal(false)}
+                onConfirm={handleConfirmarObservacion}
+                value={observacion}
+                onChange={setObservacion}
+            />
         </div>
     );
 }
 
 export default GestionTurnos;
+
+// Modal simple para observación
+function ObservarModal({ show, onHide, onConfirm, value, onChange }) {
+    return (
+        <React.Fragment>
+            {show && (
+                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Observar Calendario</h5>
+                                <button type="button" className="btn-close" onClick={onHide}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p>Ingrese el motivo de la observación:</p>
+                                <textarea
+                                    className="form-control"
+                                    rows="4"
+                                    value={value}
+                                    onChange={e => onChange(e.target.value)}
+                                    placeholder="Ej: Faltan turnos en la segunda semana..."
+                                />
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={onHide}>Cancelar</button>
+                                <button type="button" className="btn btn-warning" onClick={onConfirm}>Confirmar Observación</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </React.Fragment>
+    );
+}

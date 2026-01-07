@@ -1,0 +1,8 @@
+app:
+  modo-desarrollo:
+    activado: true
+    token: dev-token-12345
+
+spring:
+  profiles:
+    active: dev

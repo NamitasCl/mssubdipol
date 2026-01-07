@@ -38,6 +38,37 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader("Authorization");
         String username = null;
 
+        // Si estamos en modo desarrollo y no hay Authorization header, crear usuario mock
+        if (modoDesarrollo && (authorizationHeader == null || !authorizationHeader.startsWith("Bearer "))) {
+            username = "ERAMIREZS"; // Usuario de desarrollo
+            String nombreUsuario = "ENZO ALEJANDRO RAMIREZ SILVA";
+            String siglasUnidad = "PMSUBDIPOL";
+            List<String> rolesStrings = List.of("ROLE_ADMINISTRADOR", "ROLE_JEFE", "ROLE_FUNCIONARIO");
+            int idFuncionario = 12254;
+
+            // Crear el Principal
+            JwtUserPrincipal principal = new JwtUserPrincipal(username, nombreUsuario, siglasUnidad, rolesStrings, idFuncionario);
+
+            // Crear las Authorities
+            List<GrantedAuthority> authorities = rolesStrings.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+
+            // Crear el Token de Autenticación de Spring
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    principal,
+                    null,
+                    authorities
+            );
+
+            // Establecer la autenticación en el contexto de seguridad
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            logger.debug("Usuario mock de desarrollo configurado: " + username);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;

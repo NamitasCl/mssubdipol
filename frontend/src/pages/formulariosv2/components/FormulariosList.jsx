@@ -6,6 +6,7 @@ import { es } from "date-fns/locale";
 export default function FormulariosList({
     formularios,
     onVer,
+    onCompletar,
     onEditar,
     onDuplicar,
     onEliminar,
@@ -229,22 +230,41 @@ export default function FormulariosList({
                                     </div>
                                 </div>
 
-                                {/* Botón de acción */}
-                                <Button
-                                    variant="primary"
-                                    className="mt-3 w-100"
-                                    onClick={() => onVer(formulario)}
-                                    style={{
-                                        borderRadius: "10px",
-                                        fontWeight: "600",
-                                        padding: "10px",
-                                        background: "#17355A",
-                                        border: "none"
-                                    }}
-                                >
-                                    <i className="bi bi-eye me-2"></i>
-                                    Ver Formulario
-                                </Button>
+                                {/* Botones de acción */}
+                                <div className="mt-3 d-flex gap-2">
+                                    {onCompletar && formulario.estado === "activo" && (
+                                        <Button
+                                            variant="success"
+                                            className="flex-grow-1"
+                                            onClick={() => onCompletar(formulario)}
+                                            style={{
+                                                borderRadius: "10px",
+                                                fontWeight: "600",
+                                                padding: "10px",
+                                                border: "none"
+                                            }}
+                                        >
+                                            <i className="bi bi-pencil-square me-2"></i>
+                                            Completar
+                                        </Button>
+                                    )}
+                                    <Button
+                                        variant={onCompletar ? "outline-primary" : "primary"}
+                                        className={onCompletar ? "" : "w-100"}
+                                        onClick={() => onVer(formulario)}
+                                        style={{
+                                            borderRadius: "10px",
+                                            fontWeight: "600",
+                                            padding: "10px",
+                                            background: onCompletar ? "transparent" : "#17355A",
+                                            border: onCompletar ? "2px solid #17355A" : "none",
+                                            color: onCompletar ? "#17355A" : "white"
+                                        }}
+                                    >
+                                        <i className="bi bi-eye me-2"></i>
+                                        Ver
+                                    </Button>
+                                </div>
                             </Card.Body>
                         </Card>
                     </Col>

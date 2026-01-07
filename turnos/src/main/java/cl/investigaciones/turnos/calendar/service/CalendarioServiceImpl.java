@@ -138,4 +138,26 @@ public class CalendarioServiceImpl implements CalendarioService {
             return CalendarioMapper.toDto(repo.save(c));
         });
     }
+
+    @Override
+    public Optional<CalendarioResponseDTO> aprobar(Long id, String username) {
+        return repo.findById(id).filter(c -> !c.isEliminado()).map(c -> {
+            c.setEstado(CalendarState.APROBADO);
+            c.setRevisadoPor(username);
+            c.setFechaRevision(OffsetDateTime.now(ZoneId.of("America/Santiago")));
+            c.setObservacionRevision(null); // Limpiar observaciones previas si las hubo
+            return CalendarioMapper.toDto(repo.save(c));
+        });
+    }
+
+    @Override
+    public Optional<CalendarioResponseDTO> observar(Long id, String username, String observacion) {
+        return repo.findById(id).filter(c -> !c.isEliminado()).map(c -> {
+            c.setEstado(CalendarState.OBSERVADO);
+            c.setRevisadoPor(username);
+            c.setFechaRevision(OffsetDateTime.now(ZoneId.of("America/Santiago")));
+            c.setObservacionRevision(observacion);
+            return CalendarioMapper.toDto(repo.save(c));
+        });
+    }
 }

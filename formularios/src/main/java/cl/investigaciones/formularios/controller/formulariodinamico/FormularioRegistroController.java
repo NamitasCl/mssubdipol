@@ -69,8 +69,19 @@ public class FormularioRegistroController {
             @RequestParam(required = false) String idUnidad,
             @RequestParam(required = false) Integer idUsuario
     ) {
-        Integer userId = (idUsuario != null) ? idUsuario : principal.getIdFuncionario();
-        String siglasUnidad = (idUnidad != null) ? idUnidad : principal.getSiglasUnidad();
+        // Manejar caso cuando no hay autenticación (desarrollo)
+        Integer userId = null;
+        String siglasUnidad = null;
+
+        if (principal != null) {
+            userId = (idUsuario != null) ? idUsuario : principal.getIdFuncionario();
+            siglasUnidad = (idUnidad != null) ? idUnidad : principal.getSiglasUnidad();
+        } else {
+            // En desarrollo sin JWT, usar parámetros opcionales o valores por defecto
+            userId = idUsuario;
+            siglasUnidad = idUnidad;
+        }
+
         return ResponseEntity.ok(service.obtenerAvance(formularioId, userId, siglasUnidad));
     }
 

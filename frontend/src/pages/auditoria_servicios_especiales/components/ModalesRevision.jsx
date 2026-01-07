@@ -1,26 +1,26 @@
 // javascript
 // frontend/src/pages/auditoria_servicios_especiales/components/ModalesRevision.jsx
-import React, {useEffect, useState} from "react";
-import {Button, Col, Form, Modal, Row} from "react-bootstrap";
-import {guardarRevisionMemo, registrarRelatoJenadep} from "../../../api/nodosApi.js";
-import {useAuth} from "../../../components/contexts/AuthContext.jsx";
+import React, { useEffect, useState } from "react";
+import { Button, Col, Form, Modal, Row } from "react-bootstrap";
+import { guardarRevisionMemo, registrarRelatoJenadep } from "../../../api/nodosApi.js";
+import { useAuth } from "../../../components/contexts/AuthContext.jsx";
 
 export default function ModalesRevision({
-                                            // Modal Observar
-                                            observado,
-                                            selected,
-                                            onHide,
-                                            //Modal JENADEP
-                                            jenadep,
-                                            // Modal Aprobar
-                                            aprobado,
-                                            // Callback único para notificar cambios al padre
-                                            onMemoUpdated,
-                                            // Sistema de notificaciones (opcional)
-                                            showNotification,
-                                        }) {
+    // Modal Observar
+    observado,
+    selected,
+    onHide,
+    //Modal JENADEP
+    jenadep,
+    // Modal Aprobar
+    aprobado,
+    // Callback único para notificar cambios al padre
+    onMemoUpdated,
+    // Sistema de notificaciones (opcional)
+    showNotification,
+}) {
     // Estados locales del componente
-    const {user} = useAuth();
+    const { user } = useAuth();
 
     const [obsTexto, setObsTexto] = useState("");
     const [obsAprobTexto, setObsAprobTexto] = useState("");
@@ -40,6 +40,7 @@ export default function ModalesRevision({
 
     // Función para determinar el rol revisor basado en los roles del usuario
     const determinarRolRevisor = (usuario) => {
+        console.log("usuario", usuario);
         if (!usuario || !usuario.roles) {
             return "";
         }
@@ -54,25 +55,32 @@ export default function ModalesRevision({
             return "";
         }*/
 
-        // Determinar el tipo de revisor:
-        // 1. Si tiene ROLE_JEFE y es JEFE por perfil -> JEFE
-        // 2. Si es FUNCIONARIO por perfil pero tiene ROLE_REVISOR -> PMAYOR
-        // 3. Si tiene roles especiales de contraloría -> CONTRALOR
+        // Determinar el tipo de revisor basado únicamente en los roles:
+        // 1. Si tiene ROLE_CONTRALOR o ROLE_CONTRALORIA -> CONTRALOR
+        // 2. Si tiene ROLE_JEFE -> JEFE
+        // 3. Si tiene ROLE_REVISOR (pero no JEFE ni CONTRALOR) -> PMAYOR
 
-        if (userRoles.includes('ROLE_JEFE') && usuario.nombrePerfil === 'JEFE') {
-            return 'JEFE';
-        }
-
+        // Prioridad 1: Contraloría tiene precedencia
         if (userRoles.includes('ROLE_CONTRALOR') || userRoles.includes('ROLE_CONTRALORIA')) {
             return 'CONTRALOR';
         }
 
-        // Si es funcionario con rol revisor (funcionario de plana mayor asignado como revisor)
-        if (usuario.nombrePerfil === 'FUNCIONARIO' && userRoles.includes('ROLE_REVISOR')) {
+        // Prioridad 2: Jefe
+        if (userRoles.includes('ROLE_JEFE')) {
+            return 'JEFE';
+        }
+
+        // Prioridad 3: Revisor de plana mayor
+        if (userRoles.includes('ROLE_REVISOR')) {
+            return 'REVISOR';
+        }
+
+        // Si tiene ROLE_ADMINISTRADOR pero no otros roles de revisión, puede ser PMAYOR
+        if (userRoles.includes('ROLE_ADMINISTRADOR')) {
             return 'PMAYOR';
         }
 
-        // Por defecto, si tiene ROLE_REVISOR pero no encaja en las categorías anteriores
+        // Por defecto, si no tiene roles de revisión específicos
         return '';
     };
 
@@ -123,7 +131,7 @@ export default function ModalesRevision({
 
             // Mostrar notificación de éxito
             showNotification?.("success", "Memo observado exitosamente") ||
-            console.log("Memo observado exitosamente");
+                console.log("Memo observado exitosamente");
 
             // Notificar al padre que el memo cambió
             onMemoUpdated?.(selected.id, "PENDIENTE");
@@ -138,7 +146,7 @@ export default function ModalesRevision({
             const errorMsg = `Error al guardar: ${error.response?.data?.message || error.message}`;
             setSaveErr(errorMsg);
             showNotification?.("error", errorMsg) ||
-            console.error(errorMsg);
+                console.error(errorMsg);
         } finally {
             setSavingRev(false);
         }
@@ -214,7 +222,7 @@ export default function ModalesRevision({
 
             // Mostrar notificación de éxito
             showNotification?.("success", "Memo aprobado exitosamente") ||
-            console.log("Memo aprobado exitosamente");
+                console.log("Memo aprobado exitosamente");
 
             // Notificar al padre que el memo cambió
             onMemoUpdated?.(selected.id, "APROBADO");
@@ -229,7 +237,7 @@ export default function ModalesRevision({
             const errorMsg = `Error al aprobar: ${error.response?.data?.message || error.message}`;
             setSaveErr(errorMsg);
             showNotification?.("error", errorMsg) ||
-            console.error(errorMsg);
+                console.error(errorMsg);
         } finally {
             setSavingRev(false);
         }
@@ -347,7 +355,7 @@ export default function ModalesRevision({
                         <Form.Label column sm={2}>Hecho</Form.Label>
                         <Col sm={10} className="pt-2">
                             <Form.Control as={"input"} type={"text"} value={hecho}
-                                          onChange={(e) => setHecho(e.target.value)}/>
+                                onChange={(e) => setHecho(e.target.value)} />
                         </Col>
                     </Form.Group>
 

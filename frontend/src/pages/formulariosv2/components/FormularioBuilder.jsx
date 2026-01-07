@@ -5,6 +5,7 @@ import FormFieldPalette from "./FormFieldPalette";
 import PermissionsManager from "./PermissionsManager";
 import QuotasManager from "./QuotasManager";
 import FormPreview from "./FormPreview";
+import RepetibleFieldEditor from "./RepetibleFieldEditor";
 import { FIELD_TYPES } from "../mockData";
 import {FaTrash} from "react-icons/fa";
 
@@ -567,6 +568,16 @@ export default function FormularioBuilder({ formulario, onGuardar, onCancelar })
                                                                                                         style={{ borderRadius: "8px" }}
                                                                                                     />
                                                                                                 </Form.Group>
+                                                                                            </Col>
+                                                                                        )}
+
+                                                                                        {/* Configuración para campos repetibles */}
+                                                                                        {campo.tipo === "repetible" && (
+                                                                                            <Col xs={12}>
+                                                                                                <RepetibleFieldEditor
+                                                                                                    campo={campo}
+                                                                                                    onUpdateCampo={handleActualizarCampo}
+                                                                                                />
                                                                                             </Col>
                                                                                         )}
                                                                                     </Row>

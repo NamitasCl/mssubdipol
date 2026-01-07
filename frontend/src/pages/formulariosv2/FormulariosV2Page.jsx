@@ -1,17 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Nav, Tab, Badge } from "react-bootstrap";
+import { Container, Row, Col, Button, Nav, Tab, Badge, Alert, Spinner } from "react-bootstrap";
 import { useAuth } from "../../components/contexts/AuthContext";
-import { MOCK_FORMULARIOS, getFormulariosByCategory, clearMockData } from "./mockData";
+import { getFormulariosByCategory } from "./mockData";
 import FormulariosList from "./components/FormulariosList";
 import FormularioBuilder from "./components/FormularioBuilder";
+import VistaRespuestasV2 from "./components/VistaRespuestasV2";
+import FormularioCompletarV2 from "./components/FormularioCompletarV2";
+import * as formulariosApi from "../../api/formulariosApi";
 
 export default function FormulariosV2Page() {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState("mis-formularios");
-    const [formularios, setFormularios] = useState(MOCK_FORMULARIOS);
+    const [formularios, setFormularios] = useState([]);
     const [showBuilder, setShowBuilder] = useState(false);
     const [editingFormulario, setEditingFormulario] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [showRespuestas, setShowRespuestas] = useState(false);
+    const [formularioRespuestas, setFormularioRespuestas] = useState(null);
+    const [showCompletar, setShowCompletar] = useState(false);
+    const [formularioCompletar, setFormularioCompletar] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Cargar formularios al montar
+    useEffect(() => {
+        cargarFormularios();
+    }, []);
+
+    const cargarFormularios = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const data = await formulariosApi.listarFormularios();
+            setFormularios(data);
+        } catch (err) {
+            console.error("Error al cargar formularios:", err);
+            setError("Error al cargar los formularios. Por favor, intente nuevamente.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Categorizar formularios
     const {
@@ -36,72 +63,102 @@ export default function FormulariosV2Page() {
 
     const handleVerFormulario = (formulario) => {
         console.log("👁️ Ver formulario:", formulario.id);
-        // Aquí iría la lógica para ver detalles o respuestas
+        setFormularioRespuestas(formulario);
+        setShowRespuestas(true);
     };
 
-    const handleDuplicarFormulario = (formulario) => {
+    const handleCompletarFormulario = (formulario) => {
+        console.log("✍️ Completar formulario:", formulario.id);
+        setFormularioCompletar(formulario);
+        setShowCompletar(true);
+    };
+
+    const handleDuplicarFormulario = async (formulario) => {
         console.log("📋 Duplicar formulario:", formulario.id);
-        const duplicado = {
-            ...formulario,
-            id: Math.max(...formularios.map(f => f.id)) + 1,
-            nombre: `${formulario.nombre} (Copia)`,
-            fechaCreacion: new Date().toISOString(),
-            totalRespuestas: 0,
-            creadorId: user?.idFuncionario,
-            creadorNombre: `${user?.nombreFun} ${user?.apellidoPaternoFun}`,
-            unidadCreador: user?.siglasUnidad
-        };
-        setFormularios([...formularios, duplicado]);
-    };
-
-    const handleEliminarFormulario = (formularioId) => {
-        console.log("🗑️ Eliminar formulario:", formularioId);
-        if (window.confirm("¿Está seguro de eliminar este formulario?")) {
-            setFormularios(formularios.filter(f => f.id !== formularioId));
+        try {
+            const duplicado = {
+                nombre: `${formulario.nombre} (Copia)`,
+                descripcion: formulario.descripcion,
+                campos: formulario.campos,
+                visibilidad: formulario.visibilidad,
+                limiteRespuestas: formulario.limiteRespuestas,
+                cuotas: []
+            };
+            await formulariosApi.crearFormulario(duplicado);
+            await cargarFormularios();
+        } catch (err) {
+            console.error("Error al duplicar formulario:", err);
+            alert("Error al duplicar el formulario");
         }
     };
 
-    const handleToggleEstado = (formulario) => {
-        console.log("🔄 Cambiar estado formulario:", formulario.id);
-        setFormularios(formularios.map(f =>
-            f.id === formulario.id
-                ? { ...f, estado: f.estado === "activo" ? "inactivo" : "activo" }
-                : f
-        ));
+    const handleEliminarFormulario = async (formularioId) => {
+        console.log("🗑️ Eliminar formulario:", formularioId);
+        if (window.confirm("¿Está seguro de eliminar este formulario? Se eliminarán también todas las respuestas.")) {
+            try {
+                await formulariosApi.eliminarFormulario(formularioId);
+                await cargarFormularios();
+            } catch (err) {
+                console.error("Error al eliminar formulario:", err);
+                alert("Error al eliminar el formulario");
+            }
+        }
     };
 
-    const handleGuardarFormulario = (formularioData) => {
+    const handleToggleEstado = async (formulario) => {
+        console.log("🔄 Cambiar estado formulario:", formulario.id);
+        try {
+            const nuevoEstado = formulario.estado === "activo" || formulario.activo;
+            await formulariosApi.cambiarEstadoFormulario(formulario.id, !nuevoEstado);
+            await cargarFormularios();
+        } catch (err) {
+            console.error("Error al cambiar estado:", err);
+            alert("Error al cambiar el estado del formulario");
+        }
+    };
+
+    const handleGuardarFormulario = async (formularioData) => {
         console.log("💾 Guardar formulario:", formularioData);
 
-        if (editingFormulario) {
-            // Editar existente
-            setFormularios(formularios.map(f =>
-                f.id === editingFormulario.id
-                    ? { ...editingFormulario, ...formularioData }
-                    : f
-            ));
-        } else {
-            // Crear nuevo
-            const nuevoFormulario = {
-                id: Math.max(...formularios.map(f => f.id), 0) + 1,
-                ...formularioData,
-                creadorId: user?.idFuncionario,
-                creadorNombre: `${user?.nombreFun} ${user?.apellidoPaternoFun}`,
-                unidadCreador: user?.siglasUnidad,
-                fechaCreacion: new Date().toISOString(),
-                estado: "activo",
-                totalRespuestas: 0
-            };
-            setFormularios([...formularios, nuevoFormulario]);
-        }
+        try {
+            if (editingFormulario) {
+                // Editar existente
+                await formulariosApi.actualizarFormulario(editingFormulario.id, formularioData);
+            } else {
+                // Crear nuevo
+                await formulariosApi.crearFormulario(formularioData);
+            }
 
-        setShowBuilder(false);
-        setEditingFormulario(null);
+            await cargarFormularios();
+            setShowBuilder(false);
+            setEditingFormulario(null);
+        } catch (err) {
+            console.error("Error al guardar formulario:", err);
+            alert("Error al guardar el formulario: " + (err.response?.data?.message || err.message));
+        }
     };
 
     const handleCancelarBuilder = () => {
         setShowBuilder(false);
         setEditingFormulario(null);
+    };
+
+    const handleVolverDeRespuestas = () => {
+        setShowRespuestas(false);
+        setFormularioRespuestas(null);
+        cargarFormularios(); // Recargar por si cambió el contador
+    };
+
+    const handleVolverDeCompletar = () => {
+        setShowCompletar(false);
+        setFormularioCompletar(null);
+    };
+
+    const handleExitoCompletar = () => {
+        alert('¡Formulario enviado correctamente!');
+        setShowCompletar(false);
+        setFormularioCompletar(null);
+        cargarFormularios(); // Recargar para actualizar contador
     };
 
     // Si está en modo builder, mostrar solo el builder
@@ -111,6 +168,27 @@ export default function FormulariosV2Page() {
                 formulario={editingFormulario}
                 onGuardar={handleGuardarFormulario}
                 onCancelar={handleCancelarBuilder}
+            />
+        );
+    }
+
+    // Si está viendo respuestas, mostrar vista de respuestas
+    if (showRespuestas && formularioRespuestas) {
+        return (
+            <VistaRespuestasV2
+                formulario={formularioRespuestas}
+                onVolver={handleVolverDeRespuestas}
+            />
+        );
+    }
+
+    // Si está completando formulario, mostrar formulario de llenado
+    if (showCompletar && formularioCompletar) {
+        return (
+            <FormularioCompletarV2
+                formulario={formularioCompletar}
+                onVolver={handleVolverDeCompletar}
+                onExito={handleExitoCompletar}
             />
         );
     }
@@ -145,8 +223,27 @@ export default function FormulariosV2Page() {
                 </Button>
             </div>
 
-            {/* Tabs de categorías */}
-            <Tab.Container activeKey={activeTab} onSelect={setActiveTab}>
+            {/* Mensaje de error */}
+            {error && (
+                <Alert variant="danger" dismissible onClose={() => setError(null)} className="mb-4">
+                    <Alert.Heading>Error</Alert.Heading>
+                    <p>{error}</p>
+                    <Button variant="outline-danger" size="sm" onClick={cargarFormularios}>
+                        Reintentar
+                    </Button>
+                </Alert>
+            )}
+
+            {/* Loading */}
+            {isLoading ? (
+                <div className="text-center py-5">
+                    <Spinner animation="border" variant="primary" style={{ width: "3rem", height: "3rem" }} />
+                    <p className="mt-3 text-muted">Cargando formularios...</p>
+                </div>
+            ) : (
+                <>
+                    {/* Tabs de categorías */}
+                    <Tab.Container activeKey={activeTab} onSelect={setActiveTab}>
                 <Nav
                     variant="pills"
                     className="mb-4 p-2"
@@ -259,6 +356,7 @@ export default function FormulariosV2Page() {
                         <FormulariosList
                             formularios={asignadosMi}
                             onVer={handleVerFormulario}
+                            onCompletar={handleCompletarFormulario}
                             esCreador={false}
                             emptyMessage="No tienes formularios asignados directamente"
                         />
@@ -267,6 +365,7 @@ export default function FormulariosV2Page() {
                         <FormulariosList
                             formularios={asignadosUnidad}
                             onVer={handleVerFormulario}
+                            onCompletar={handleCompletarFormulario}
                             esCreador={false}
                             emptyMessage={`No hay formularios asignados a ${user?.siglasUnidad}`}
                         />
@@ -275,29 +374,14 @@ export default function FormulariosV2Page() {
                         <FormulariosList
                             formularios={publicos}
                             onVer={handleVerFormulario}
+                            onCompletar={handleCompletarFormulario}
                             esCreador={false}
                             emptyMessage="No hay formularios públicos disponibles"
                         />
                     </Tab.Pane>
                 </Tab.Content>
             </Tab.Container>
-
-            {/* Dev helper */}
-            {import.meta.env.DEV && (
-                <div className="text-center mt-4">
-                    <small className="text-muted">
-                        Modo desarrollo - Usando datos mock.{" "}
-                        <button
-                            className="btn btn-link btn-sm p-0"
-                            onClick={() => {
-                                clearMockData();
-                                setFormularios([]);
-                            }}
-                        >
-                            Limpiar datos
-                        </button>
-                    </small>
-                </div>
+                </>
             )}
         </Container>
     );

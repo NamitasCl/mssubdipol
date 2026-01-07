@@ -3,6 +3,7 @@ import { Card, Form, Row, Col, Button, Badge } from "react-bootstrap";
 import { useAuth } from "../../../components/contexts/AuthContext";
 import AsyncFuncionarioSelect from "../../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect";
 import AsyncUnidadesSelect from "../../../components/ComponentesAsyncSelect/AsyncUnidadesSelect";
+import RepetibleFieldRenderer from "./RepetibleFieldRenderer";
 
 export default function FormPreview({ nombre, descripcion, campos }) {
     const { user } = useAuth();
@@ -202,6 +203,15 @@ export default function FormPreview({ nombre, descripcion, campos }) {
                         isClearable
                         placeholder="Seleccione una unidad..."
                         user={user}
+                    />
+                );
+
+            case "repetible":
+                return (
+                    <RepetibleFieldRenderer
+                        campo={campo}
+                        valores={valor}
+                        onChange={(instancias) => handleChange(campo.id, instancias)}
                     />
                 );
 

@@ -60,4 +60,21 @@ public class CalendarioController {
         return servicio.cambiarEstado(id, estado, usuario)
                 .orElseThrow(() -> new RuntimeException("Calendario no encontrado o eliminado"));
     }
+
+    @PostMapping("/{id}/revision/aprobar")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('JEFE_UNIDAD', 'SUBJEFE_UNIDAD')")
+    public CalendarioResponseDTO aprobar(@PathVariable Long id) {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        return servicio.aprobar(id, username)
+                .orElseThrow(() -> new RuntimeException("Calendario no encontrado o eliminado"));
+    }
+
+    @PostMapping("/{id}/revision/observar")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('JEFE_UNIDAD', 'SUBJEFE_UNIDAD')")
+    public CalendarioResponseDTO observar(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        String observacion = body.get("observacion");
+        return servicio.observar(id, username, observacion)
+                .orElseThrow(() -> new RuntimeException("Calendario no encontrado o eliminado"));
+    }
 }
