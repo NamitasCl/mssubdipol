@@ -32,5 +32,11 @@ public class Calendario extends Auditable {
 
     @OneToOne(mappedBy = "calendario")
     private ConfiguracionRestriccionesCalendario configuracionRestricciones;
+
+    // --- Datos de Revisión ---
+    private String revisadoPor; // Username del revisor
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private java.time.OffsetDateTime fechaRevision;
+    private String observacionRevision;
     
 }

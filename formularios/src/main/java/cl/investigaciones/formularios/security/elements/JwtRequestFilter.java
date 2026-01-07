@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,6 +23,12 @@ import java.util.stream.Collectors;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
+    @Value( "${app.modo-desarrollo.activado:false}")
+    private boolean modoDesarrollo;
+
+    @Value("${app.modo-desarrollo.token}")
+    private String dev_token;
+
     @Autowired
     private JwtUtils jwtUtils;
 
@@ -29,6 +36,39 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String authorizationHeader = request.getHeader("Authorization");
+        String username = null;
+
+        // Si estamos en modo desarrollo y no hay Authorization header, crear usuario mock
+        if (modoDesarrollo && (authorizationHeader == null || !authorizationHeader.startsWith("Bearer "))) {
+            username = "ERAMIREZS"; // Usuario de desarrollo
+            String nombreUsuario = "ENZO ALEJANDRO RAMIREZ SILVA";
+            String siglasUnidad = "PMSUBDIPOL";
+            List<String> rolesStrings = List.of("ROLE_ADMINISTRADOR", "ROLE_JEFE", "ROLE_FUNCIONARIO");
+            int idFuncionario = 12254;
+
+            // Crear el Principal
+            JwtUserPrincipal principal = new JwtUserPrincipal(username, nombreUsuario, siglasUnidad, rolesStrings, idFuncionario);
+
+            // Crear las Authorities
+            List<GrantedAuthority> authorities = rolesStrings.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+
+            // Crear el Token de Autenticación de Spring
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    principal,
+                    null,
+                    authorities
+            );
+
+            // Establecer la autenticación en el contexto de seguridad
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            logger.debug("Usuario mock de desarrollo configurado: " + username);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -36,13 +76,43 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         String token = authorizationHeader.substring(7);
 
+        if( modoDesarrollo && token.equals(dev_token)) {
+            username = "ERAMIREZS"; // El 'sub' que pusimos en el token
+            String nombreUsuario = "ENZO ALEJANDRO RAMIREZ SILVA";
+
+            String siglasUnidad = "PMSUBDIPOL";
+            List<String> rolesStrings = List.of("ROLE_ADMINISTRADOR", "ROLE_JEFE", "ROLE_FUNCIONARIO");
+            int idFuncionario = 12254; // Un ID de funcionario para desarrollo (ej: 1)
+
+            // 1. Crear el Principal
+            JwtUserPrincipal principal = new JwtUserPrincipal(username, nombreUsuario, siglasUnidad, rolesStrings, idFuncionario);
+
+            // 2. Crear las Authorities
+            List<GrantedAuthority> authorities = rolesStrings.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+
+            // 3. Crear el Token de Autenticación de Spring
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    principal,
+                    null, // Las credenciales son nulas porque ya está autenticado
+                    authorities
+            );
+
+            // 4. Establecer la autenticación en el contexto de seguridad
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            filterChain.doFilter(request, response);
+            return; // ¡MUY IMPORTANTE! Salir del filtro aquí.
+        }
+
         if (jwtUtils.isTokenExpired(token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         if(jwtUtils.isAuthenticated(token)) {
-            String username = jwtUtils.extractUsername(token);
+            username = jwtUtils.extractUsername(token);
             String nombreUsuario = jwtUtils.extractClaim(token, claims -> claims.get("nombreUsuario", String.class));
             String siglasUnidad = jwtUtils.extractClaim(token, claims -> claims.get("siglasUnidad", String.class));
             List roles = jwtUtils.extractClaim(token, claims -> claims.get("roles", List.class));

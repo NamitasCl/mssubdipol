@@ -24,14 +24,30 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(
-                Arrays.asList(
-                        "https://rac.investigaciones.cl",
-                        "http://localhost:5173"
-                )
-        );
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // Usar allowedOriginPatterns para permitir wildcards con credenciales
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "https://rac.investigaciones.cl",
+                "https://*"
+        ));
+
+        // Permitir todos los métodos HTTP
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // Permitir todos los headers
         configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        // Permitir credenciales (importante para JWT)
+        configuration.setAllowCredentials(true);
+
+        // Exponer headers de respuesta
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        // Duración del caché de preflight (en segundos)
+        configuration.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

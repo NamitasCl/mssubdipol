@@ -16,4 +16,6 @@ public interface CalendarioService {
     Optional<CalendarioResponseDTO> actualizar(Long id, CalendarioRequestDTO req, int usuario);
     boolean eliminar(Long id, int usuario);
     Optional<CalendarioResponseDTO> cambiarEstado(Long id, CalendarState nuevoEstado, int usuario);
+    Optional<CalendarioResponseDTO> aprobar(Long id, String username);
+    Optional<CalendarioResponseDTO> observar(Long id, String username, String observacion);
 }

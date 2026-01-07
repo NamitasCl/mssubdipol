@@ -34,6 +34,7 @@ public class FichaPersonaModificableDTO {
     private String sexo;
     private Integer edad;
     private String tipoDiligencia;
+    private String unidad;
 
     // Relaciones resumidas
     private String nacionalidadNombre;        // ListaNacionalidad.nacionalidad

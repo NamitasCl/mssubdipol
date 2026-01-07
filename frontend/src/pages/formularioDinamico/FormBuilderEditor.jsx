@@ -1,23 +1,23 @@
-import React, { useState } from "react";
-import { Card, Form, Button, Row, Col, Container, Alert, Spinner, CloseButton, Badge, Table } from "react-bootstrap";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import React, {useState} from "react";
+import {Alert, Badge, Button, Card, CloseButton, Col, Container, Form, Row, Spinner, Table} from "react-bootstrap";
+import {DragDropContext, Draggable, Droppable} from "@hello-pangea/dnd";
 import AsyncFuncionarioSelect from "../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect.jsx";
 import AsyncUnidadesSelect from "../../components/ComponentesAsyncSelect/AsyncUnidadesSelect.jsx";
 import AsyncRegionesPolicialesSelect from "../../components/ComponentesAsyncSelect/AsyncRegionesPolicialesSelect.jsx";
 import axios from "axios";
-import { useAuth } from "../../components/contexts/AuthContext.jsx";
+import {useAuth} from "../../components/contexts/AuthContext.jsx";
 
 // Tipos de campos disponibles
 export const FIELD_TYPES = [
-    { value: "text", label: "Texto" },
-    { value: "number", label: "Número" },
-    { value: "select", label: "Selección" },
-    { value: "checkbox", label: "Checkbox" },
-    { value: "date", label: "Fecha" },
-    { value: "datetime-local", label: "Fecha y Hora" },
-    { value: "funcionario", label: "Funcionario" },
-    { value: "unidad", label: "Regiones / Prefecturas / Unidades" },
-    { value: "group", label: "Bloque/Subformulario" }
+    {value: "text", label: "Texto"},
+    {value: "number", label: "Número"},
+    {value: "select", label: "Selección"},
+    {value: "checkbox", label: "Checkbox"},
+    {value: "date", label: "Fecha"},
+    {value: "datetime-local", label: "Fecha y Hora"},
+    {value: "funcionario", label: "Funcionario"},
+    {value: "unidad", label: "Regiones / Prefecturas / Unidades"},
+    {value: "group", label: "Bloque/Subformulario"}
 ];
 
 
@@ -27,65 +27,87 @@ export const SUBFORMULARIOS_CATALOGO = [
         value: "carroDesignado",
         label: "Carro designado",
         fields: [
-            { id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text" },
-            { id: 1002, name: "corporativo", label: "Es vehículo corporativo", type: "checkbox" },
-            { id: 1003, name: "funcionario", label: "Jefe de máquina", type: "funcionario" },
-            { id: 1004, name: "telefono", label: "Teléfono Jefe máquina", type: "text" },
+            {id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text"},
+            {id: 1002, name: "corporativo", label: "Es vehículo corporativo", type: "checkbox"},
+            {id: 1003, name: "funcionario", label: "Jefe de máquina", type: "funcionario"},
+            {id: 1004, name: "telefono", label: "Teléfono Jefe máquina", type: "text"},
         ]
     },
     {
         value: "carrosConTripulacion",
         label: "Carro y tripulacion",
         fields: [
-            { id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text" },
-            { id: 1002, name: "corporativo", label: "Es vehículo corporativo", type: "checkbox" },
-            { id: 1003, name: "funcionario", label: "Jefe de máquina", type: "funcionario" },
-            { id: 1004, name: "funcionario", label: "Tripulante", type: "funcionario" },
-            { id: 1005, name: "funcionario", label: "Tripulante", type: "funcionario" },
+            {id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text"},
+            {id: 1002, name: "corporativo", label: "Es vehículo corporativo", type: "checkbox"},
+            {id: 1003, name: "funcionario", label: "Jefe de máquina", type: "funcionario"},
+            {id: 1004, name: "funcionario", label: "Tripulante", type: "funcionario"},
+            {id: 1005, name: "funcionario", label: "Tripulante", type: "funcionario"},
         ]
     },
     {
         value: "carrosConTripulacionServicio",
         label: "Carro y detalle",
         fields: [
-            { id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text" },
-            { id: 1002, name: "corporativo", label: "Es carro corporativo", type: "checkbox" },
-            { id: 1003, name: "funcion carro", label: "Función del carro", type: "select", opciones: "DECRETOS,FISCALIZACIONES,OTRO"},
-            { id: 1004, name: "lugar", label: "Lugar", type: "text"},
-            { id: 1005, name: "fecha inicio", label: "Fecha y Hora inicio servicio", type: "datetime-local"},
-            { id: 1006, name: "fecha fin", label: "Fecha y Hora fin servicio", type: "datetime-local"},
-            { id: 1007, name: "funcionario uno", label: "Nombre funcionario uno", type: "funcionario" },
-            { id: 1007, name: "funcionario uno función", label: "Funcion dentro del carro", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
-            { id: 1010, name: "telefono funcionario uno", label: "Teléfono", type: "text"},
-            { id: 1008, name: "funcionario dos", label: "Nombre funcionario dos", type: "funcionario" },
-            { id: 1007, name: "funcionario dos función funcion", label: "Funcion dentro del carro", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
-            { id: 1010, name: "telefono funcionario dos", label: "Teléfono", type: "text"},
-            { id: 1009, name: "funcionario tres", label: "Nombre funcionario tres", type: "funcionario" },
-            { id: 1007, name: "funcionario tres función", label: "Funcion dentro del carro", type: "select", opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"},
-            { id: 1010, name: "telefono funcionario tres", label: "Teléfono", type: "text"},
-            { id: 1010, name: "observaciones", label: "observaciones", type: "text"},
+            {id: 1001, name: "siglaCarro", label: "Sigla carro", type: "text"},
+            {id: 1002, name: "corporativo", label: "Es carro corporativo", type: "checkbox"},
+            {
+                id: 1003,
+                name: "funcion carro",
+                label: "Función del carro",
+                type: "select",
+                opciones: "DECRETOS,FISCALIZACIONES,OTRO"
+            },
+            {id: 1004, name: "lugar", label: "Lugar", type: "text"},
+            {id: 1005, name: "fecha inicio", label: "Fecha y Hora inicio servicio", type: "datetime-local"},
+            {id: 1006, name: "fecha fin", label: "Fecha y Hora fin servicio", type: "datetime-local"},
+            {id: 1007, name: "funcionario uno", label: "Nombre funcionario uno", type: "funcionario"},
+            {
+                id: 1007,
+                name: "funcionario uno función",
+                label: "Funcion dentro del carro",
+                type: "select",
+                opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"
+            },
+            {id: 1010, name: "telefono funcionario uno", label: "Teléfono", type: "text"},
+            {id: 1008, name: "funcionario dos", label: "Nombre funcionario dos", type: "funcionario"},
+            {
+                id: 1007,
+                name: "funcionario dos función funcion",
+                label: "Funcion dentro del carro",
+                type: "select",
+                opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"
+            },
+            {id: 1010, name: "telefono funcionario dos", label: "Teléfono", type: "text"},
+            {id: 1009, name: "funcionario tres", label: "Nombre funcionario tres", type: "funcionario"},
+            {
+                id: 1007,
+                name: "funcionario tres función",
+                label: "Funcion dentro del carro",
+                type: "select",
+                opciones: "JEFE DE MAQUINA,TRIPULANTE,CONDUCTOR"
+            },
+            {id: 1010, name: "telefono funcionario tres", label: "Teléfono", type: "text"},
+            {id: 1010, name: "observaciones", label: "observaciones", type: "text"},
         ]
     }
 ];
 
-const inputStyle = { background: "#f9fafb" };
+const inputStyle = {background: "#f9fafb"};
 
 // Tipos de visibilidad
 const VISIBILIDAD_TIPOS = [
-    { value: "usuario", label: "Usuario", component: AsyncFuncionarioSelect },
-    { value: "unidad", label: "Unidad", component: AsyncUnidadesSelect },
-    { value: "grupo", label: "Grupo" },
-    { value: "repol", label: "Región Policial", component: AsyncRegionesPolicialesSelect },
-    { value: "publica", label: "Pública" }
+    {value: "usuario", label: "Usuario", component: AsyncFuncionarioSelect},
+    {value: "unidad", label: "Unidad", component: AsyncUnidadesSelect},
+    {value: "publica", label: "Pública"}
 ];
 
 // Tipos de cuota
 const TIPO_CUOTA = [
-    { value: "unidad", label: "Unidad" },
-    { value: "usuario", label: "Funcionario específico" },
+    {value: "unidad", label: "Unidad"},
+    {value: "usuario", label: "Funcionario específico"},
 ];
 
-export default function FormBuilderEditor({ fields, setFields }) {
+export default function FormBuilderEditor({fields, setFields}) {
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [visibilidad, setVisibilidad] = useState([]);
@@ -107,11 +129,11 @@ export default function FormBuilderEditor({ fields, setFields }) {
         funcionarioObj: null
     });
 
-    const { user } = useAuth();
+    const {user} = useAuth();
 
     // ---------- VISIBILIDAD ----------
     const handleAddVisibilidad = () => {
-        setVisibilidad([...visibilidad, { tipoDestino: "", valorDestino: "", valorDestinoNombre: "" }]);
+        setVisibilidad([...visibilidad, {tipoDestino: "", valorDestino: "", valorDestinoNombre: ""}]);
     };
     const handleRemoveVisibilidad = (idx) => {
         setVisibilidad(visibilidad.filter((_, i) => i !== idx));
@@ -142,7 +164,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
     const handleValorDestinoTextChange = (idx, valorDestino) => {
         setVisibilidad(visibilidad.map((v, i) =>
             i === idx
-                ? { ...v, valorDestino, valorDestinoNombre: valorDestino }
+                ? {...v, valorDestino, valorDestinoNombre: valorDestino}
                 : v
         ));
     };
@@ -166,7 +188,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
     const updateField = (id, key, value) => {
         setFields(fields.map(field =>
             field.id === id
-                ? { ...field, [key]: value }
+                ? {...field, [key]: value}
                 : field
         ));
     };
@@ -217,12 +239,11 @@ export default function FormBuilderEditor({ fields, setFields }) {
             };
 
 
-
             const response = await axios.post(
                 `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`,
                 dto,
                 {
-                    headers: { Authorization: `Bearer ${user?.token}` }
+                    headers: {Authorization: `Bearer ${user?.token}`}
                 }
             );
             setFormularioGuardado(response.data)
@@ -296,7 +317,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                         cuotaAsignada: cuota.cantidad,
                         cuotaPadreId: cuota.cuotaPadreId ?? null,
                     },
-                    { headers: { Authorization: `Bearer ${user?.token}` } }
+                    {headers: {Authorization: `Bearer ${user?.token}`}}
                 );
 
             }
@@ -357,7 +378,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
         if (v.tipoDestino === "usuario") {
             return (
                 <AsyncFuncionarioSelect
-                    value={v.valorDestino ? { value: v.valorDestino, label: v.valorDestinoNombre } : null}
+                    value={v.valorDestino ? {value: v.valorDestino, label: v.valorDestinoNombre} : null}
                     onChange={option => handleValorDestinoChange(idx, option)}
                     isClearable
                     placeholder="Seleccione usuario"
@@ -368,32 +389,11 @@ export default function FormBuilderEditor({ fields, setFields }) {
         if (v.tipoDestino === "unidad") {
             return (
                 <AsyncUnidadesSelect
-                    value={v.valorDestino ? { value: v.valorDestino, label: v.valorDestinoNombre } : null}
+                    value={v.valorDestino ? {value: v.valorDestino, label: v.valorDestinoNombre} : null}
                     onChange={option => handleValorDestinoChange(idx, option)}
                     isClearable
                     placeholder="Seleccione unidad"
                     user={user}
-                />
-            );
-        }
-        if (v.tipoDestino === "repol") {
-            return (
-                <AsyncRegionesPolicialesSelect
-                    value={v.valorDestino ? { value: v.valorDestino, label: v.valorDestinoNombre } : null}
-                    onChange={option => handleValorDestinoChange(idx, option)}
-                    isClearable
-                    placeholder="Seleccione región policial"
-                    user={user}
-                />
-            );
-        }
-        if (v.tipoDestino === "grupo") {
-            return (
-                <Form.Control
-                    type="text"
-                    placeholder="Nombre del grupo"
-                    value={v.valorDestino}
-                    onChange={e => handleValorDestinoTextChange(idx, e.target.value)}
                 />
             );
         }
@@ -408,11 +408,12 @@ export default function FormBuilderEditor({ fields, setFields }) {
     // ------ Paso 1: Builder ------
     if (step === 1) {
         return (
-            <Container className="p-0" style={{ width: "100%", margin: "0 auto" }}>
-                <Card className="shadow-lg rounded-4" style={{ border: "none", background: "#fff", width: "100%", margin: "0 auto" }}>
+            <Container className="p-0" style={{width: "100%", margin: "0 auto"}}>
+                <Card className="shadow-lg rounded-4"
+                      style={{border: "none", background: "#fff", width: "100%", margin: "0 auto"}}>
                     <Card.Body>
                         <div className="mb-4 text-center">
-                            <h3 className="fw-bold mb-2" style={{ color: "#17355A" }}>Constructor de Formulario</h3>
+                            <h3 className="fw-bold mb-2" style={{color: "#17355A"}}>Constructor de Formulario</h3>
                             <p className="text-muted mb-0">Define los campos y visibilidad de tu formulario</p>
                         </div>
                         <Form>
@@ -442,19 +443,21 @@ export default function FormBuilderEditor({ fields, setFields }) {
                             {/* VISIBILIDAD */}
                             <Row>
                                 <Col>
-                                    <div className="mb-3 mt-2 p-3 rounded-4" style={{ background: "#f5f7fa", border: "1.5px solid #e1e4ea" }}>
+                                    <div className="mb-3 mt-2 p-3 rounded-4"
+                                         style={{background: "#f5f7fa", border: "1.5px solid #e1e4ea"}}>
                                         <div className="d-flex align-items-center mb-2 gap-2">
-                                            <b style={{ color: "#17355A", fontSize: "1.07rem" }}>Visibilidad</b>
+                                            <b style={{color: "#17355A", fontSize: "1.07rem"}}>Visibilidad</b>
                                             <Button
                                                 size="sm"
                                                 variant="outline-primary"
-                                                style={{ borderRadius: 12, fontWeight: 600, fontSize: 13 }}
+                                                style={{borderRadius: 12, fontWeight: 600, fontSize: 13}}
                                                 onClick={handleAddVisibilidad}
                                             >+ Agregar regla</Button>
                                         </div>
                                         <div>
                                             {visibilidad.length === 0 && (
-                                                <span className="text-muted">No hay reglas de visibilidad definidas aún.</span>
+                                                <span
+                                                    className="text-muted">No hay reglas de visibilidad definidas aún.</span>
                                             )}
                                             {visibilidad.map((v, idx) => (
                                                 <Row key={idx} className="align-items-center mb-2">
@@ -466,7 +469,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                         >
                                                             <option value="">Tipo de visibilidad...</option>
                                                             {VISIBILIDAD_TIPOS.map(opt =>
-                                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                                <option key={opt.value}
+                                                                        value={opt.value}>{opt.label}</option>
                                                             )}
                                                         </Form.Select>
                                                     </Col>
@@ -518,7 +522,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                         >
                                                             <Card.Body>
                                                                 <Row className="g-2 align-items-center">
-                                                                    <Col md="auto" className="pe-0" style={{ cursor: "grab" }}>
+                                                                    <Col md="auto" className="pe-0"
+                                                                         style={{cursor: "grab"}}>
                                                                         <span
                                                                             {...provided.dragHandleProps}
                                                                             title="Arrastra para reordenar"
@@ -535,7 +540,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                     </Col>
                                                                     <Col md={3}>
                                                                         <Form.Group>
-                                                                            <Form.Label className="fw-semibold">Nombre</Form.Label>
+                                                                            <Form.Label
+                                                                                className="fw-semibold">Nombre</Form.Label>
                                                                             <Form.Control
                                                                                 size="sm"
                                                                                 style={inputStyle}
@@ -548,7 +554,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                     </Col>
                                                                     <Col md={3}>
                                                                         <Form.Group>
-                                                                            <Form.Label className="fw-semibold">Etiqueta</Form.Label>
+                                                                            <Form.Label
+                                                                                className="fw-semibold">Etiqueta</Form.Label>
                                                                             <Form.Control
                                                                                 size="sm"
                                                                                 style={inputStyle}
@@ -561,7 +568,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                     </Col>
                                                                     <Col md={3}>
                                                                         <Form.Group>
-                                                                            <Form.Label className="fw-semibold">Tipo</Form.Label>
+                                                                            <Form.Label
+                                                                                className="fw-semibold">Tipo</Form.Label>
                                                                             <Form.Select
                                                                                 size="sm"
                                                                                 style={inputStyle}
@@ -569,7 +577,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                                 onChange={e => updateField(field.id, "type", e.target.value)}
                                                                             >
                                                                                 {FIELD_TYPES.map(ft => (
-                                                                                    <option key={ft.value} value={ft.value}>{ft.label}</option>
+                                                                                    <option key={ft.value}
+                                                                                            value={ft.value}>{ft.label}</option>
                                                                                 ))}
                                                                             </Form.Select>
                                                                         </Form.Group>
@@ -578,7 +587,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                     <Col md={2}>
                                                                         {field.type === "select" && (
                                                                             <Form.Group>
-                                                                                <Form.Label className="fw-semibold">Opciones</Form.Label>
+                                                                                <Form.Label
+                                                                                    className="fw-semibold">Opciones</Form.Label>
                                                                                 <Form.Control
                                                                                     size="sm"
                                                                                     style={inputStyle}
@@ -591,7 +601,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                         )}
                                                                         {field.type === "funcionario" && (
                                                                             <Form.Group>
-                                                                                <Form.Label className="fw-semibold">Funcionario</Form.Label>
+                                                                                <Form.Label
+                                                                                    className="fw-semibold">Funcionario</Form.Label>
                                                                                 <AsyncFuncionarioSelect
                                                                                     value={field.funcionario || null}
                                                                                     onChange={val => updateField(field.id, "funcionario", val)}
@@ -603,7 +614,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                         )}
                                                                         {field.type === "unidad" && (
                                                                             <Form.Group>
-                                                                                <Form.Label className="fw-semibold">Unidad</Form.Label>
+                                                                                <Form.Label
+                                                                                    className="fw-semibold">Unidad</Form.Label>
                                                                                 <AsyncUnidadesSelect
                                                                                     value={field.unidad || null}
                                                                                     onChange={val => updateField(field.id, "unidad", val)}
@@ -615,7 +627,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                         )}
                                                                         {field.type === "repol" && (
                                                                             <Form.Group>
-                                                                                <Form.Label className="fw-semibold">Región Policial</Form.Label>
+                                                                                <Form.Label className="fw-semibold">Región
+                                                                                    Policial</Form.Label>
                                                                                 <AsyncRegionesPolicialesSelect
                                                                                     value={field.repol || null}
                                                                                     onChange={val => updateField(field.id, "repol", val)}
@@ -628,16 +641,20 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                         {/* Selector de subformulario si es group */}
                                                                         {field.type === "group" && (
                                                                             <Form.Group>
-                                                                                <Form.Label className="fw-semibold">Subformulario</Form.Label>
+                                                                                <Form.Label
+                                                                                    className="fw-semibold">Subformulario</Form.Label>
                                                                                 <Form.Select
                                                                                     size="sm"
                                                                                     style={inputStyle}
                                                                                     value={field.subformulario || ""}
                                                                                     onChange={e => updateField(field.id, "subformulario", e.target.value)}
                                                                                 >
-                                                                                    <option value="">Selecciona un bloque...</option>
+                                                                                    <option value="">Selecciona un
+                                                                                        bloque...
+                                                                                    </option>
                                                                                     {SUBFORMULARIOS_CATALOGO.map(sf => (
-                                                                                        <option key={sf.value} value={sf.value}>{sf.label}</option>
+                                                                                        <option key={sf.value}
+                                                                                                value={sf.value}>{sf.label}</option>
                                                                                     ))}
                                                                                 </Form.Select>
                                                                                 {/* Permitir repetir bloque */}
@@ -651,13 +668,14 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                             </Form.Group>
                                                                         )}
                                                                     </Col>
-                                                                    <Col className="d-flex justify-content-end align-items-center">
+                                                                    <Col
+                                                                        className="d-flex justify-content-end align-items-center">
                                                                         <Button
                                                                             variant="outline-danger"
                                                                             size="sm"
                                                                             onClick={() => removeField(field.id)}
                                                                             title="Eliminar campo"
-                                                                            style={{ borderRadius: 10 }}
+                                                                            style={{borderRadius: 10}}
                                                                         >
                                                                             🗑️
                                                                         </Button>
@@ -697,7 +715,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                 disabled={fields.length === 0 || !nombre || visibilidad.length === 0}
                                 onClick={handleGuardar}
                             >
-                                {guardando ? <Spinner size="sm" /> : "Guardar y asignar cuotas"}
+                                {guardando ? <Spinner size="sm"/> : "Guardar y asignar cuotas"}
                             </Button>
                         </div>
                         {success && <Alert variant="success" className="mt-4">{success}</Alert>}
@@ -711,10 +729,10 @@ export default function FormBuilderEditor({ fields, setFields }) {
     // ------ Paso 2: cuotas ------
     if (step === 2) {
         return (
-            <Card className="mb-3 shadow" style={{ borderRadius: 14 }}>
+            <Card className="mb-3 shadow" style={{borderRadius: 14}}>
                 <Card.Header>
                     <b>Asignar cuotas de registros</b>
-                    <span className="ms-2 text-secondary" style={{ fontWeight: 400 }}>
+                    <span className="ms-2 text-secondary" style={{fontWeight: 400}}>
                         (¿Cuántos registros debe ingresar cada unidad/usuario?)
                     </span>
                 </Card.Header>
@@ -747,7 +765,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                 type="number"
                                 min={1}
                                 value={nuevaCuota.cantidad}
-                                onChange={e => setNuevaCuota({ ...nuevaCuota, cantidad: Number(e.target.value) })}
+                                onChange={e => setNuevaCuota({...nuevaCuota, cantidad: Number(e.target.value)})}
                             />
                         </Col>
                         <Col md={2}>
@@ -772,7 +790,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                 <td>{c.nombre || c.valor}</td>
                                 <td>{c.cantidad}</td>
                                 <td>
-                                    <Button variant="danger" size="sm" onClick={() => eliminarCuota(i)}>Eliminar</Button>
+                                    <Button variant="danger" size="sm"
+                                            onClick={() => eliminarCuota(i)}>Eliminar</Button>
                                 </td>
                             </tr>
                         ))}
@@ -781,7 +800,7 @@ export default function FormBuilderEditor({ fields, setFields }) {
                     <div className="d-flex justify-content-between align-items-center mt-3">
                         <Button variant="secondary" onClick={() => setStep(1)}>← Volver</Button>
                         <Button variant="success" onClick={handleGuardarCuotas} disabled={guardando}>
-                            {guardando ? <Spinner size="sm" /> : "Guardar y publicar"}
+                            {guardando ? <Spinner size="sm"/> : "Guardar y publicar"}
                         </Button>
                     </div>
                 </Card.Body>
@@ -791,11 +810,12 @@ export default function FormBuilderEditor({ fields, setFields }) {
 
     // ------ Paso 3: Confirmación ------
     return (
-        <Card className="mb-3 shadow" style={{ borderRadius: 14 }}>
+        <Card className="mb-3 shadow" style={{borderRadius: 14}}>
             <Card.Header><b>¡Formulario configurado y publicado!</b></Card.Header>
             <Card.Body>
                 <Alert variant="success">
-                    <b>Formulario y cuotas guardadas correctamente.</b> Los usuarios/unidades asignadas ya pueden comenzar a ingresar registros.
+                    <b>Formulario y cuotas guardadas correctamente.</b> Los usuarios/unidades asignadas ya pueden
+                    comenzar a ingresar registros.
                 </Alert>
                 <Button variant="primary" onClick={() => window.location.reload()}>Crear otro formulario</Button>
             </Card.Body>

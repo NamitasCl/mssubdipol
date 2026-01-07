@@ -59,4 +59,14 @@ public class JwtUtils {
         String tokenUsername = extractUsername(token);
         return (username.equals(tokenUsername) && !isTokenExpired(token));
     }
+
+    public java.util.List<String> extractRoles(String token) {
+        // Asumimos que los roles vienen en un claim llamado "roles" o "authorities"
+        // Ajustar según la estructura real de tu token (ej: Keycloak usa "realm_access.roles", otros "roles")
+        return extractClaim(token, claims -> {
+            @SuppressWarnings("unchecked")
+            java.util.List<String> roles = claims.get("roles", java.util.List.class);
+            return roles != null ? roles : java.util.Collections.emptyList();
+        });
+    }
 }
