@@ -59,4 +59,28 @@ public class JwtUtils {
         String tokenUsername = extractUsername(token);
         return (username.equals(tokenUsername) && !isTokenExpired(token));
     }
+
+    public java.util.List<String> extractRoles(String token) {
+        return extractClaim(token, claims -> {
+            @SuppressWarnings("unchecked")
+            java.util.List<String> roles = claims.get("roles", java.util.List.class);
+            return roles != null ? roles : java.util.Collections.emptyList();
+        });
+    }
+
+    public Integer extractIdFuncionario(String token) {
+        return extractClaim(token, claims -> claims.get("idFuncionario", Integer.class));
+    }
+
+    public String extractSiglasUnidad(String token) {
+        return extractClaim(token, claims -> claims.get("siglasUnidad", String.class));
+    }
+
+    public Integer extractIdUnidad(String token) {
+        return extractClaim(token, claims -> claims.get("idUnidad", Integer.class));
+    }
+
+    public String extractNombreUsuario(String token) {
+        return extractClaim(token, claims -> claims.get("nombreUsuario", String.class));
+    }
 }

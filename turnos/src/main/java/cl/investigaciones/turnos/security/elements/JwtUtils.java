@@ -69,4 +69,20 @@ public class JwtUtils {
             return roles != null ? roles : java.util.Collections.emptyList();
         });
     }
+
+    public Integer extractIdFuncionario(String token) {
+        return extractClaim(token, claims -> claims.get("idFuncionario", Integer.class));
+    }
+
+    public String extractSiglasUnidad(String token) {
+        return extractClaim(token, claims -> claims.get("siglasUnidad", String.class));
+    }
+
+    public Integer extractIdUnidad(String token) {
+        return extractClaim(token, claims -> claims.get("idUnidad", Integer.class));
+    }
+
+    public String extractNombreUsuario(String token) {
+        return extractClaim(token, claims -> claims.get("nombreUsuario", String.class));
+    }
 }

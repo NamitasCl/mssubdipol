@@ -32,6 +32,7 @@ import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemo
 import TablaJose from "./pages/TablaJose.jsx";
 import ServiciosMasivosRHF from "./pages/desarrollo/masivos/ServiciosMasivosRHF.jsx";
 import FormulariosV2Page from "./pages/formulariosv2/FormulariosV2Page.jsx";
+import GestionSolicitudesCambio from "./pages/turnos/GestionSolicitudesCambio.jsx";
 
 
 
@@ -99,6 +100,7 @@ export default function App() {
                     <Route path="calendario" element={<VistaCalendarioTurnosFiltros />} />
                     <Route path="calendarios" element={<CalendarioPage />} />
                     <Route path="disponibles" element={<RestrictedAreaSecuin component={AsignacionTurnosMensual} />} />
+                    <Route path="solicitudes-cambio" element={<RestrictedAreaSubJefe component={GestionSolicitudesCambio} />} />
                     <Route path="jefe" element={<RestrictedAreaJefe component={Jefe} />} />
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
                 </Route>
