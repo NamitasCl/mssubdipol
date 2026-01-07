@@ -72,7 +72,7 @@ export default function ModalesRevision({
 
         // Prioridad 3: Revisor de plana mayor
         if (userRoles.includes('ROLE_REVISOR')) {
-            return 'REVISOR';
+            return 'PMAYOR';
         }
 
         // Si tiene ROLE_ADMINISTRADOR pero no otros roles de revisión, puede ser PMAYOR
