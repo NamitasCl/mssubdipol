@@ -160,4 +160,10 @@ public class CalendarioServiceImpl implements CalendarioService {
             return CalendarioMapper.toDto(repo.save(c));
         });
     }
+
+    @Override
+    public Optional<CalendarioResponseDTO> buscarPorMesAnio(Integer mes, Integer anio) {
+        return repo.findByMesAndAnioAndEliminadoFalse(mes, anio)
+                .map(CalendarioMapper::toDto);
+    }
 }

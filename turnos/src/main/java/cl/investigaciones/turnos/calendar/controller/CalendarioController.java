@@ -27,6 +27,13 @@ public class CalendarioController {
         return servicio.listarCalendarios();
     }
 
+    @GetMapping("/buscar")
+    public ResponseEntity<CalendarioResponseDTO> buscarPorFecha(@RequestParam Integer mes, @RequestParam Integer anio) {
+        return servicio.buscarPorMesAnio(mes, anio)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
     @GetMapping("/{id}")
     public CalendarioResponseDTO buscar(@PathVariable Long id) {
         return servicio.buscarPorId(id).orElseThrow(() -> new RuntimeException("Calendario no encontrado"));

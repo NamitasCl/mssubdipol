@@ -11,4 +11,5 @@ public interface CalendarioRepository extends JpaRepository<Calendario, Long> {
     List<Calendario> findByIdUnidadAndEliminadoFalse(Long idUnidad);
     List<Calendario> findByEstadoAndEliminadoFalse(CalendarState estado);
     List<Calendario> findByEliminadoFalse();
+    Optional<Calendario> findByMesAndAnioAndEliminadoFalse(Integer mes, Integer anio);
 }

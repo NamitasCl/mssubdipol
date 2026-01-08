@@ -253,19 +253,40 @@ public class DistribucionSolver {
     }
     
     private int compararJerarquia(Map<String, Object> func1, Map<String, Object> func2) {
-        Map<String, Integer> jerarquia = Map.of(
-                "SUBCOMISARIO", 1, "SUBINSPECTOR", 2, "OFICIAL", 3,
-                "CABO 1°", 4, "CABO 2°", 5, "SARGENTO 1°", 6,
-                "SARGENTO 2°", 7, "DETECTIVE", 8
+        // Orden de grados PDI (Menor índice = Mayor jerarquía)
+        List<String> ordenGrados = Arrays.asList(
+            "PFT", "SPF", "SPF (OPP)", "COM", "COM (OPP)", 
+            "SBC", "SBC (OPP)", "ISP", "SBI", "DTV", 
+            "APS", "AP", "APP", "APP (AC)"
         );
         
-        String grado1 = (String) func1.getOrDefault("siglasCargo", "");
-        String grado2 = (String) func2.getOrDefault("siglasCargo", "");
+        String grado1 = normalizeRank((String) func1.getOrDefault("siglasCargo", ""));
+        String grado2 = normalizeRank((String) func2.getOrDefault("siglasCargo", ""));
         
-        int nivel1 = jerarquia.getOrDefault(grado1, 99);
-        int nivel2 = jerarquia.getOrDefault(grado2, 99);
+        // Extraer grado base y verificar OPP
+        String base1 = grado1.replace(" (OPP)", "").trim();
+        String base2 = grado2.replace(" (OPP)", "").trim();
         
-        return Integer.compare(nivel1, nivel2);
+        int idx1 = ordenGrados.indexOf(grado1);
+        int idx2 = ordenGrados.indexOf(grado2);
+        
+        // Si no está en la lista exacta, intentar buscar por base para fallback
+        if (idx1 == -1) idx1 = ordenGrados.indexOf(base1);
+        if (idx1 == -1) idx1 = 999;
+        
+        if (idx2 == -1) idx2 = ordenGrados.indexOf(base2);
+        if (idx2 == -1) idx2 = 999;
+        
+        return Integer.compare(idx1, idx2);
+    }
+
+    private String normalizeRank(String rank) {
+        if (rank == null) return "";
+        return rank.trim().toUpperCase()
+                .replace("  ", " ")
+                .replace(" ( OPP)", " (OPP)")
+                .replace("(OPP)", " (OPP)")
+                .trim();
     }
     
     private boolean esFinDeSemana(LocalDate fecha) {

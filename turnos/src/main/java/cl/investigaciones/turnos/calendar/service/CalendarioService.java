@@ -18,4 +18,5 @@ public interface CalendarioService {
     Optional<CalendarioResponseDTO> cambiarEstado(Long id, CalendarState nuevoEstado, int usuario);
     Optional<CalendarioResponseDTO> aprobar(Long id, String username);
     Optional<CalendarioResponseDTO> observar(Long id, String username, String observacion);
+    Optional<CalendarioResponseDTO> buscarPorMesAnio(Integer mes, Integer anio);
 }
