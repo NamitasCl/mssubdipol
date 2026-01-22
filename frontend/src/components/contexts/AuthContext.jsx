@@ -169,6 +169,7 @@ export const AuthProvider = ({ children }) => {
         const enriched = { ...(dec || {}), token: access, exp };
 
         setUser(enriched);
+        console.log(enriched);
         setIsAuth(true);
         sessionStorage.setItem(SS_USER, JSON.stringify(enriched));
         sessionStorage.setItem(SS_TOKEN, access);

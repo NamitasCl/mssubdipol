@@ -1,142 +1,58 @@
 import React, { useEffect, useState } from "react";
-import { Container, Navbar, Row, Col, Image, Card, Button, Spinner } from "react-bootstrap";
-import PdiLogo from "../../assets/imagenes/pdilogo.png";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
-import { FaSignOutAlt, FaPlus, FaClipboardList, FaCheckCircle, FaUserCheck } from "react-icons/fa";
+import { ClipboardList, CheckCircle, UserCheck, Plus } from "lucide-react";
+import Layout from "../../Layout";
 
-// Paleta pastel
-const azulSuave = "#7fa6da";
-const azulOscuro = "#23395d";
-const grisClaro = "#eceff4";
-const blanco = "#fff";
-const verdeMenta = "#5ba58d";
-const textoPrincipal = "#23395d";
-
-function Header() {
-    const { logout } = useAuth();
-    const navigate = useNavigate();
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
-    return (
-        <Navbar
-            variant="light"
-            expand="lg"
-            className="px-2 py-0"
-            style={{
-                background: azulOscuro,
-                borderBottom: `2.5px solid ${azulSuave}`,
-                minHeight: "84px",
-                boxShadow: "0 5px 20px 0 #aecbf855",
-                zIndex: 1030
-            }}
-        >
-            <Container fluid className="align-items-center py-2" style={{ minHeight: "78px" }}>
-                <div className="d-flex flex-column align-items-center" style={{ minWidth: 140, cursor: "pointer" }}>
-                    <Image src={PdiLogo} alt="Logo" height={48} onClick={() => navigate("/")} />
-                    <span className="text-uppercase fw-semibold" style={{ color: azulSuave, fontSize: "0.98rem", letterSpacing: ".09em" }}>
-                        Plana Mayor Subdipol
-                    </span>
-                </div>
-                <div className="flex-grow-1 d-flex flex-column align-items-center">
-                    <h1 className="mb-0 fw-bold text-center"
-                        style={{
-                            color: blanco,
-                            fontSize: "1.42rem",
-                            letterSpacing: ".02em",
-                            textTransform: "uppercase"
-                        }}>
-                        Sistema Integrado de Gestión de Formularios
-                    </h1>
-                </div>
-                <div className="d-flex align-items-center gap-2">
-                    <Button
-                        variant="outline-dark"
-                        className="d-flex align-items-center gap-2"
-                        size="sm"
-                        onClick={handleLogout}
-                        style={{
-                            fontWeight: 600,
-                            borderRadius: "1.7rem",
-                            border: `1.5px solid ${azulSuave}`,
-                            color: blanco,
-                            background: "transparent"
-                        }}
-                    >
-                        <span>Cerrar sesión</span>
-                        <FaSignOutAlt />
-                    </Button>
-                </div>
-            </Container>
-        </Navbar>
-    );
-}
-
-// Panel de estadísticas con tarjetas pastel
+// EstadisticasPanel refactored with Tailwind
 function EstadisticasPanel({ stats, loading }) {
     const tarjetas = [
         {
             label: "Formularios creados",
             value: stats?.creados ?? "-",
-            icon: <FaClipboardList size={28} color={azulSuave} />,
-            color: blanco,
-            border: azulSuave
+            icon: <ClipboardList size={28} className="text-blue-500" />,
+            borderColor: "border-blue-500",
+            bgIcon: "bg-blue-50"
         },
         {
             label: "Formularios activos",
             value: stats?.activos ?? "-",
-            icon: <FaCheckCircle size={28} color={verdeMenta} />,
-            color: blanco,
-            border: verdeMenta
+            icon: <CheckCircle size={28} className="text-emerald-500" />,
+            borderColor: "border-emerald-500",
+            bgIcon: "bg-emerald-50"
         },
         {
             label: "Asignados a mí",
             value: stats?.asignados ?? "-",
-            icon: <FaUserCheck size={28} color={grisClaro} />,
-            color: blanco,
-            border: grisClaro
+            icon: <UserCheck size={28} className="text-gray-500" />,
+            borderColor: "border-gray-500",
+            bgIcon: "bg-gray-50"
         }
     ];
 
     return (
-        <Row className="g-4 my-1 justify-content-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {tarjetas.map((t, i) => (
-                <Col key={i} xs={12} md={4}>
-                    <Card
-                        className="h-100 border-0 shadow-sm rounded-4"
-                        style={{
-                            background: t.color,
-                            minHeight: 104,
-                            borderLeft: `7px solid ${t.border}`,
-                            boxShadow: "0 5px 22px 0 #9ec8e733"
-                        }}
-                    >
-                        <Card.Body className="d-flex align-items-center gap-3 py-3">
-                            <div className="rounded-4 d-flex align-items-center justify-content-center"
-                                 style={{
-                                     width: 52, height: 52,
-                                     background: "#f5f7fa",
-                                     border: `2.5px solid ${t.border}`
-                                 }}>
-                                {t.icon}
-                            </div>
-                            <div>
-                                <div className="fw-bold" style={{ fontSize: 27, color: textoPrincipal }}>
-                                    {loading ? <Spinner animation="border" size="sm" /> : t.value}
-                                </div>
-                                <div className="text-muted" style={{ fontSize: 15 }}>{t.label}</div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
+                <div 
+                    key={i} 
+                    className={`bg-white rounded-xl shadow-sm border-l-4 ${t.borderColor} p-6 flex items-center gap-4 transition hover:shadow-md`}
+                >
+                    <div className={`p-3 rounded-lg ${t.bgIcon}`}>
+                        {t.icon}
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-gray-800">
+                            {loading ? <div className="animate-pulse h-8 w-16 bg-gray-200 rounded"></div> : t.value}
+                        </div>
+                        <div className="text-sm text-gray-500 font-medium">{t.label}</div>
+                    </div>
+                </div>
             ))}
-        </Row>
+        </div>
     );
 }
 
-const ServiciosEspecialesPanelLayout = ({ children }) => {
+const ServiciosEspecialesPanelLayout = () => {
     const { user } = useAuth();
     const [stats, setStats] = useState({});
     const [loading, setLoading] = useState(true);
@@ -171,75 +87,27 @@ const ServiciosEspecialesPanelLayout = ({ children }) => {
             .finally(() => setLoading(false));
     }, [user]);
 
-    // Botón flotante para crear formulario
-    const crearFormulario = () => {
-        navigate("/formularios/crear-formulario");
-    };
-
     return (
-        <div style={{
-            minHeight: "100vh",
-            background: "#f8fafc",
-            position: "relative"
-        }}>
-            <Header />
-
-            <div className="container-lg py-3" style={{ maxWidth: 1350 }}>
+        <Layout>
+            <div className="relative min-h-[calc(100vh-140px)]">
+                {/* Stats Panel */}
                 <EstadisticasPanel stats={stats} loading={loading} />
+
+                {/* Main Content */}
+                <div className="bg-white rounded-xl">
+                    <Outlet />
+                </div>
+
+                {/* Floating Action Button */}
+                <button
+                    onClick={() => navigate("/formularios/crear-formulario")}
+                    className="fixed bottom-10 right-10 bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-3 group z-50 transform hover:scale-105"
+                >
+                    <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                    <span className="font-bold text-lg">Nuevo Formulario</span>
+                </button>
             </div>
-
-            {/* Contenido principal ocupa todo el espacio */}
-            <Container
-                className="pt-4"
-                style={{
-                    minHeight: "60vh",
-                    position: "relative"
-                }}
-            >
-                {/* Renderiza la lista de formularios o el contenido de rutas hijas */}
-                {children || <Outlet />}
-            </Container>
-
-            {/* Botón flotante crear formulario, abajo a la derecha */}
-            <Button
-                variant="light"
-                onClick={crearFormulario}
-                className="d-flex align-items-center justify-content-center"
-                style={{
-                    position: "fixed",
-                    bottom: 38,
-                    right: 38,
-                    width: 200,
-                    height: 66,
-                    borderRadius: "20px",
-                    boxShadow: "0 4px 22px #b2c6e677",
-                    background: azulSuave,
-                    color: "#fff",
-                    fontWeight: "bold",
-                    fontSize: 20,
-                    zIndex: 2024,
-                    border: "none",
-                    transition: "background .16s, box-shadow .14s, transform .10s"
-                }}
-                title="Crear nuevo formulario"
-                onMouseEnter={e => {
-                    e.currentTarget.style.background = verdeMenta;
-                    e.currentTarget.style.boxShadow = "0 8px 28px #a6e3cf55";
-                    e.currentTarget.style.transform = "scale(1.09)";
-                    e.currentTarget.style.color = "white";
-                    e.currentTarget.style.fontWeight = "bold";
-                }}
-                onMouseLeave={e => {
-                    e.currentTarget.style.background = azulSuave;
-                    e.currentTarget.style.boxShadow = "0 4px 22px #b2c6e677";
-                    e.currentTarget.style.transform = "none";
-                    e.currentTarget.style.color = "#fff";
-                    e.currentTarget.style.fontWeight = "bold";
-                }}
-            >
-                Nuevo formulario
-            </Button>
-        </div>
+        </Layout>
     );
 };
 

@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from './components/contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
-import { Form, Button, Alert, Container, Card, Image } from 'react-bootstrap';
+import { ShieldCheck, User, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import PdiLogo from "./assets/imagenes/pdilogo.png";
-
-// Paleta institucional sugerida
-const azulPDI = "#17355A";
-const doradoPDI = "#FFC700";
-const grisOscuro = "#1a2233";
 
 const LoginForm = () => {
     const { login } = useAuth();
@@ -15,154 +10,133 @@ const LoginForm = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
+        setIsLoading(true);
         try {
             await login({ username, password });
             navigate("/");
         } catch (err) {
-            setError("Credenciales incorrectas. Intenta nuevamente.");
+            setError("Credenciales incorrectas. Verifique e intente nuevamente.");
+            setIsLoading(false);
         }
     };
 
     return (
-        <div
-            className="d-flex justify-content-center align-items-center min-vh-100"
-            style={{
-                background: `radial-gradient(circle at 55% 30%, #23395d 40%, #142032 100%)`,
-                minHeight: "100vh"
-            }}
-        >
-            <Container>
-                <div style={{
-                    position: "absolute",
-                    top: "10px",
-                    right: "20px"
-                }}>
-                    <Button variant={"warning"} onClick={() => window.location.href="https://rac.investigaciones.cl/opciones/"}>
-                        Volver a RAC
-                    </Button>
-                </div>
-                <Card
-                    className="mx-auto border-0 shadow"
-                    style={{
-                        maxWidth: 400,
-                        borderRadius: "1rem",
-                        background: "rgba(28,36,48,0.96)",
-                        border: `2.5px solid ${doradoPDI}`,
-                        boxShadow: "0 6px 30px rgba(23,53,90, 0.45)"
-                    }}
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-900">
+            {/* Background Effects */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-pdi-base via-slate-900 to-slate-900 opacity-90"></div>
+                <div className="absolute -top-1/2 -left-1/2 w-[1000px] h-[1000px] bg-blue-600/20 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-pdi-medio/10 rounded-full blur-3xl"></div>
+            </div>
+
+            {/* Back Button */}
+            <div className="absolute top-6 right-6 z-20">
+                <button 
+                    onClick={() => window.location.href="https://rac.investigaciones.cl/opciones/"}
+                    className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-full text-sm font-medium border border-white/10 backdrop-blur-md transition-all flex items-center gap-2 group"
                 >
-                    <div className="d-flex flex-column align-items-center pt-4 pb-2">
-                        <Image src={PdiLogo} alt="Logo PDI" height={58} className="mb-2" style={{filter:"drop-shadow(0 2px 4px #1118)"}} />
-                        <span
-                            className="text-uppercase"
-                            style={{
-                                fontWeight: 700,
-                                color: doradoPDI,
-                                letterSpacing: ".15em",
-                                fontSize: "1.06rem"
-                            }}
-                        >
-                            PLANA MAYOR SUBDIPOL
-                        </span>
-                    </div>
-                    <div className="px-4">
-                        <h4
-                            className="fw-bold text-center mb-1"
-                            style={{
-                                color: "#fff",
-                                letterSpacing: ".03em",
-                                fontSize: "1.48rem",
-                                textTransform: "uppercase"
-                            }}
-                        >
-                            Acceso Institucional
-                        </h4>
-                        <div
-                            className="text-center mb-4"
-                            style={{
-                                fontSize: ".98rem",
-                                color: "#b3c0d1",
-                                letterSpacing: ".03em"
-                            }}
-                        >
-                            Sistema Integrado de Gestión de Servicios
+                    Volver a RAC
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
+                </button>
+            </div>
+
+            {/* Login Card */}
+            <div className="relative z-10 w-full max-w-md px-4">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8 md:p-10 relative overflow-hidden">
+                    {/* Decorative Top Line */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pdi-dorado via-transparent to-pdi-dorado opacity-50"></div>
+
+                    <div className="flex flex-col items-center mb-8">
+                        <div className="relative mb-4 group">
+                            <div className="absolute inset-0 bg-blue-500 blur-xl opacity-30 group-hover:opacity-50 transition-opacity rounded-full"></div>
+                            <img 
+                                src={PdiLogo} 
+                                alt="Logo PDI" 
+                                className="h-20 w-auto relative drop-shadow-lg transform group-hover:scale-105 transition-transform duration-500" 
+                            />
                         </div>
-                        <Form onSubmit={handleSubmit} autoComplete="off">
-                            <Form.Group controlId="loginUsername" className="mb-3">
-                                <Form.Label
-                                    className="fw-semibold text-light"
-                                    style={{ letterSpacing: ".04em" }}
-                                >
-                                    Usuario
-                                </Form.Label>
-                                <Form.Control
+                        <h2 className="text-white font-bold text-2xl tracking-wide text-center mb-1">
+                            PLANA MAYOR SUBDIPOL
+                        </h2>
+                        <p className="text-blue-200/80 text-sm tracking-widest uppercase font-medium">
+                            Acceso Institucional
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="space-y-1">
+                            <label className="text-blue-100 text-xs font-semibold uppercase tracking-wider ml-1">Usuario</label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-300 group-focus-within:text-pdi-dorado transition-colors">
+                                    <User size={18} />
+                                </div>
+                                <input
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="Usuario institucional"
-                                    autoFocus
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pdi-dorado/50 focus:border-pdi-dorado/50 transition-all"
+                                    placeholder="Ingrese su usuario"
                                     required
-                                    style={{
-                                        background: grisOscuro,
-                                        color: "#fff",
-                                        border: `1.5px solid ${doradoPDI}`,
-                                        borderRadius: ".5rem"
-                                    }}
+                                    autoFocus
                                 />
-                            </Form.Group>
-                            <Form.Group controlId="loginPassword" className="mb-3">
-                                <Form.Label
-                                    className="fw-semibold text-light"
-                                    style={{ letterSpacing: ".04em" }}
-                                >
-                                    Contraseña
-                                </Form.Label>
-                                <Form.Control
+                            </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-blue-100 text-xs font-semibold uppercase tracking-wider ml-1">Contraseña</label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-300 group-focus-within:text-pdi-dorado transition-colors">
+                                    <Lock size={18} />
+                                </div>
+                                <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Contraseña"
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pdi-dorado/50 focus:border-pdi-dorado/50 transition-all"
+                                    placeholder="••••••••"
                                     required
-                                    style={{
-                                        background: grisOscuro,
-                                        color: "#fff",
-                                        border: `1.5px solid ${doradoPDI}`,
-                                        borderRadius: ".5rem"
-                                    }}
                                 />
-                            </Form.Group>
-                            {error && <Alert variant="danger" className="py-2 text-center">{error}</Alert>}
-                            <div className="d-grid mb-2">
-                                <Button
-                                    variant="warning"
-                                    type="submit"
-                                    className="fw-bold text-dark"
-                                    style={{
-                                        background: doradoPDI,
-                                        border: `2px solid ${doradoPDI}`,
-                                        borderRadius: "2rem",
-                                        fontSize: "1.08rem",
-                                        letterSpacing: ".05em",
-                                        boxShadow: "0 2px 12px #ffd80044"
-                                    }}
-                                >
-                                    INGRESAR
-                                </Button>
                             </div>
-                        </Form>
-                        <div className="text-center mt-3 mb-2">
-                            <small style={{ color: "#7d8ba4" }}>
-                                Uso exclusivo para personal autorizado.<br />
-                                Acceso monitoreado por seguridad institucional.
-                            </small>
                         </div>
+
+                        {error && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                                <AlertCircle size={18} className="text-red-400 shrink-0 mt-0.5" />
+                                <span className="text-red-200 text-sm">{error}</span>
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-yellow-500 hover:bg-yellow-500 text-slate-900 font-bold py-3.5 rounded-xl shadow-md border-b-4 border-yellow-600 active:border-b-0 active:translate-y-1 transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? (
+                                <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                                <>
+                                    INGRESAR AL SISTEMA
+                                    <ShieldCheck size={20} className="text-slate-900/80"/>
+                                </>
+                            )}
+                        </button>
+                    </form>
+
+                    <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                        <p className="text-slate-400 text-xs">
+                            Sistema Integrado de Gestión de Servicios
+                        </p>
+                        <p className="text-slate-500 text-[10px] mt-1">
+                             © {new Date().getFullYear()} Subdirección de Investigación Policial y Criminalística
+                        </p>
                     </div>
-                </Card>
-            </Container>
+                </div>
+            </div>
         </div>
     );
 };

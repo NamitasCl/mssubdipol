@@ -32,6 +32,7 @@ import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemo
 import TablaJose from "./pages/TablaJose.jsx";
 import ServiciosMasivosRHF from "./pages/desarrollo/masivos/ServiciosMasivosRHF.jsx";
 import FormulariosV2Page from "./pages/formulariosv2/FormulariosV2Page.jsx";
+import SGEApp from "./sge/SGEApp.jsx";
 
 
 
@@ -103,6 +104,7 @@ export default function App() {
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
                 </Route>
                 <Route path="/grafos" element={<GrafoIndex />} />
+                <Route path="/sge/*" element={<AuthGuard><SGEApp /></AuthGuard>} />
             </Routes>
         </Router>
     );

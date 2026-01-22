@@ -1,32 +1,17 @@
 import React, { useEffect, useState } from "react";
 import {
-    Card,
-    Row,
-    Col,
-    Button,
-    Spinner,
-    Alert,
-    Badge,
-    ProgressBar,
-} from "react-bootstrap";
-import {
-    FaFolderOpen,
-    FaUserCircle,
-    FaGlobeAmericas,
-    FaTasks,
-    FaShare,
-} from "react-icons/fa";
+    FolderOpen,
+    Globe,
+    ListChecks,
+    Share2,
+    UserCircle,
+    CheckCircle2,
+    AlertCircle,
+    Loader2
+} from "lucide-react";
 import { useAuth } from "../../components/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import DelegarCuotaFormulario from "./DelegarCuotaFormulario";
-
-/* -------------------------  PALETA & CONST. ------------------------- */
-
-const azulSuave = "#7fa6da";
-const verdeMenta = "#347148";
-const grisClaro = "#eceff4";
-const textoPrincipal = "#23395d";
-const textoSecundario = "#4a5975";
 
 /* ==================================================================== */
 /*                           COMPONENTE                                 */
@@ -132,395 +117,254 @@ export default function ListaFormulariosDisponibles() {
         setCuotaADistribuir(null);
     };
 
-    /* ====================== DEBUG (puedes comentar) ====================== */
-    // console.table({
-    //   user,
-    //   formulariosPrivados: formulariosPrivados.map((f) => f.id),
-    //   soloPrivados: soloPrivados.map((f) => f.id),
-    // });
 
     /* =============================== RENDER =============================== */
     return (
-        <div>
-            <h2
-                className="fw-bold mb-4"
-                style={{ color: textoPrincipal, fontSize: "1.28rem" }}
-            >
-                <FaTasks className="me-2" />
-                Tareas/cuotas asignadas a tu unidad
-            </h2>
+        <div className="p-2 space-y-8">
+            
+            {/* Header Section */}
+            <div>
+                 <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                        <ListChecks size={24} />
+                    </div>
+                    <span>Tareas y Cuotas Asignadas</span>
+                </h2>
+                <p className="text-gray-500 mt-1 ml-12">Gestione las asignaciones de formularios para su unidad y personal.</p>
+            </div>
+
 
             {/* ------------------ loading / error ------------------ */}
             {loading && (
-                <div className="d-flex justify-content-center my-4">
-                    <Spinner animation="border" variant="primary" />
+                <div className="flex justify-center my-12">
+                    <Loader2 className="animate-spin text-blue-600" size={40} />
                 </div>
             )}
-            {error && <Alert variant="danger">{error}</Alert>}
+            
+            {error && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg flex items-center gap-3">
+                    <AlertCircle className="text-red-500" />
+                    <span className="text-red-700 font-medium">{error}</span>
+                </div>
+            )}
 
             {/* ================================================================= */}
             {/*                     SECCIÓN CUOTAS / TAREAS                       */}
             {/* ================================================================= */}
+            
             {!loading && cuotas.length === 0 && (
-                <Alert variant="info">No tienes tareas asignadas por el momento.</Alert>
+                <div className="bg-blue-50 border border-blue-100 p-6 rounded-xl text-center">
+                    <p className="text-blue-700 font-medium">No tienes tareas asignadas por el momento.</p>
+                </div>
             )}
 
-            <Row className="g-4 mb-4">
-                {cuotas.map((cuota) => {
-                    const form = buscarFormularioPorId(cuota.formularioId);
-                    const nombre = cuota.formularioNombre || form.nombre || "Formulario";
-                    const descripcion = form.descripcion || "";
-                    const avance = cuota.avance ?? 0;
-                    const total = cuota.cuotaAsignada ?? 1;
-                    const completada = avance >= total;
-                    const esCuotaPadre = !cuota.cuotaPadreId;
-                    const idUnidad = cuota.idUnidad ?? null;
-                    const idFuncionario = cuota.idFuncionario ?? null;
+            {!loading && cuotas.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {cuotas.map((cuota) => {
+                        const form = buscarFormularioPorId(cuota.formularioId);
+                        const nombre = cuota.formularioNombre || form.nombre || "Formulario";
+                        const descripcion = form.descripcion || "";
+                        const avance = cuota.avance ?? 0;
+                        const total = cuota.cuotaAsignada ?? 1;
+                        const completada = avance >= total;
+                        const esCuotaPadre = !cuota.cuotaPadreId;
+                        const idUnidad = cuota.idUnidad ?? null;
+                        const idFuncionario = cuota.idFuncionario ?? null;
 
-                    return (
-                        <Col key={cuota.id} xs={12} md={6} lg={4}>
-                            <Card
-                                className="shadow-sm border-0 h-100"
-                                style={{
-                                    background: completada ? "#e6f9e7" : "#f6fafd",
-                                    borderLeft: `5px solid ${azulSuave}`,
-                                    borderRadius: 18,
-                                }}
+                        return (
+                            <div 
+                                key={cuota.id} 
+                                className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-all border-l-4 overflow-hidden flex flex-col ${completada ? 'border-emerald-500' : 'border-blue-500'}`}
                             >
-                                <Card.Body>
-                                    {/* título */}
-                                    <Card.Title
-                                        style={{
-                                            color: textoPrincipal,
-                                            fontWeight: 600,
-                                            fontSize: "1.09rem",
-                                        }}
-                                    >
-                                        <FaFolderOpen className="me-2" />
-                                        {nombre}
-                                        {completada && (
-                                            <Badge
-                                                bg="success"
-                                                className="ms-2 align-middle"
-                                                style={{ fontSize: "0.85em" }}
-                                            >
-                                                <FaTasks className="me-1" /> ¡Completado!
-                                            </Badge>
-                                        )}
+                                <div className={`p-5 flex-grow ${completada ? 'bg-emerald-50/30' : 'bg-blue-50/10'}`}>
+                                    
+                                    {/* Header Card */}
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex items-center gap-2 text-gray-800 font-bold text-lg">
+                                            <FolderOpen size={20} className={completada ? 'text-emerald-500' : 'text-blue-500'} />
+                                            <span className="line-clamp-1">{nombre}</span>
+                                        </div>
                                         {esCreador(form) && (
-                                            <Badge
-                                                bg="warning"
-                                                className="ms-2 align-middle"
-                                                style={{ fontSize: "0.85em", color: "#754c00" }}
-                                            >
+                                            <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-200">
                                                 Creador
-                                            </Badge>
+                                            </span>
                                         )}
-                                    </Card.Title>
+                                    </div>
 
                                     {descripcion && (
-                                        <Card.Text
-                                            style={{ color: textoSecundario, fontSize: ".98rem" }}
-                                        >
-                                            {descripcion}
-                                        </Card.Text>
+                                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{descripcion}</p>
                                     )}
 
-                                    {/* progreso */}
-                                    <div className="mb-2">
-                                        <small>
-                                            Cuota asignada: <b>{total}</b>
-                                        </small>
-                                        <ProgressBar
-                                            now={avance}
-                                            max={total}
-                                            label={`${avance}/${total}`}
-                                            variant={completada ? "success" : "info"}
-                                            className="my-1"
-                                        />
+                                    {/* Progress Bar */}
+                                    <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 mb-4">
+                                        <div className="flex justify-between text-xs font-semibold mb-1">
+                                            <span className="text-gray-500">Progreso</span>
+                                            <span className={completada ? 'text-emerald-600' : 'text-blue-600'}>{avance} / {total}</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div 
+                                                className={`h-2.5 rounded-full transition-all duration-500 ${completada ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+                                                style={{ width: `${Math.min((avance / total) * 100, 100)}%` }}
+                                            ></div>
+                                        </div>
+                                        {completada && (
+                                            <div className="mt-2 flex items-center gap-1 text-emerald-600 text-xs font-bold">
+                                                <CheckCircle2 size={12} /> ¡Completado!
+                                            </div>
+                                        )}
                                     </div>
+                                    
+                                    {/* Footer Info */}
+                                    <div>
+                                         <span className="inline-block bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded">
+                                            Unidad: {user.siglasUnidad}
+                                        </span>
+                                    </div>
+                                </div>
 
-                                    {/* botones */}
-                                    <div
-                                        className="d-flex justify-content-between align-items-center flex-wrap gap-3"
-                                        style={{ minHeight: 45 }}
+                                {/* Actions */}
+                                <div className="bg-gray-50 p-4 border-t border-gray-100 flex flex-wrap gap-2 justify-end">
+                                    {!completada && (
+                                        <button
+                                            onClick={() => navigate(`/formularios/formulario/${cuota.formularioId}`, { state: { cuotaId: cuota.id, idUnidad, idFuncionario } })}
+                                            className="px-3 py-1.5 bg-white border border-blue-200 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 shadow-sm transition-colors"
+                                        >
+                                            Completar
+                                        </button>
+                                    )}
+
+                                    <button
+                                        onClick={() => navigate(`/formularios/verregistros`, { state: { formularioId: cuota.formularioId, cuotaId: cuota.id, esCuotaPadre, idUnidad, idFuncionario } })}
+                                        className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 shadow-sm transition-colors"
                                     >
-                                        <div className="w-100">
-                                            <Badge
-                                                bg="secondary"
-                                                style={{
-                                                    background: grisClaro,
-                                                    color: textoSecundario,
-                                                    fontWeight: 500,
-                                                }}
-                                            >
-                                                Unidad: {user.siglasUnidad}
-                                            </Badge>
-                                        </div>
+                                        Registros
+                                    </button>
 
-                                        <div className="d-flex gap-2 flex-wrap">
-                                            {!completada && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline-primary"
-                                                    style={{
-                                                        borderRadius: 12,
-                                                        border: `1.5px solid ${azulSuave}`,
-                                                        fontWeight: 600,
-                                                        color: azulSuave,
-                                                        background: "#fff",
-                                                    }}
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/formularios/formulario/${cuota.formularioId}`,
-                                                            {
-                                                                state: { cuotaId: cuota.id, idUnidad, idFuncionario },
-                                                            }
-                                                        )
-                                                    }
-                                                >
-                                                    Completar
-                                                </Button>
-                                            )}
+                                    <button
+                                        onClick={() => handleAbrirDelegar(cuota)}
+                                        className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm font-semibold hover:bg-emerald-100 shadow-sm transition-colors flex items-center gap-1"
+                                        title="Distribuir/delegar cuota"
+                                    >
+                                        <Share2 size={14} /> Distribuir
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
-                                            {/* Ver registros (siempre visible con visibilidad) */}
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                onClick={() =>
-                                                    navigate(`/formularios/verregistros`, {
-                                                        state: {
-                                                            formularioId: cuota.formularioId,
-                                                            cuotaId: cuota.id,
-                                                            esCuotaPadre,
-                                                            idUnidad,
-                                                            idFuncionario,
-                                                        },
-                                                    })
-                                                }
-                                            >
-                                                Ver registros
-                                            </Button>
-
-                                            {/* Delegar */}
-                                            <Button
-                                                size="sm"
-                                                variant="outline-success"
-                                                style={{
-                                                    borderRadius: 12,
-                                                    border: `1.5px solid ${verdeMenta}`,
-                                                    fontWeight: 600,
-                                                    color: verdeMenta,
-                                                    background: "#fff",
-                                                }}
-                                                title="Distribuir/delegar cuota"
-                                                onClick={() => handleAbrirDelegar(cuota)}
-                                            >
-                                                <FaShare className="me-1" /> Distribuir cuota
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    );
-                })}
-            </Row>
 
             {/* ================================================================= */}
             {/*                    SECCIÓN FORMULARIOS PRIVADOS                   */}
             {/* ================================================================= */}
             {soloPrivados.length > 0 && (
-                <>
-                    <h5
-                        className="fw-semibold mt-2 mb-3"
-                        style={{ color: textoSecundario }}
-                    >
-                        <FaUserCircle className="me-2" /> Formularios asignados
-                        directamente a ti / tu unidad
-                    </h5>
-                    <Row className="g-4 mb-4">
+                <div className="mt-12">
+                     <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2 border-b pb-2">
+                        <UserCircle size={20} className="text-purple-500" /> 
+                        Asignados Directamente
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {soloPrivados.map((f) => (
-                            <Col key={f.id} xs={12} md={6} lg={4}>
-                                <Card
-                                    className="shadow-sm border-0 h-100"
-                                    style={{
-                                        background: "#f8fafc",
-                                        borderLeft: `5px solid ${azulSuave}`,
-                                        borderRadius: 18,
-                                    }}
-                                >
-                                    <Card.Body>
-                                        {/* título */}
-                                        <Card.Title
-                                            style={{
-                                                color: textoPrincipal,
-                                                fontWeight: 600,
-                                                fontSize: "1.09rem",
-                                            }}
-                                        >
-                                            <FaFolderOpen className="me-2" />
-                                            {f.nombre}
-                                            {esCreador(f) && (
-                                                <Badge
-                                                    bg="warning"
-                                                    className="ms-2 align-middle"
-                                                    style={{ fontSize: "0.85em", color: "#754c00" }}
-                                                >
-                                                    Creador
-                                                </Badge>
-                                            )}
-                                        </Card.Title>
-
-                                        <Card.Text
-                                            style={{ color: textoSecundario, fontSize: ".98rem" }}
-                                        >
-                                            {f.descripcion}
-                                        </Card.Text>
-
-                                        <div className="d-flex justify-content-between align-items-end">
-                                            <div className="d-flex gap-2">
-                                                {/* completar */}
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline-primary"
-                                                    style={{
-                                                        borderRadius: 12,
-                                                        border: `1.5px solid ${azulSuave}`,
-                                                        fontWeight: 600,
-                                                        color: azulSuave,
-                                                        background: "#fff",
-                                                    }}
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/formularios/formulario/${f.id}`
-                                                        )
-                                                    }
-                                                >
-                                                    Completar
-                                                </Button>
-
-                                                {/* ver registros (SIEMPRE visible si hay visibilidad) */}
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() =>
-                                                        navigate(`/formularios/verregistros`, {
-                                                            state: {
-                                                                formularioId: f.id,
-                                                                esCuotaPadre: true,
-                                                            },
-                                                        })
-                                                    }
-                                                >
-                                                    Ver registros
-                                                </Button>
-                                            </div>
+                            <div 
+                                key={f.id} 
+                                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border-l-4 border-purple-500 overflow-hidden flex flex-col"
+                            >
+                                <div className="p-5 flex-grow bg-purple-50/10">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex items-center gap-2 text-gray-800 font-bold text-lg">
+                                            <FolderOpen size={20} className="text-purple-500" />
+                                            <span className="line-clamp-1">{f.nombre}</span>
                                         </div>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
+                                        {esCreador(f) && (
+                                            <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-200">
+                                                Creador
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{f.descripcion}</p>
+                                </div>
+
+                                <div className="bg-gray-50 p-4 border-t border-gray-100 flex gap-2 justify-end">
+                                    <button
+                                        onClick={() => navigate(`/formularios/formulario/${f.id}`)}
+                                        className="px-3 py-1.5 bg-white border border-purple-200 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-50 shadow-sm transition-colors"
+                                    >
+                                        Completar
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate(`/formularios/verregistros`, { state: { formularioId: f.id, esCuotaPadre: true } })}
+                                        className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 shadow-sm transition-colors"
+                                    >
+                                        Registros
+                                    </button>
+                                </div>
+                            </div>
                         ))}
-                    </Row>
-                </>
+                    </div>
+                </div>
             )}
 
             {/* ================================================================= */}
             {/*                     SECCIÓN FORMULARIOS PÚBLICOS                  */}
             {/* ================================================================= */}
             {formulariosPublicosSinCuota.length > 0 && (
-                <>
-                    <h5
-                        className="fw-semibold mt-2 mb-3"
-                        style={{ color: textoSecundario }}
-                    >
-                        <FaGlobeAmericas className="me-2" /> Formularios públicos
-                    </h5>
-                    <Row className="g-4">
+                <div className="mt-12">
+                    <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2 border-b pb-2">
+                        <Globe size={20} className="text-emerald-500" /> 
+                        Formularios Públicos
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {formulariosPublicosSinCuota.map((f) => (
-                            <Col key={f.id} xs={12} md={6} lg={4}>
-                                <Card
-                                    className="shadow-sm border-0 h-100"
-                                    style={{
-                                        background: "#f6fff9",
-                                        borderLeft: `5px solid ${verdeMenta}`,
-                                        borderRadius: 18,
-                                    }}
-                                >
-                                    <Card.Body>
-                                        {/* título */}
-                                        <Card.Title
-                                            style={{
-                                                color: textoPrincipal,
-                                                fontWeight: 600,
-                                                fontSize: "1.09rem",
-                                            }}
-                                        >
-                                            <FaFolderOpen className="me-2" />
-                                            {f.nombre}
-                                            {esCreador(f) && (
-                                                <Badge
-                                                    bg="warning"
-                                                    className="ms-2 align-middle"
-                                                    style={{ fontSize: "0.85em", color: "#754c00" }}
-                                                >
-                                                    Creador
-                                                </Badge>
-                                            )}
-                                        </Card.Title>
-
-                                        <Card.Text
-                                            style={{ color: textoSecundario, fontSize: ".98rem" }}
-                                        >
-                                            {f.descripcion}
-                                        </Card.Text>
-
-                                        <div className="d-flex justify-content-between align-items-end">
-                                            <Badge bg="success">Pública</Badge>
-                                            <div className="d-flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline-success"
-                                                    style={{
-                                                        borderRadius: 12,
-                                                        border: `1.5px solid ${verdeMenta}`,
-                                                        fontWeight: 600,
-                                                        color: "#000",
-                                                        background: "#fff",
-                                                    }}
-                                                    onClick={() =>
-                                                        navigate(`/formularios/formulario/${f.id}`)
-                                                    }
-                                                >
-                                                    Completar
-                                                </Button>
-
-                                                {/* ver registros visible para todos los públicos */}
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() =>
-                                                        navigate(`/formularios/verregistros`, {
-                                                            state: {
-                                                                formularioId: f.id,
-                                                                esCuotaPadre: true,
-                                                            },
-                                                        })
-                                                    }
-                                                >
-                                                    Ver registros
-                                                </Button>
-                                            </div>
+                             <div 
+                                key={f.id} 
+                                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border-l-4 border-emerald-500 overflow-hidden flex flex-col"
+                            >
+                                <div className="p-5 flex-grow bg-emerald-50/10">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex items-center gap-2 text-gray-800 font-bold text-lg">
+                                            <FolderOpen size={20} className="text-emerald-500" />
+                                            <span className="line-clamp-1">{f.nombre}</span>
                                         </div>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
+                                        {esCreador(f) && (
+                                            <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-200">
+                                                Creador
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{f.descripcion}</p>
+                                    
+                                     <span className="inline-block bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">
+                                        Público
+                                    </span>
+                                </div>
+
+                                <div className="bg-gray-50 p-4 border-t border-gray-100 flex gap-2 justify-end">
+                                    <button
+                                        onClick={() => navigate(`/formularios/formulario/${f.id}`)}
+                                        className="px-3 py-1.5 bg-white border border-emerald-200 text-emerald-600 rounded-lg text-sm font-semibold hover:bg-emerald-50 shadow-sm transition-colors"
+                                    >
+                                        Completar
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate(`/formularios/verregistros`, { state: { formularioId: f.id, esCuotaPadre: true } })}
+                                        className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 shadow-sm transition-colors"
+                                    >
+                                        Registros
+                                    </button>
+                                </div>
+                            </div>
                         ))}
-                    </Row>
-                </>
+                    </div>
+                </div>
             )}
 
             {/* ---------------- MODAL DELEGAR ---------------- */}
+            {/* Note: DelegarCuotaFormulario still needs refactor to remove Bootstrap if heavily contained there */}
             <DelegarCuotaFormulario
                 show={!!cuotaADistribuir}
                 cuota={cuotaADistribuir}

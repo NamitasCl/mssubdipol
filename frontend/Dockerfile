@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copia ambos para cachear bien y mantener versiones exactas
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copia el resto del código
 COPY . .

@@ -2,7 +2,9 @@ package cl.investigaciones.commonservices.controller;
 
 import cl.investigaciones.commonservices.dto.*;
 import cl.investigaciones.commonservices.model.Funcionario;
+import cl.investigaciones.commonservices.model.Unidad;
 import cl.investigaciones.commonservices.repository.FuncionarioRepository;
+import cl.investigaciones.commonservices.repository.UnidadesRepository;
 import cl.investigaciones.commonservices.service.FuncionariosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -22,6 +24,9 @@ public class FuncionarioController {
     private FuncionarioRepository funcionarioRepository;
 
     @Autowired
+    private UnidadesRepository unidadesRepository;
+
+    @Autowired
     private FuncionariosService funcionarioService;
 
     @GetMapping("/search")
@@ -39,6 +44,20 @@ public class FuncionarioController {
                     funcSearchResponse.setAntiguedad(funcionario.getAntiguedad());
                     funcSearchResponse.setIdFun(funcionario.getIdFun());
                     funcSearchResponse.setSiglasUnidad(funcionario.getSiglasUnidad());
+                    
+                    // Enrich with Unit details
+                    funcSearchResponse.setGrado(funcionario.getNombreCargo());
+                    funcSearchResponse.setNombreUnidad(funcionario.getNombreUnidad()); // Default
+        
+                    if (funcionario.getSiglasUnidad() != null) {
+                        unidadesRepository.findFirstBySiglasUnidad(funcionario.getSiglasUnidad())
+                            .ifPresent(u -> {
+                                funcSearchResponse.setRegion(u.getNombreRegion());
+                                funcSearchResponse.setJefatura(u.getNombreUnidadReporta()); // Now maps to 'Prefectura' value
+                                funcSearchResponse.setNombreUnidad(u.getNombreUnidad());
+                            });
+                    }
+                    
                     return funcSearchResponse;
                 }).collect(Collectors.toList());
 

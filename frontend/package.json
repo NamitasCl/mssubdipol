@@ -13,7 +13,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@hello-pangea/dnd": "^18.0.1",
     "axios": "^1.8.3",
-    "bootstrap": "^5.3.3",
+    "clsx": "^2.1.0",
     "d3": "^7.9.0",
     "date-fns": "^4.1.0",
     "file-saver": "^2.0.5",
@@ -21,9 +21,10 @@
     "html2pdf": "^0.0.11",
     "jwt-decode": "^4.0.0",
     "lodash.debounce": "^4.0.8",
+    "lucide-react": "^0.344.0",
+    "leaflet": "^1.9.4",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
-    "react-bootstrap": "^2.10.9",
     "react-calendar": "^5.1.0",
     "react-datepicker": "^8.2.1",
     "react-day-picker": "^9.7.0",
@@ -31,10 +32,12 @@
     "react-flatpickr": "^4.0.11",
     "react-hook-form": "^7.66.0",
     "react-icons": "^5.5.0",
+    "react-leaflet": "^4.2.1",
     "react-router-dom": "^7.4.0",
     "react-select": "^5.10.1",
     "react-time-picker": "^8.0.2",
     "recharts": "^3.1.0",
+    "tailwind-merge": "^2.2.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -42,10 +45,13 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.18",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
     "vite": "^6.2.0"
   }
 }

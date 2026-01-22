@@ -4,7 +4,7 @@ WORKDIR /app
 
 # copia lock + package para cache estable
 COPY package*.json ./
-RUN npm ci   # usa el lock exacto (mejor que npm install)
+RUN npm install   # usa install porque el lock puede estar desactualizado durante la migración
 
 # copia el resto del código
 COPY . .

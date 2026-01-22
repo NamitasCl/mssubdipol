@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Table, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Search, Filter, Calendar as CalendarIcon, X } from 'lucide-react';
 
 /* -------------------------------------------------------------------------- */
 /*  Mapeo roles → etiqueta amigable                                            */
@@ -26,12 +26,6 @@ const rolToLabel = (rol) => {
 /* -------------------------------------------------------------------------- */
 /*  Componente                                                                */
 /* -------------------------------------------------------------------------- */
-/**
- * props:
- *   asignaciones : array de slots
- *   mes, anio    : números
- *   compareAntiguedad (opcional) : función para ordenar
- */
 export default function CalendarioTurnosFuncionarios({
                                                          asignaciones = [],
                                                          mes,
@@ -45,10 +39,9 @@ export default function CalendarioTurnosFuncionarios({
     const [filtroTurnoTexto,    setFiltroTurnoTexto]    = useState("");
     const [filtroDiaSeleccionado,setFiltroDiaSeleccionado] = useState("");
     const [soloGrupoDelDia,     setSoloGrupoDelDia]     = useState(false);
+    const [showFilters, setShowFilters] = useState(true);
 
     const [nombresUnicos, setNombresUnicos] = useState([]);
-
-
 
     /* lista de nombres para el filtro desplegable */
     useEffect(() => {
@@ -152,183 +145,199 @@ export default function CalendarioTurnosFuncionarios({
     ]);
 
 
-
-    const Ticket = ({ servicio }) => {
-
-        const color =
-            servicio === "JEFE_DE_SERVICIO" ? "green" :
-                servicio === "ENCARGADO_DE_GUARDIA" ? "orange" :
-                    servicio === "AYUDANTE_DE_GUARDIA" ? "red" :
-                        "black"; // default
+    const Ticket = ({ servicio, slot }) => {
+        const colorClass =
+            servicio === "JEFE_DE_SERVICIO" ? "text-emerald-500" :
+                servicio === "ENCARGADO_DE_GUARDIA" ? "text-amber-500" :
+                    servicio === "AYUDANTE_DE_GUARDIA" ? "text-rose-500" :
+                        "text-pdi-texto"; 
 
         return (
-            <span style={{ cursor: "pointer", color, fontWeight: "bold", fontSize: "1.2rem" }}>
-                ✔
-            </span>
+            <div className="group relative flex justify-center w-full h-full items-center">
+                <span className={`text-xl cursor-default ${colorClass} hover:scale-125 transition-transform`}>
+                    ✔
+                </span>
+                
+                {/* Custom Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                    <div className="font-bold mb-1 border-b border-gray-700 pb-1 text-center">
+                         {Number(slot.fecha.split("-")[2])}/{mes}/{anio}
+                    </div>
+                    <div className="space-y-1">
+                        <div><span className="text-gray-400">Rol:</span> {rolToLabel(slot.rolRequerido)}</div>
+                        <div><span className="text-gray-400">Recinto:</span> {slot.recinto}</div>
+                        <div><span className="text-gray-400">Servicio:</span> {slot.nombreServicio}</div>
+                    </div>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-900"></div>
+                </div>
+            </div>
         );
     };
 
-
-    /* --------------------------------- render ---------------------------------- */
     return (
-        <div className="table-responsive">
-            <h5 className="fw-bold mt-5 mb-3">Calendario Visual de Turnos</h5>
-
-            {/* --------------------------- barra de filtros --------------------------- */}
-            <div className="mb-3 p-2 bg-light border rounded">
-                <div className="row g-2 align-items-end">
-
-                    <div className="col-md-4">
-                        <label className="form-label fw-semibold">Buscar por nombre</label>
-                        <select
-                            className="form-select"
-                            value={filtroNombre}
-                            onChange={e => setFiltroNombre(e.target.value)}
-                        >
-                            {nombresUnicos.map(n => (
-                                <option key={n || "todos"} value={n}>
-                                    {n || "Todos los nombres"}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="col-md-2">
-                        <label className="form-label fw-semibold">Mín. turnos</label>
-                        <input
-                            type="number"
-                            className="form-control"
-                            value={filtroTurnosMin}
-                            onChange={e => setFiltroTurnosMin(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="col-md-2">
-                        <label className="form-label fw-semibold">Máx. turnos</label>
-                        <input
-                            type="number"
-                            className="form-control"
-                            value={filtroTurnosMax}
-                            onChange={e => setFiltroTurnosMax(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="col-md-2">
-                        <label className="form-label fw-semibold">Turno contiene</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={filtroTurnoTexto}
-                            onChange={e => setFiltroTurnoTexto(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="col-md-1">
-                        <label className="form-label fw-semibold">Día</label>
-                        <input
-                            type="number"
-                            className="form-control"
-                            min={1}
-                            max={diasDelMes.length}
-                            value={filtroDiaSeleccionado}
-                            onChange={e => setFiltroDiaSeleccionado(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="col-md-1 text-end">
-                        <label className="form-label d-block">&nbsp;</label>
-                        <Button variant="outline-secondary" size="sm" onClick={limpiarFiltros}>
-                            Limpiar
-                        </Button>
-                    </div>
-
-                    <div className="col-md-1">
-                        <div className="form-check mt-4">
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="soloGrupoDia"
-                                checked={soloGrupoDelDia}
-                                onChange={e => setSoloGrupoDelDia(e.target.checked)}
-                            />
-                            <label className="form-check-label" htmlFor="soloGrupoDia">
-                                Solo grupo
-                            </label>
-                        </div>
-                    </div>
-                </div>
+        <div className="flex flex-col h-full">
+            {/* Toolbar */}
+             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <h5 className="font-bold text-gray-700 flex items-center gap-2">
+                    <Filter size={18} />
+                    Filtros y Visualización
+                </h5>
+                <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="text-sm text-blue-600 font-medium hover:text-blue-800"
+                >
+                    {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+                </button>
             </div>
 
-            {/* ----------------------------- tabla principal -------------------------- */}
-            <Table bordered hover size="sm" className="text-center align-middle">
-                <thead className="sticky-top">
-                <tr>
-                    <th className="table-light">#</th>
-                    <th className="table-light">Funcionario</th>
-                    {diasDelMes.map(d => (
-                        <th
-                            key={d}
-                            className={esWE[d] ? "bg-warning bg-opacity-25" : "table-light"}
-                        >
-                            {d}
-                        </th>
-                    ))}
-                    <th className="table-light">
-                        Total<br />turnos
-                    </th>
-                </tr>
-                </thead>
+            {/* Filtros */}
+            {showFilters && (
+                <div className="p-4 bg-gray-50 border-b border-gray-100 animate-in slide-in-from-top-2 duration-300">
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+                        <div className="lg:col-span-2">
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Buscar por nombre</label>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                                <select
+                                    className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none"
+                                    value={filtroNombre}
+                                    onChange={e => setFiltroNombre(e.target.value)}
+                                >
+                                    {nombresUnicos.map(n => (
+                                        <option key={n || "todos"} value={n}>
+                                            {n || "Todos los nombres"}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
 
-                <tbody>
-                {listaPersonas.map((p, idx) => (
-                    <tr key={p.idFuncionario}>
-                        <td>{idx + 1}</td>
-                        <td className="text-start">
-                            {p.gradoFuncionario && <strong>{p.gradoFuncionario} </strong>}
-                            {p.nombreFuncionario}
-                        </td>
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Ranking Turnos</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    placeholder="Min"
+                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                    value={filtroTurnosMin}
+                                    onChange={e => setFiltroTurnosMin(e.target.value)}
+                                />
+                                <span className="text-gray-400">-</span>
+                                <input
+                                    type="number"
+                                    placeholder="Max"
+                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                    value={filtroTurnosMax}
+                                    onChange={e => setFiltroTurnosMax(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        
+                        <div>
+                             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Contiene texto</label>
+                             <input
+                                type="text"
+                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                value={filtroTurnoTexto}
+                                onChange={e => setFiltroTurnoTexto(e.target.value)}
+                            />
+                        </div>
 
-                        {diasDelMes.map(d => (
-                            <td key={d}>
-                                {p.dias.has(d) ? (
-                                    <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                            <Tooltip id={`tt-${p.idFuncionario}-${d}`}>
-                                                {p.turnosPorDia[d] ? (
-                                                    <div className="text-start">
-                                                        <div><b>Rol:</b> {rolToLabel(p.turnosPorDia[d].rolRequerido)}</div>
-                                                        <div><b>Recinto:</b> {p.turnosPorDia[d].recinto}</div>
-                                                        <div><b>Nombre servicio:</b> {p.turnosPorDia[d].nombreServicio}</div>
-                                                        {/* Agrega cualquier otro campo relevante */}
-                                                    </div>
-                                                ) : null}
-                                            </Tooltip>
-                                        }
-                                    >
-                                        {/*<span style={{ cursor: "pointer" }}>✔️</span>*/}
-                                        <span><Ticket servicio={p.turnosPorDia[d].rolRequerido} /></span>
-                                    </OverlayTrigger>
-                                ) : null}
-                            </td>
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Día</label>
+                             <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={diasDelMes.length}
+                                    className="w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                    value={filtroDiaSeleccionado}
+                                    onChange={e => setFiltroDiaSeleccionado(e.target.value)}
+                                />
+                                 <div className="flex items-center mt-1">
+                                    <input
+                                        type="checkbox"
+                                        id="soloGrupoDia"
+                                        checked={soloGrupoDelDia}
+                                        onChange={e => setSoloGrupoDelDia(e.target.checked)}
+                                        className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor="soloGrupoDia" className="ml-2 text-xs text-gray-600 select-none cursor-pointer">
+                                        Solo grupo
+                                    </label>
+                                </div>
+                             </div>
+                        </div>
+
+                         <div className="flex justify-end">
+                            <button 
+                                onClick={limpiarFiltros}
+                                className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-2"
+                            >
+                                <X size={14} /> Limpiar
+                            </button>
+                        </div>
+                     </div>
+                </div>
+            )}
+
+            {/* Tabla con scroll horizontal */}
+            <div className="flex-1 overflow-auto bg-white relative w-full">
+                <table className="w-full text-xs text-left border-collapse">
+                    <thead className="bg-gray-50 text-gray-600 font-semibold sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th className="px-3 py-3 border-b border-gray-200 w-10 text-center bg-gray-50 sticky left-0 z-20">#</th>
+                            <th className="px-3 py-3 border-b border-r border-gray-200 min-w-[200px] bg-gray-50 sticky left-10 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Funcionario</th>
+                            {diasDelMes.map(d => (
+                                <th
+                                    key={d}
+                                    className={`px-1 py-3 border-b border-gray-200 text-center min-w-[32px] ${esWE[d] ? "bg-amber-50 text-amber-900" : ""}`}
+                                >
+                                    {d}
+                                </th>
+                            ))}
+                            <th className="px-3 py-3 border-b border-l border-gray-200 text-center min-w-[60px] bg-gray-50">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                         {listaPersonas.map((p, idx) => (
+                            <tr key={p.idFuncionario} className="hover:bg-blue-50/50 transition-colors">
+                                <td className="px-3 py-2 text-center text-gray-400 bg-white sticky left-0 z-10">{idx + 1}</td>
+                                <td className="px-3 py-2 font-medium text-gray-900 border-r border-gray-100 bg-white sticky left-10 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] truncate max-w-[200px]" title={p.nombreFuncionario}>
+                                    {p.gradoFuncionario && <span className="text-blue-600 mr-1">{p.gradoFuncionario}</span>}
+                                    {p.nombreFuncionario}
+                                </td>
+                                {diasDelMes.map(d => (
+                                    <td key={d} className={`p-0 text-center border-r border-gray-50 ${esWE[d] ? "bg-amber-50/30" : ""}`}>
+                                        {p.dias.has(d) && (
+                                            <div className="w-full h-8 flex items-center justify-center">
+                                                <Ticket servicio={p.turnosPorDia[d].rolRequerido} slot={p.turnosPorDia[d]} />
+                                            </div>
+                                        )}
+                                    </td>
+                                ))}
+                                <td className="px-3 py-2 text-center font-bold text-pdi-base border-l border-gray-100 bg-gray-50/30">
+                                    {p.total}
+                                </td>
+                            </tr>
                         ))}
-
-                        <td className="fw-bold">{p.total}</td>
-                    </tr>
-                ))}
-                </tbody>
-
-                <tfoot>
-                <tr className="table-secondary">
-                    <td></td>
-                    <td className="fw-bold text-end">Total&nbsp;servicios</td>
-                    {diasDelMes.map(d => (
-                        <td key={d} className="fw-bold">{sumaPorDia[d] || ""}</td>
-                    ))}
-                    <td className="fw-bold">{totalGeneral}</td>
-                </tr>
-                </tfoot>
-            </Table>
+                    </tbody>
+                    <tfoot className="bg-gray-100 font-bold text-gray-700 sticky bottom-0 z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+                        <tr>
+                            <td className="px-3 py-3 text-center sticky left-0 z-20 bg-gray-100"></td>
+                            <td className="px-3 py-3 text-right sticky left-10 z-20 bg-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Total Servicios</td>
+                            {diasDelMes.map(d => (
+                                <td key={d} className={`text-center py-2 ${esWE[d] ? "bg-amber-100/50" : ""}`}>
+                                    {sumaPorDia[d] || ""}
+                                </td>
+                            ))}
+                            <td className="px-3 py-3 text-center border-l border-gray-200 bg-gray-200 text-gray-900">
+                                {totalGeneral}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     );
 }

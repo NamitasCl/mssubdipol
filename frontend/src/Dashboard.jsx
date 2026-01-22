@@ -1,5 +1,4 @@
 import React from "react";
-import { Card, Row, Col, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import {
     FaUsers,
@@ -13,17 +12,15 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "./components/contexts/AuthContext.jsx";
 
-// Paleta institucional y pastel
-const azulPDI = "#17355A";
-const doradoPDI = "#FFC700";
-const grisOscuro = "#222938";
-const blanco = "#f7f8fc";
-const azulSuave = "#7fa6da";
-const azulOscuro = "#23395d";
-const grisClaro = "#eceff4";
-const verdeMenta = "#a6e3cf";
-const textoPrincipal = "#23395d";
-const textoSecundario = "#4a5975";
+// Paleta institucional consistente con tailwind.config.js
+const azulPDI = "#2a4d7c"; // pdi.base
+const doradoPDI = "#ffe8a3"; // pdi.dorado
+const grisOscuro = "#22334a"; // pdi.texto
+// Colores auxiliares para iconos (no para texto)
+const blanco = "#ffffff";
+const azulSuave = "#4f7eb9"; // pdi.medio
+const azulOscuro = "#1e3a5c";
+const verdeMenta = "#2d8a6e"; // Version más oscura para iconos
 
 // Define tus tarjetas del dashboard aquí, cada una con su rol permitido
 const CARDS = [
@@ -32,7 +29,7 @@ const CARDS = [
         text: "Asigne los funcionarios que deben ser incluidos en el rol de guardias.",
         icon: <FaUserCheck size={34} />,
         route: "/layout/asignacionunidad",
-        color: azulPDI,
+        color: azulPDI, // Usar azul institucional
         roles: ["ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
     },
     {
@@ -40,7 +37,7 @@ const CARDS = [
         text: "Realice las modificaciones de los servicios que se han propuesto.",
         icon: <FaClipboardList size={34} />,
         route: "/layout/modificaturnosunidad",
-        color: "#28618b",
+        color: azulSuave,
         roles: ["ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
     },
     {
@@ -48,7 +45,7 @@ const CARDS = [
         text: "Configure y distribuya turnos entre las unidades colaboradoras.",
         icon: <FaClipboardList size={34} />,
         route: "/layout/gestion",
-        color: "#28618b",
+        color: azulSuave,
         roles: ["ROLE_SECUIN", "ROLE_ADMINISTRADOR"]
     },
     {
@@ -64,7 +61,7 @@ const CARDS = [
         text: "Gestione y remueva subjefes de unidad.",
         icon: <FaUserShield size={34} />,
         route: "/layout/jefe",
-        color: azulSuave,
+        color: azulPDI,
         roles: ["ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
     },
     {
@@ -80,7 +77,7 @@ const CARDS = [
         text: "Construcción de plantillas de servicios.",
         icon: <FaCogs size={36} />,
         route: "/layout/plantillas",
-        color: "#28618b", // Azul intermedio institucional
+        color: azulSuave,
         roles: ["ROLE_ADMINISTRADOR"]
     },
 ];
@@ -96,87 +93,67 @@ export default function Dashboard() {
     );
 
     return (
-        <>
-            <div style={{
-                minHeight: "100vh",
-            }}>
-                <Container fluid style={{ maxWidth: 1450 }}>
-                    <h2
-                        className="fw-bold mb-4"
-                        style={{
-                            color: azulPDI,
-                            letterSpacing: ".09em",
-                            textTransform: "uppercase",
-                            fontSize: "1.38rem",
-                            borderLeft: `5px solid ${doradoPDI}`,
-                            paddingLeft: "1rem"
-                        }}
-                    >
-                        Panel principal de servicios
-                    </h2>
-                    <Row className="g-4">
-                        {visibleCards.map((mod, idx) => (
-                            <Col key={idx}  xs={12} md={4} lg={3}>
-                                <Card
-                                    className="dashboard-card h-100"
-                                    style={{
-                                        border: "none",
-                                        borderRadius: "1.5rem",
-                                        background: "#fff",
-                                        color: azulPDI,
-                                        boxShadow: "0 7px 24px 0 #2223",
-                                        cursor: "pointer",
-                                        minHeight: "218px",
-                                        transition: "transform .16s, box-shadow .15s",
-                                    }}
-                                    onClick={() => navigate(mod.route)}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.transform = "translateY(-8px) scale(1.025)";
-                                        e.currentTarget.style.boxShadow = `0 16px 36px 0 ${mod.color}2a`;
-                                        e.currentTarget.style.border = `2.2px solid ${mod.color}`;
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.transform = "none";
-                                        e.currentTarget.style.boxShadow = "0 7px 24px 0 #2223";
-                                        e.currentTarget.style.border = "none";
-                                    }}
-                                >
-                                    <Card.Body className="d-flex flex-column justify-content-between">
-                                        <div className="d-flex align-items-center mb-3" style={{ gap: "0.88rem" }}>
-                                            <div style={{
-                                                background: mod.color + "10",
-                                                borderRadius: "50%",
-                                                padding: "0.75rem",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                border: `2.4px solid ${mod.color}66`,
-                                                color: mod.color
-                                            }}>
-                                                {mod.icon}
-                                            </div>
-                                            <Card.Title className="mb-0 fs-6 fw-bold"
-                                                        style={{ color: azulPDI, textTransform: "uppercase", letterSpacing: ".06em" }}>
-                                                {mod.title}
-                                            </Card.Title>
+        <div className="w-full">
+            <div className="container-fluid px-4 max-w-[1450px] mx-auto pb-8">
+                <h2
+                    className="font-bold mb-6 uppercase text-2xl mt-6 border-l-[6px] pl-4"
+                    style={{
+                        color: azulPDI,
+                        letterSpacing: ".05em",
+                        borderColor: doradoPDI,
+                    }}
+                >
+                    Panel principal de servicios
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {visibleCards.map((mod, idx) => (
+                        <div key={idx} className="h-full">
+                            <div
+                                className="h-full bg-white rounded-2xl border border-gray-100 shadow-md cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative overflow-hidden flex flex-col group"
+                                onClick={() => navigate(mod.route)}
+                                style={{
+                                    // Default border, but allowed to be overridden by hover
+                                }}
+                            >
+                                {/* Hover Effect Border using pseudo-element or direct style updates */}
+                                <div 
+                                    className="absolute inset-0 border-2 border-transparent group-hover:border-current transition-colors duration-300 pointer-events-none rounded-2xl" 
+                                    style={{ color: mod.color }}
+                                ></div>
+
+                                <div className="p-6 flex flex-col justify-between h-full w-full relative z-10">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div 
+                                            className="rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
+                                            style={{
+                                                width: "3.5rem",
+                                                height: "3.5rem",
+                                                background: `${mod.color}15`, // 15% opacity hex
+                                                color: mod.color,
+                                            }}
+                                        >
+                                            {mod.icon}
                                         </div>
-                                        <Card.Text style={{ color: grisOscuro, fontSize: "1.1rem", minHeight: "62px" }}>
-                                            {mod.text}
-                                        </Card.Text>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
-                    </Row>
-                </Container>
+                                        <h3 
+                                            className="text-lg font-bold uppercase tracking-tight m-0 leading-tight"
+                                            style={{ color: azulPDI }} 
+                                        >
+                                            {mod.title}
+                                        </h3>
+                                    </div>
+                                    <p 
+                                        className="text-sm font-medium leading-relaxed"
+                                        style={{ minHeight: "48px", color: grisOscuro }}
+                                    >
+                                        {mod.text}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
-            <style>
-                {`
-          .dashboard-card:active {
-            filter: brightness(0.98);
-          }
-        `}
-            </style>
-        </>
+        </div>
     );
 }

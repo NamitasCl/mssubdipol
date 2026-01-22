@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface UnidadesRepository extends JpaRepository<Unidad, Long> {
     Optional<Unidad> findByIdUnidad(int idUnidad);
 
-    Optional<Unidad> findBySiglasUnidad(String siglasUnidad);
+    Optional<Unidad> findFirstBySiglasUnidad(String siglasUnidad);
 
     List<Unidad> findByNombreUnidadContainingIgnoreCase(String nombre);
 
