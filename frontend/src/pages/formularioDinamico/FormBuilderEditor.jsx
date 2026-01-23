@@ -177,7 +177,8 @@ export default function FormBuilderEditor({ fields, setFields }) {
                 opciones: Array.isArray(f.options) ? f.options.join(",") : f.options || "",
                 orden: idx + 1,
                 allowMultiple: f.allowMultiple || false,
-                subformulario: f.subformulario || null
+                subformulario: f.subformulario || null,
+                esResumenDashboard: f.esResumenDashboard || false
             }));
 
             const reglas = visibilidad
@@ -538,6 +539,20 @@ export default function FormBuilderEditor({ fields, setFields }) {
                                                                             onChange={e => updateField(field.id, "options", e.target.value.split(","))}
                                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                                                                         />
+                                                                        {Array.isArray(field.options) && field.options.length > 0 && field.options.length <= 4 && (
+                                                                            <div className="mt-2 flex items-center">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    id={`dashboard-check-${field.id}`}
+                                                                                    checked={field.esResumenDashboard || false}
+                                                                                    onChange={(e) => updateField(field.id, "esResumenDashboard", e.target.checked)}
+                                                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                                                />
+                                                                                <label htmlFor={`dashboard-check-${field.id}`} className="ml-2 text-xs text-gray-700">
+                                                                                    Mostrar en Dashboard (Resumen)
+                                                                                </label>
+                                                                            </div>
+                                                                        )}
                                                                     </>
                                                                 )}
                                                                 {field.type === "group" && (

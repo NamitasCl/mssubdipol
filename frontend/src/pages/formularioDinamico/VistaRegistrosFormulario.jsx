@@ -14,6 +14,7 @@ import {
 } from "../../components/BootstrapAdapter.jsx";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import { ReactSpreadsheetImport } from "react-spreadsheet-import";
+import * as XLSX from 'xlsx';
 import { saveAs } from "file-saver";
 import axios from "axios";
 import FormularioDinamico from "./FormularioDinamico";
@@ -69,6 +70,7 @@ export default function VistaRegistrosFormulario() {
     const [registros,   setRegistros]   = useState([]);
     const [loading,     setLoading]     = useState(true);
     const [error,       setError]       = useState(null);
+    const [searchTerm,  setSearchTerm]  = useState("");
 
     /* ------------ modales (subform / edición) ------------ */
     const [showSubform,    setShowSubform]    = useState(false);
@@ -150,9 +152,32 @@ export default function VistaRegistrosFormulario() {
     ======================================================= */
     const myId = String(user.idFuncionario ?? "");
     const registrosMostrados = useMemo(() => {
-        if (esCuotaPadre || tieneVisibilidad) return registros;
-        return registros.filter(r => String(r.idFuncionario) === myId);
-    }, [registros, esCuotaPadre, tieneVisibilidad, myId]);
+        let lista = registros;
+        
+        // 1. Visibilidad Check
+        if (!esCuotaPadre && !tieneVisibilidad) {
+            lista = lista.filter(r => String(r.idFuncionario) === myId);
+        }
+
+        // 2. Search Filter
+        if (searchTerm.trim()) {
+            const term = searchTerm.toLowerCase();
+            lista = lista.filter(r => {
+                // Search in 'datos' values and metadata (nombreFuncionario)
+                const dataValues = Object.values(r.datos || {}).map(v => {
+                    if (typeof v === 'object' && v !== null) {
+                        return 'label' in v ? v.label : JSON.stringify(v);
+                    }
+                    return String(v);
+                }).join(" ").toLowerCase();
+                
+                const metaStr = (r.nombreFuncionario || "").toLowerCase();
+                return dataValues.includes(term) || metaStr.includes(term);
+            });
+        }
+
+        return lista;
+    }, [registros, esCuotaPadre, tieneVisibilidad, myId, searchTerm]);
 
     /* =======================================================
          5)   UTILIDADES  (exportar, renderCell, etc.)
@@ -244,16 +269,16 @@ export default function VistaRegistrosFormulario() {
         }
 
 
-        // Principal: aplana un registro según catálogo
-        function flattenRecordForExcel(json, campos, subformCatalogo) {
-            // Detecta el primer campo array
+        // Principal: aplana un registro mantieniendo ORDEN de campos
+        function flattenRecordForExcel(json, camposOrdered, subformCatalogo) {
+            // Detecta campo array para subformulario
             const arrayFieldName = Object.keys(json).find(
                 k => Array.isArray(json[k]) && json[k].length > 0 && typeof json[k][0] === "object"
             );
             const arrayData = json[arrayFieldName] || [];
 
             // Encuentra info de subformulario (campos del sub)
-            const subformField = campos.find(c => c.nombre === arrayFieldName);
+            const subformField = camposOrdered.find(c => c.nombre === arrayFieldName);
             let subformFields = [];
             if (subformField && subformField.subformulario) {
                 const subformDef = SUBFORMULARIOS_CATALOGO.find(sf => sf.value === subformField.subformulario);
@@ -262,53 +287,58 @@ export default function VistaRegistrosFormulario() {
                 }
             }
 
-            // Campos planos principales (solo label, sin label/value)
-            const commonFields = Object.entries(json)
-                .filter(([k]) => k !== arrayFieldName)
-                .map(([k, v]) => {
-                    const label = getLabel(k, campos);
-                    if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
-                        // Por ejemplo: {label, value, siglasUnidad} → saca solo label
-                        if ('label' in v) {
-                            return [[label, v.label]];
-                        } else {
-                            // Saca el primer string si hay, o todo como JSON
-                            const val = Object.values(v).find(val => typeof val === "string") || JSON.stringify(v);
-                            return [[label, val]];
-                        }
-                    } else {
-                        return [[label, v]];
-                    }
-                })
-                .flat();
+            // Construir objeto común ITERANDO CAMPOS para preservar orden
+            const commonObj = {};
+            camposOrdered.forEach(field => {
+                if (field.nombre === arrayFieldName) return; // Se procesa aparte o se ignora si es subform expandido
+                
+                const key = field.nombre;
+                const label = field.etiqueta || field.nombre;
+                const value = json[key];
 
-            const commonObj = Object.fromEntries(commonFields);
+                if (value === undefined || value === null) {
+                    commonObj[label] = "";
+                    return;
+                }
+
+                if (typeof value === 'object' && !Array.isArray(value)) {
+                    // Manejo de objeto (funcionario, etc)
+                    if ('label' in value) {
+                        commonObj[label] = value.label;
+                    } else {
+                        const valStr = Object.values(value).find(v => typeof v === "string") || JSON.stringify(value);
+                        commonObj[label] = valStr;
+                    }
+                } else {
+                    commonObj[label] = value;
+                }
+            });
 
             if (!Array.isArray(arrayData) || arrayData.length === 0) {
                 return [commonObj];
             }
 
-            // Subformulario: cada item del array es una fila (solo con label)
+            // Subformulario: expandir filas
             return arrayData.map(item => {
-                const flat = {};
+                const flatSub = {};
+                // Para subform, iteramos las keys del item (o podríamos usar subformFields si queremos orden estricto ahí también)
+                // Por ahora mantenemos lógica original de iterar keys, mejorado con labels
                 Object.entries(item).forEach(([key, value]) => {
                     const subLabel = getLabel(key, subformFields);
                     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-                        // Por ejemplo funcionario: {label: "XX", ...} → solo label
                         if ('label' in value) {
-                            flat[subLabel] = value.label;
+                            flatSub[subLabel] = value.label;
                         } else if ('nombreCompleto' in value) {
-                            flat[subLabel] = value.nombreCompleto;
+                            flatSub[subLabel] = value.nombreCompleto;
                         } else {
-                            // Saca el primer string, si existe
                             const val = Object.values(value).find(val => typeof val === "string") || JSON.stringify(value);
-                            flat[subLabel] = val;
+                            flatSub[subLabel] = val;
                         }
                     } else {
-                        flat[subLabel] = value;
+                        flatSub[subLabel] = value;
                     }
                 });
-                return { ...commonObj, ...flat };
+                return { ...commonObj, ...flatSub };
             });
         }
 
@@ -316,16 +346,15 @@ export default function VistaRegistrosFormulario() {
         let rows = [];
         registrosMostrados.forEach((r, i) => {
             const flatRows = flattenRecordForExcel(r.datos, campos, SUBFORMULARIOS_CATALOGO);
-            flatRows.forEach((fila) => {
-                fila.Funcionario = r.nombreFuncionario
-                    ? `${r.nombreFuncionario} (${r.idFuncionario})`
-                    : r.idFuncionario;
-                fila.Fecha = r.fechaRespuesta
-                    ? "'" + r.fechaRespuesta.replace("T", " ").split(".")[0]
-                    : "";
-
-                fila["#registro"] = i + 1;
-                rows.push(fila);
+            flatRows.forEach((filaDatos) => {
+                // Nuevo objeto para forzar orden total: #, Datos, Funcionario, Fecha
+                const filaOrdenada = {
+                    "#": i + 1,
+                    ...filaDatos, // Ya viene ordenada según 'campos'
+                    "Funcionario": r.nombreFuncionario ? `${r.nombreFuncionario} (${r.idFuncionario})` : r.idFuncionario,
+                    "Fecha": r.fechaRespuesta ? r.fechaRespuesta.replace("T", " ").split(".")[0] : ""
+                };
+                rows.push(filaOrdenada);
             });
         });
 
@@ -499,6 +528,37 @@ export default function VistaRegistrosFormulario() {
 
 
     /* =======================================================
+         DASHBOARD STATS CALCULATION
+    ======================================================= */
+    const dashboardStats = useMemo(() => {
+        const dashboardFields = campos.filter(c => c.esResumenDashboard && (c.tipo === "select" || c.tipo === "radio"));
+        if (dashboardFields.length === 0) return [];
+
+        return dashboardFields.map(field => {
+            const counts = {};
+            // Initialize
+            if (field.opciones && typeof field.opciones === 'string') {
+                field.opciones.split(',').forEach(opt => counts[opt.trim()] = 0);
+            }
+
+            // Count
+            registrosMostrados.forEach(reg => {
+                const val = reg.datos[field.nombre];
+                if (val) {
+                    const valStr = String(val).trim();
+                    counts[valStr] = (counts[valStr] || 0) + 1;
+                }
+            });
+
+            return {
+                label: field.etiqueta || field.nombre,
+                counts: counts
+            };
+        });
+    }, [campos, registrosMostrados]);
+
+
+    /* =======================================================
            RENDER
     ======================================================= */
     if (!formularioId)
@@ -510,6 +570,29 @@ export default function VistaRegistrosFormulario() {
 
     return (
         <div className="container-fluid py-4">
+            
+            {/* ---------- DASHBOARD STATS PANEL ---------- */}
+            {dashboardStats.length > 0 && (
+                <div className="mb-4 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                    <h5 className="text-gray-600 font-bold mb-3 text-sm uppercase tracking-wide border-b pb-2">Resumen de Datos</h5>
+                    <div className="d-flex gap-4 flex-wrap">
+                        {dashboardStats.map((stat, idx) => (
+                            <div key={idx} className="bg-gray-50 px-4 py-3 rounded-lg border border-gray-100 flex-grow-1" style={{minWidth: '200px', maxWidth: '350px'}}>
+                                <span className="d-block text-xs font-bold text-gray-500 uppercase mb-2">{stat.label}</span>
+                                <div className="d-flex gap-3 flex-wrap">
+                                    {Object.entries(stat.counts).map(([opt, count]) => (
+                                        <div key={opt} className="d-flex align-items-center gap-2 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
+                                            <span className="text-sm font-medium text-gray-700">{opt}</span>
+                                            <span className="bg-blue-600 text-white px-2 py-0.5 rounded-md text-xs font-bold">{count}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* ---------------- Buttons top ---------------- */}
             <div style={{ 
                 display: 'flex', 
@@ -527,14 +610,16 @@ export default function VistaRegistrosFormulario() {
                     ← Volver
                 </Button>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <Button
-                        variant="primary"
-                        onClick={() => setIsOpen(true)}
-                        disabled={loading}
-                        style={{ minWidth: '180px' }}
-                    >
-                        📥 Importar desde Excel
-                    </Button>
+                    {String(formulario.idCreador) === String(user.idFuncionario) && (
+                        <Button
+                            variant="primary"
+                            onClick={() => setIsOpen(true)}
+                            disabled={loading}
+                            style={{ minWidth: '180px' }}
+                        >
+                            📥 Importar desde Excel
+                        </Button>
+                    )}
                     <Button
                         variant="success"
                         onClick={exportarExcel}
@@ -543,6 +628,46 @@ export default function VistaRegistrosFormulario() {
                     >
                         📤 Exportar a Excel
                     </Button>
+                </div>
+            </div>
+
+            {/* ---------------- Search Filter ---------------- */}
+            <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ position: 'relative', maxWidth: '300px', width: '100%' }}>
+                    <span style={{
+                        position: 'absolute',
+                        left: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#6c757d',
+                        pointerEvents: 'none'
+                    }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </span>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Buscar..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            paddingLeft: '35px',
+                            borderRadius: '20px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                            border: '1px solid #ced4da',
+                            transition: 'all 0.2s ease-in-out'
+                        }}
+                        onFocus={(e) => {
+                            e.target.style.borderColor = '#86b7fe';
+                            e.target.style.boxShadow = '0 0 0 0.25rem rgba(13, 110, 253, 0.25)';
+                        }}
+                        onBlur={(e) => {
+                            e.target.style.borderColor = '#ced4da';
+                            e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                        }}
+                    />
                 </div>
             </div>
 
