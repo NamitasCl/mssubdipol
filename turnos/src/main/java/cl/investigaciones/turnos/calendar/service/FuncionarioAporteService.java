@@ -90,7 +90,7 @@ public class FuncionarioAporteService {
     }
 
     public Page<FuncionariosAportadosPaginados> listarPorCalendarioYUnidadPaginado(Long idCalendario, Long idUnidad, Pageable pageable) {
-        Page<FuncionarioAporte> aportes = repo.findByIdCalendarioAndIdUnidad(idCalendario, idUnidad, pageable);
+        Page<FuncionarioAporte> aportes = repo.findByIdCalendarioAndIdUnidadAndDisponibleTrue(idCalendario, idUnidad, pageable);
 
         List<FuncionariosAportadosPaginados> contenido = aportes.getContent().stream()
                 .map(aporte -> {

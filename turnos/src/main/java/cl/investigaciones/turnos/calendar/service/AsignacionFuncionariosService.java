@@ -17,13 +17,14 @@ import cl.investigaciones.turnos.restriccion.interfaces.Restriccion;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class AsignacionFuncionariosService {
 
     private final FuncionarioAporteRepository funcionarioAporteRepository;
@@ -60,12 +61,12 @@ public class AsignacionFuncionariosService {
     public List<Slot> asignarFuncionarios(Long idCalendario) throws JsonProcessingException {
 
         // Recupera funcionarios designados y slots del calendario
-        System.out.println("IdCalendario: " + idCalendario);
+        log.info("IdCalendario: {}", idCalendario);
         List<FuncionarioAporte> funcionarios = funcionarioAporteRepository.findByIdCalendarioAndDisponibleTrue(idCalendario);
-        System.out.println("Cantidad de funcionarios obtenidos: " +  funcionarios.size());
+        log.info("Cantidad de funcionarios obtenidos: {}", funcionarios.size());
 
         List<Slot> slots = slotService.getSlotsByCalendar(idCalendario);
-        System.out.println("Slots obtenidos: " +  slots.size());
+        log.info("Slots obtenidos: {}", slots.size());
 
         Calendario calendario = calendarioRepository.findById(idCalendario)
                 .orElseThrow(() -> new RuntimeException("Calendario no encontrado"));
@@ -84,13 +85,15 @@ public class AsignacionFuncionariosService {
         // Ordenar por jerarquía: primero los más altos en la escala
         funcionarios.sort(Comparator.comparingInt(JerarquiaUtils::valorJerarquico));
 
-        for (int i = 0; i <= 40; i++) {
-            System.out.println("Funcionario " + i + ": " + funcionarios.get(i).getGrado() + " || Antiguedad: " + funcionarios.get(i).getAntiguedad());
+        for (int i = 0; i < Math.min(funcionarios.size(), 40); i++) {
+            log.debug("Funcionario {}: {} || Antiguedad: {}", i, funcionarios.get(i).getGrado(), funcionarios.get(i).getAntiguedad());
         }
 
         // Aleatoriza el orden de funcionarios para repartir justo
         /*Collections.shuffle(funcionarios);*/
-        System.out.println("Pasando A");
+        // Aleatoriza el orden de funcionarios para repartir justo
+        /*Collections.shuffle(funcionarios);*/
+        log.debug("Pasando A");
         // --- 1. Prepara el contexto con días no disponibles ---
         Map<Integer, Set<LocalDate>> diasNoDisponibles = new HashMap<>();
         Map<Integer, Set<LocalDate>> diasNoDisponiblesPorAsignacion = new HashMap<>();
@@ -103,7 +106,7 @@ public class AsignacionFuncionariosService {
                 diasNoDisponibles.put(f.getIdFuncionario(), fechas);
             }
         }
-        System.out.println("Pasando B");
+        log.debug("Pasando B");
         // Cargo los dias no disponibles por citacion o actividad del funcionario
         for (FuncionarioAporte f : funcionarios) {
             DiaNoDisponibleGlobalResponse globalResponse = diaNoDisponibleGlobalService.findByIdFuncionario(f.getIdFuncionario());
@@ -118,7 +121,7 @@ public class AsignacionFuncionariosService {
                         .addAll(fechasGlobales);
             }
         }
-        System.out.println("Pasando C");
+        log.debug("Pasando C");
         for (FuncionarioAporte f : funcionarios) {
             try {
                 DiaNoDisponibleGlobalResponse globalResponse = diaNoDisponibleGlobalService.findByIdFuncionarioDiaNoDisponible(f);
@@ -133,12 +136,11 @@ public class AsignacionFuncionariosService {
                             .addAll(fechasGlobales);
                 }
             } catch (Exception e) {
-                System.err.println("Error al obtener días no disponibles para funcionario ID " + f.getIdFuncionario());
-                e.printStackTrace();
+                log.error("Error al obtener días no disponibles para funcionario ID " + f.getIdFuncionario(), e);
             }
         }
 
-        System.out.println("Pasamos!");
+        log.debug("Pasamos!");
 
         // Configuro el contexto de asignación
         ctx.setDiasNoDisponibles(diasNoDisponibles);
@@ -151,7 +153,7 @@ public class AsignacionFuncionariosService {
             return idx == -1 ? Integer.MAX_VALUE : idx;
         }));
 
-        System.out.println("Limpiando slots");
+        log.info("Limpiando slots");
         for (Slot slot : slots) {
             slot.setCubierto(false);
             slot.setGradoFuncionario(null);
@@ -160,25 +162,44 @@ public class AsignacionFuncionariosService {
             slot.setAntiguedadFuncionario(null);
             slot.setSiglasUnidadFuncionario(null);
         }
-        System.out.println("Limpieza terminada.");
+        log.info("Limpieza terminada.");
 
 
-        System.out.println("Iniciando asignación");
+        log.info("Iniciando asignación");
 
         // Limpio los días asignados al calendario por iniciarse una nueva asignación.
-        System.out.println("Eliminando registros de no disponibles por asignacion");
+        log.info("Eliminando registros de no disponibles por asignacion");
         noDisponibleRepository.deleteAllByCalendarioIdAndMotivo(calendario.getId(), "ASIGNADO_TURNO");
         noDisponibleRepository.flush();
-        System.out.println("Registros eliminados");
+        log.info("Registros eliminados");
 
         List<FuncionarioAportadoDiasNoDisponible> bloqueosExistentes = noDisponibleRepository.findAllByCalendarioIdAndMotivo(
                 calendario.getId(), "ASIGNADO_TURNO"
         );
 
-        System.out.println("Cantidad de bloqueos existentes: " + bloqueosExistentes.size());
+        log.info("Cantidad de bloqueos existentes: {}", bloqueosExistentes.size());
+
+        // --- OPTIMIZACIÓN: Pre-calcular candidatos por Rol ---
+        Map<RolServicio, List<FuncionarioAporte>> mapaCandidatosPorRol = new HashMap<>();
+        
+        // Iteramos sobre todos los roles posibles definidos en el contexto
+        // Si no existe getRolesGrado(), habría que usar los valores del enum RolServicio
+        if (ctx.getRolesGrado() != null) {
+            for (Map.Entry<RolServicio, Set<String>> entry : ctx.getRolesGrado().entrySet()) {
+                RolServicio rol = entry.getKey();
+                Set<String> gradosAceptados = entry.getValue();
+
+                List<FuncionarioAporte> matches = funcionarios.stream()
+                        .filter(f -> gradosAceptados.contains(f.getGrado()))
+                        .sorted(Comparator.comparingInt(JerarquiaUtils::valorJerarquico))
+                        .collect(Collectors.toList());
+                
+                mapaCandidatosPorRol.put(rol, matches);
+            }
+        }
 
         // Comienzo la asignación de funcionarios a los slots
-        for(int i = 1; i <=2; i++) {
+        for(int i = 1; i <=2; i++) { // Intentamos 2 pasadas
             for (Slot slot : slots ) {
 
                 if(slot.isCubierto()) {
@@ -188,15 +209,8 @@ public class AsignacionFuncionariosService {
                 //Obtengo el rol que necesito llenar
                 RolServicio rol = slot.getRolRequerido();
 
-                //Obtengo los grados que pueden ejercer el rol
-                Set<String> gradosRol = ctx.getRolesGrado().get(rol);
-
-                //Filtro los funcionarios que pueden cumplir ese rol
-                List<FuncionarioAporte> funcionariosFiltrados = new ArrayList<>(funcionarios.stream()
-                        .filter(f -> gradosRol.contains(f.getGrado()))
-                        .toList());
-
-                funcionariosFiltrados.sort(Comparator.comparingInt(JerarquiaUtils::valorJerarquico));
+                // Recuperamos candidatos pre-calculados (O(1)) en lugar de filtrar (O(N))
+                List<FuncionarioAporte> funcionariosFiltrados = mapaCandidatosPorRol.getOrDefault(rol, Collections.emptyList());
 
                 for (FuncionarioAporte f : funcionariosFiltrados) {
                     boolean puede = restricciones.stream()
@@ -222,22 +236,8 @@ public class AsignacionFuncionariosService {
                         bloqueo.setFecha(slot.getFecha());
                         bloqueo.setMotivo("ASIGNADO_TURNO");
                         bloqueo.setDetalle("slotId:" + slot.getId());
-                        bloqueo.setCalendario(calendario); // << nuevo
+                        bloqueo.setCalendario(calendario); 
                         noDisponibleRepository.save(bloqueo);
-
-                        // --- Dejo como no disponible el día asignado al funcionario para futuros calendarios en el mismo mes de la misma unidad ---
-                        /*boolean yaExiste = noDisponibleRepository.existsByFuncionarioAporte_IdAndFechaAndCalendario_IdAndMotivo(
-                                f.getId(), slot.getFecha(), calendario.getId(), "ASIGNADO_TURNO"
-                        );
-
-                        if (!yaExiste) {
-
-
-
-                        }*/
-
-
-                        // ---------------------------------------------------------------
 
                         break;
                     }

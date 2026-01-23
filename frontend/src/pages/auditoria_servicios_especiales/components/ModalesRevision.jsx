@@ -249,36 +249,40 @@ export default function ModalesRevision({
             <Modal show={!!observado} onHide={onHide} centered>
                 {selected && (
                     <>
-                        <Modal.Header closeButton>
-                            <Modal.Title>Observar memo #{selected.id}</Modal.Title>
+                        <Modal.Header closeButton className="bg-warning bg-opacity-10 border-warning">
+                            <Modal.Title className="text-warning-emphasis">
+                                ⚠️ Observar Memo #{selected.id}
+                            </Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
+                            <div className="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning-emphasis small mb-3">
+                                <strong>Atención:</strong> Al observar este memo, su estado cambiará a <strong>PENDIENTE</strong> y se notificará al creador para que realice las correcciones indicadas.
+                            </div>
                             <Form.Group className="mb-2">
-                                <Form.Label>Observaciones (requerido)</Form.Label>
+                                <Form.Label className="fw-bold text-secondary text-uppercase small">Detalle de la observación</Form.Label>
                                 <Form.Control
                                     as="textarea"
-                                    rows={4}
-                                    placeholder="Describe brevemente el problema/observación…"
+                                    rows={5}
+                                    placeholder="Indique qué debe corregirse..."
                                     value={obsTexto}
                                     onChange={(e) => setObsTexto(e.target.value)}
                                     disabled={savingRev}
+                                    className="bg-light"
                                 />
-                                <Form.Text muted>
-                                    Se guardará con estado <strong>PENDIENTE</strong>.
-                                </Form.Text>
                             </Form.Group>
                             {saveErr && <div className="text-danger small">{saveErr}</div>}
                         </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={onHide} disabled={savingRev}>
+                        <Modal.Footer className="border-0 pt-0">
+                            <Button variant="link" className="text-decoration-none text-muted" onClick={onHide} disabled={savingRev}>
                                 Cancelar
                             </Button>
                             <Button
                                 variant="warning"
                                 onClick={handleGuardarObservado}
                                 disabled={savingRev || !obsTexto.trim()}
+                                className="shadow-sm"
                             >
-                                {savingRev ? "Guardando…" : "Guardar observación"}
+                                {savingRev ? "Guardando..." : "Confirmar Observación"}
                             </Button>
                         </Modal.Footer>
                     </>
@@ -289,33 +293,35 @@ export default function ModalesRevision({
             <Modal show={!!aprobado} onHide={onHide} centered>
                 {selected && (
                     <>
-                        <Modal.Header closeButton>
-                            <Modal.Title>Aprobar memo #{selected.id}</Modal.Title>
+                        <Modal.Header closeButton className="bg-success bg-opacity-10 border-success">
+                            <Modal.Title className="text-success-emphasis">
+                                ✅ Aprobar Memo #{selected.id}
+                            </Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <p className="mb-2">
-                                ¿Confirmas la aprobación de este memo? Se guardará con estado{" "}
-                                <strong>APROBADO</strong>.
-                            </p>
+                            <div className="alert alert-success border-0 bg-success bg-opacity-10 text-success-emphasis small mb-3">
+                                <strong>Confirmación:</strong> El memo pasará a estado <strong>APROBADO</strong>. Esta acción valida el contenido del registro.
+                            </div>
                             <Form.Group>
-                                <Form.Label>Observación (opcional)</Form.Label>
+                                <Form.Label className="fw-bold text-secondary text-uppercase small">Comentario (Opcional)</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={3}
-                                    placeholder="Puedes dejar un comentario breve (opcional)…"
+                                    placeholder="Añadir nota de aprobación..."
                                     value={obsAprobTexto}
                                     onChange={(e) => setObsAprobTexto(e.target.value)}
                                     disabled={savingRev}
+                                    className="bg-light"
                                 />
                             </Form.Group>
                             {saveErr && <div className="text-danger small mt-2">{saveErr}</div>}
                         </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={onHide} disabled={savingRev}>
+                        <Modal.Footer className="border-0 pt-0">
+                            <Button variant="link" className="text-decoration-none text-muted" onClick={onHide} disabled={savingRev}>
                                 Cancelar
                             </Button>
-                            <Button variant="success" onClick={handleGuardarAprobado} disabled={savingRev}>
-                                {savingRev ? "Aprobando…" : "Aprobar"}
+                            <Button variant="success" onClick={handleGuardarAprobado} disabled={savingRev} className="shadow-sm">
+                                {savingRev ? "Procesando..." : "Confirmar Aprobación"}
                             </Button>
                         </Modal.Footer>
                     </>

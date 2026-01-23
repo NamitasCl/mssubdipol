@@ -1,182 +1,80 @@
 import React from "react";
-import { Card, Row, Col, Container } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
-import {
-    FaUsers,
-    FaShieldAlt,
-    FaCalendarAlt,
-    FaCogs,
-    FaClipboardList,
-    FaUserCheck,
-    FaUserShield,
-    FaListAlt
-} from "react-icons/fa";
+import { Link } from "react-router-dom";
+import { FaRegCalendarAlt, FaClock, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
 import { useAuth } from "./components/contexts/AuthContext.jsx";
 
-// Paleta institucional y pastel
-const azulPDI = "#17355A";
-const doradoPDI = "#FFC700";
-const grisOscuro = "#222938";
-const blanco = "#f7f8fc";
-const azulSuave = "#7fa6da";
-const azulOscuro = "#23395d";
-const grisClaro = "#eceff4";
-const verdeMenta = "#a6e3cf";
-const textoPrincipal = "#23395d";
-const textoSecundario = "#4a5975";
-
-// Define tus tarjetas del dashboard aquí, cada una con su rol permitido
-const CARDS = [
-    {
-        title: "Gestión por unidad",
-        text: "Asigne los funcionarios que deben ser incluidos en el rol de guardias.",
-        icon: <FaUserCheck size={34} />,
-        route: "/layout/asignacionunidad",
-        color: azulPDI,
-        roles: ["ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
-    },
-    {
-        title: "Modificación de servicios",
-        text: "Realice las modificaciones de los servicios que se han propuesto.",
-        icon: <FaClipboardList size={34} />,
-        route: "/layout/modificaturnosunidad",
-        color: "#28618b",
-        roles: ["ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
-    },
-    {
-        title: "Gestión de turnos",
-        text: "Configure y distribuya turnos entre las unidades colaboradoras.",
-        icon: <FaClipboardList size={34} />,
-        route: "/layout/gestion",
-        color: "#28618b",
-        roles: ["ROLE_SECUIN", "ROLE_ADMINISTRADOR"]
-    },
-    {
-        title: "Personal disponible",
-        text: "Consulte funcionarios disponibles para cada día del mes.",
-        icon: <FaUsers size={34} />,
-        route: "/layout/disponibles",
-        color: verdeMenta,
-        roles: ["ROLE_SECUIN", "ROLE_ADMINISTRADOR"]
-    },
-    {
-        title: "Área Jefatura",
-        text: "Gestione y remueva subjefes de unidad.",
-        icon: <FaUserShield size={34} />,
-        route: "/layout/jefe",
-        color: azulSuave,
-        roles: ["ROLE_JEFE", "ROLE_SUBJEFE", "ROLE_ADMINISTRADOR"]
-    },
-    {
-        title: "Ver turnos",
-        text: "Visualice sus turnos mensuales y anuales.",
-        icon: <FaCalendarAlt size={34} />,
-        route: "/layout/calendario",
-        color: azulOscuro,
-        roles: ["ROLE_FUNCIONARIO", "ROLE_ADMINISTRADOR"]
-    },
-    {
-        title: "Constructor plantillas servicios",
-        text: "Construcción de plantillas de servicios.",
-        icon: <FaCogs size={36} />,
-        route: "/layout/plantillas",
-        color: "#28618b", // Azul intermedio institucional
-        roles: ["ROLE_ADMINISTRADOR"]
-    },
-];
-
 export default function Dashboard() {
-    const navigate = useNavigate();
     const { user } = useAuth();
-    const userRoles = user?.roles || [];
-
-    // Filtra las tarjetas según los roles permitidos para el usuario autenticado
-    const visibleCards = CARDS.filter(card =>
-        card.roles.some(role => userRoles.includes(role))
-    );
+    
+    // Mock Data - In a real app this would come from an API
+    const nextShift = { date: "Mañana, 24 Ene", time: "08:00 - 20:00", type: "Servicio Guardia" };
+    const pendingTasks = 2;
 
     return (
-        <>
-            <div style={{
-                minHeight: "100vh",
-            }}>
-                <Container fluid style={{ maxWidth: 1450 }}>
-                    <h2
-                        className="fw-bold mb-4"
-                        style={{
-                            color: azulPDI,
-                            letterSpacing: ".09em",
-                            textTransform: "uppercase",
-                            fontSize: "1.38rem",
-                            borderLeft: `5px solid ${doradoPDI}`,
-                            paddingLeft: "1rem"
-                        }}
-                    >
-                        Panel principal de servicios
-                    </h2>
-                    <Row className="g-4">
-                        {visibleCards.map((mod, idx) => (
-                            <Col key={idx}  xs={12} md={4} lg={3}>
-                                <Card
-                                    className="dashboard-card h-100"
-                                    style={{
-                                        border: "none",
-                                        borderRadius: "1.5rem",
-                                        background: "#fff",
-                                        color: azulPDI,
-                                        boxShadow: "0 7px 24px 0 #2223",
-                                        cursor: "pointer",
-                                        minHeight: "218px",
-                                        transition: "transform .16s, box-shadow .15s",
-                                    }}
-                                    onClick={() => navigate(mod.route)}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.transform = "translateY(-8px) scale(1.025)";
-                                        e.currentTarget.style.boxShadow = `0 16px 36px 0 ${mod.color}2a`;
-                                        e.currentTarget.style.border = `2.2px solid ${mod.color}`;
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.transform = "none";
-                                        e.currentTarget.style.boxShadow = "0 7px 24px 0 #2223";
-                                        e.currentTarget.style.border = "none";
-                                    }}
-                                >
-                                    <Card.Body className="d-flex flex-column justify-content-between">
-                                        <div className="d-flex align-items-center mb-3" style={{ gap: "0.88rem" }}>
-                                            <div style={{
-                                                background: mod.color + "10",
-                                                borderRadius: "50%",
-                                                padding: "0.75rem",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                border: `2.4px solid ${mod.color}66`,
-                                                color: mod.color
-                                            }}>
-                                                {mod.icon}
-                                            </div>
-                                            <Card.Title className="mb-0 fs-6 fw-bold"
-                                                        style={{ color: azulPDI, textTransform: "uppercase", letterSpacing: ".06em" }}>
-                                                {mod.title}
-                                            </Card.Title>
-                                        </div>
-                                        <Card.Text style={{ color: grisOscuro, fontSize: "1.1rem", minHeight: "62px" }}>
-                                            {mod.text}
-                                        </Card.Text>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
-                    </Row>
-                </Container>
+        <div className="w-full max-w-5xl mx-auto py-8">
+            {/* Welcome Section */}
+            <div className="bg-gradient-to-r from-pdi-base to-pdi-medio rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+                <div className="absolute right-0 top-0 h-full w-1/3 bg-white/10 skew-x-12 translate-x-12"></div>
+                <div className="relative z-10">
+                    <h1 className="text-3xl font-bold mb-2">Bienvenido, {user?.nombreUsuario || "Funcionario"}</h1>
+                    <p className="text-blue-100/90 text-lg">Panel General de Gestión de Servicios</p>
+                </div>
             </div>
-            <style>
-                {`
-          .dashboard-card:active {
-            filter: brightness(0.98);
-          }
-        `}
-            </style>
-        </>
+
+            {/* Status Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Next Shift Card */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-3 mb-4 text-gray-500">
+                        <FaRegCalendarAlt />
+                        <span className="text-xs font-bold uppercase tracking-wider">Próximo Servicio</span>
+                    </div>
+                    <div className="text-2xl font-bold text-gray-800 mb-1">{nextShift.date}</div>
+                    <div className="text-pdi-base font-semibold flex items-center gap-2">
+                        <FaClock />
+                        {nextShift.time}
+                    </div>
+                    <div className="mt-3 inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-100">
+                        {nextShift.type}
+                    </div>
+                </div>
+
+                {/* Pending Actions */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4 text-gray-500">
+                            <FaExclamationTriangle />
+                            <span className="text-xs font-bold uppercase tracking-wider">Gestión Pendiente</span>
+                        </div>
+                        <div className="text-3xl font-bold text-gray-800">{pendingTasks}</div>
+                        <div className="text-gray-400 text-sm">Validaciones requeridas</div>
+                    </div>
+                    <Link to="/layout/asignacionunidad" className="mt-4 text-sm font-semibold text-pdi-base hover:text-blue-700 hover:underline">
+                        Ir a Gestión &rarr;
+                    </Link>
+                </div>
+
+                {/* Quick Status */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
+                    <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-3">
+                        <FaCheckCircle className="text-emerald-500 text-2xl" />
+                    </div>
+                    <div className="font-bold text-gray-800">Sistema Operativo</div>
+                    <div className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded-full mt-2">
+                        Todos los servicios OK
+                    </div>
+                </div>
+            </div>
+            
+            {/* Recent Activity or Info */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+                <div className="max-w-md mx-auto">
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">Zona de Navegación</h3>
+                    <p className="text-gray-500 mb-6 text-sm">
+                        Utiliza el menú lateral izquierdo para acceder a todas las funcionalidades del sistema (Gestión de Unidades, Mis Turnos, Configuración).
+                    </p>
+                </div>
+            </div>
+        </div>
     );
 }

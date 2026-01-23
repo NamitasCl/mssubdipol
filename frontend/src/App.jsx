@@ -21,17 +21,24 @@ import ListaFormulariosDisponibles from "./pages/formularioDinamico/ListaFormula
 import FormBuilderApp from "./pages/formularioDinamico/FormBuilderApp.jsx";
 import FormularioDinamicoPage from "./pages/formularioDinamico/FormularioDinamicoPage.jsx";
 import VistaRegistrosFormulario from "./pages/formularioDinamico/VistaRegistrosFormulario.jsx";
+import AdminFormularios from "./pages/formularioDinamico/AdminFormularios.jsx";
 import { UnitDepartmentManagement } from "./pages/turnos/UnitDepartmentManagement.jsx";
 import CalendarioPage from "./pages/calendarios/CalendarioPage.jsx";
 import MisCalendariosParaAportar from "./pages/calendarios/MisCalendariosParaAportar.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
+import AdminHome from "./pages/admin/AdminHome.jsx";
+import AdminFuncionarios from "./pages/admin/AdminFuncionarios.jsx";
+import AdminUnidades from "./pages/admin/AdminUnidades.jsx";
+import AdminFormulariosPage from "./pages/admin/AdminFormulariosPage.jsx";
 import PlantillaTurnoBuilder from "./pages/calendarios/PlantillaTurnoBuilder.jsx";
 import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
 import PanelAdministracionAportes from "./pages/admin/PanelAdministracionAportes.jsx";
 import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemos.jsx";
+import AuditoriaLayout from "./pages/auditoria_servicios_especiales/AuditoriaLayout.jsx";
 import TablaJose from "./pages/TablaJose.jsx";
 import ServiciosMasivosRHF from "./pages/desarrollo/masivos/ServiciosMasivosRHF.jsx";
 import FormulariosV2Page from "./pages/formulariosv2/FormulariosV2Page.jsx";
+import SGEApp from "./sge/SGEApp.jsx";
 
 
 
@@ -73,12 +80,16 @@ export default function App() {
                     <Route index element={<Navigate to="calendarios" replace/>}/>
                 </Route>*/}
                 <Route path="/admin" element={<RestrictedAreaAdmin><AdminLayout /></RestrictedAreaAdmin>}>
-                    <Route index element={<Admin />} />
+                    <Route index element={<AdminHome />} />
+                    <Route path="funcionarios" element={<AdminFuncionarios />} />
+                    <Route path="unidades" element={<AdminUnidades />} />
+                    <Route path="formularios" element={<AdminFormulariosPage />} />
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
-                    <Route path="listas"></Route>
                     <Route path="aportefuncionarios" element={<PanelAdministracionAportes />} />
                 </Route>
-                <Route path="/auditoria" element={<AuditoriaMemos />} />
+                <Route path="/auditoria" element={<AuthGuard><AuditoriaLayout /></AuthGuard>}>
+                    <Route index element={<AuditoriaMemos />} />
+                </Route>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/enconstruccion" element={<PaginaEnConstruccion />} />
                 <Route path="/" element={<AuthGuard><DashboardPrincipal /></AuthGuard>} />
@@ -87,12 +98,12 @@ export default function App() {
                     <Route path="crear-formulario" element={<FormBuilderApp />} />
                     <Route path="formulario/:id" element={<FormularioDinamicoPage />} />
                     <Route path="verregistros" element={<VistaRegistrosFormulario />} />
+                    <Route path="admin" element={<AdminFormularios />} />
                 </Route>
                 <Route path="/layout" element={<AuthGuard><Layout /></AuthGuard>}>
                     <Route index element={<Dashboard />} />
-                    <Route path="configuraunidades"
-                        element={<RestrictedAreaSecuin component={UnitDepartmentManagement} />} />
-                    <Route path="gestion" element={<RestrictedAreaSecuin component={CalendarioPage} />} />
+                    {/* <Route path="configuraunidades" element={<RestrictedAreaSecuin component={UnitDepartmentManagement} />} /> */}
+                    <Route path="gestion" element={<RestrictedAreaSecuin component={UnitDepartmentManagement} />} />
                     <Route path="asignacionunidad" element={<MisCalendariosParaAportar />} />
                     <Route path="modificaturnosunidad"
                         element={<RestrictedAreaSubJefe component={ModificarAsignacionesUnidad} />} />
@@ -103,6 +114,7 @@ export default function App() {
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
                 </Route>
                 <Route path="/grafos" element={<GrafoIndex />} />
+                <Route path="/sge/*" element={<AuthGuard><SGEApp /></AuthGuard>} />
             </Routes>
         </Router>
     );

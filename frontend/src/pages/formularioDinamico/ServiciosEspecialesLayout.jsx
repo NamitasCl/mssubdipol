@@ -1,245 +1,144 @@
 import React, { useEffect, useState } from "react";
-import { Container, Navbar, Row, Col, Image, Card, Button, Spinner } from "react-bootstrap";
-import PdiLogo from "../../assets/imagenes/pdilogo.png";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
-import { FaSignOutAlt, FaPlus, FaClipboardList, FaCheckCircle, FaUserCheck } from "react-icons/fa";
+import { ClipboardList, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import FormulariosLayout from "./FormulariosLayout";
 
-// Paleta pastel
-const azulSuave = "#7fa6da";
-const azulOscuro = "#23395d";
-const grisClaro = "#eceff4";
-const blanco = "#fff";
-const verdeMenta = "#5ba58d";
-const textoPrincipal = "#23395d";
-
-function Header() {
-    const { logout } = useAuth();
-    const navigate = useNavigate();
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
-    return (
-        <Navbar
-            variant="light"
-            expand="lg"
-            className="px-2 py-0"
-            style={{
-                background: azulOscuro,
-                borderBottom: `2.5px solid ${azulSuave}`,
-                minHeight: "84px",
-                boxShadow: "0 5px 20px 0 #aecbf855",
-                zIndex: 1030
-            }}
-        >
-            <Container fluid className="align-items-center py-2" style={{ minHeight: "78px" }}>
-                <div className="d-flex flex-column align-items-center" style={{ minWidth: 140, cursor: "pointer" }}>
-                    <Image src={PdiLogo} alt="Logo" height={48} onClick={() => navigate("/")} />
-                    <span className="text-uppercase fw-semibold" style={{ color: azulSuave, fontSize: "0.98rem", letterSpacing: ".09em" }}>
-                        Plana Mayor Subdipol
-                    </span>
-                </div>
-                <div className="flex-grow-1 d-flex flex-column align-items-center">
-                    <h1 className="mb-0 fw-bold text-center"
-                        style={{
-                            color: blanco,
-                            fontSize: "1.42rem",
-                            letterSpacing: ".02em",
-                            textTransform: "uppercase"
-                        }}>
-                        Sistema Integrado de Gestión de Formularios
-                    </h1>
-                </div>
-                <div className="d-flex align-items-center gap-2">
-                    <Button
-                        variant="outline-dark"
-                        className="d-flex align-items-center gap-2"
-                        size="sm"
-                        onClick={handleLogout}
-                        style={{
-                            fontWeight: 600,
-                            borderRadius: "1.7rem",
-                            border: `1.5px solid ${azulSuave}`,
-                            color: blanco,
-                            background: "transparent"
-                        }}
-                    >
-                        <span>Cerrar sesión</span>
-                        <FaSignOutAlt />
-                    </Button>
-                </div>
-            </Container>
-        </Navbar>
-    );
-}
-
-// Panel de estadísticas con tarjetas pastel
-function EstadisticasPanel({ stats, loading }) {
+// Dashboard with actionable metrics and bold colors
+function DashboardMetrics({ stats, loading }) {
     const tarjetas = [
         {
-            label: "Formularios creados",
-            value: stats?.creados ?? "-",
-            icon: <FaClipboardList size={28} color={azulSuave} />,
-            color: blanco,
-            border: azulSuave
+            label: "Cuota Pendiente",
+            value: stats?.pendiente ?? "-",
+            sublabel: "registros por completar",
+            icon: <ClipboardList size={28} className="text-white" />,
+            bgColor: "bg-gradient-to-br from-blue-600 to-blue-700",
+            textColor: "text-white"
         },
         {
-            label: "Formularios activos",
-            value: stats?.activos ?? "-",
-            icon: <FaCheckCircle size={28} color={verdeMenta} />,
-            color: blanco,
-            border: verdeMenta
+            label: "Urgentes",
+            value: stats?.urgentes ?? "-",
+            sublabel: "vencen en < 3 días",
+            icon: <AlertTriangle size={28} className="text-white" />,
+            bgColor: stats?.urgentes > 0
+                ? "bg-gradient-to-br from-red-500 to-red-600"
+                : "bg-gradient-to-br from-gray-400 to-gray-500",
+            textColor: "text-white"
         },
         {
-            label: "Asignados a mí",
-            value: stats?.asignados ?? "-",
-            icon: <FaUserCheck size={28} color={grisClaro} />,
-            color: blanco,
-            border: grisClaro
+            label: "Completados",
+            value: stats?.completados ?? "-",
+            sublabel: "tareas terminadas",
+            icon: <CheckCircle2 size={28} className="text-white" />,
+            bgColor: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+            textColor: "text-white"
         }
     ];
 
     return (
-        <Row className="g-4 my-1 justify-content-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {tarjetas.map((t, i) => (
-                <Col key={i} xs={12} md={4}>
-                    <Card
-                        className="h-100 border-0 shadow-sm rounded-4"
-                        style={{
-                            background: t.color,
-                            minHeight: 104,
-                            borderLeft: `7px solid ${t.border}`,
-                            boxShadow: "0 5px 22px 0 #9ec8e733"
-                        }}
-                    >
-                        <Card.Body className="d-flex align-items-center gap-3 py-3">
-                            <div className="rounded-4 d-flex align-items-center justify-content-center"
-                                 style={{
-                                     width: 52, height: 52,
-                                     background: "#f5f7fa",
-                                     border: `2.5px solid ${t.border}`
-                                 }}>
-                                {t.icon}
-                            </div>
-                            <div>
-                                <div className="fw-bold" style={{ fontSize: 27, color: textoPrincipal }}>
-                                    {loading ? <Spinner animation="border" size="sm" /> : t.value}
-                                </div>
-                                <div className="text-muted" style={{ fontSize: 15 }}>{t.label}</div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
+                <div
+                    key={i}
+                    className={`${t.bgColor} rounded-xl shadow-lg p-6 flex items-center gap-4 transition hover:shadow-xl hover:scale-[1.02]`}
+                >
+                    <div className="p-3 rounded-lg bg-white/20 backdrop-blur-sm">
+                        {t.icon}
+                    </div>
+                    <div>
+                        <div className={`text-3xl font-bold ${t.textColor}`}>
+                            {loading ? (
+                                <div className="animate-pulse h-9 w-16 bg-white/30 rounded"></div>
+                            ) : (
+                                t.value
+                            )}
+                        </div>
+                        <div className={`text-sm font-semibold ${t.textColor} opacity-90`}>{t.label}</div>
+                        <div className={`text-xs ${t.textColor} opacity-70`}>{t.sublabel}</div>
+                    </div>
+                </div>
             ))}
-        </Row>
+        </div>
     );
 }
 
-const ServiciosEspecialesPanelLayout = ({ children }) => {
+const ServiciosEspecialesPanelLayout = () => {
     const { user } = useAuth();
     const [stats, setStats] = useState({});
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
 
     useEffect(() => {
         if (!user) return;
         setLoading(true);
 
-        Promise.all([
-            // Formularios creados por el usuario
-            fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/creador/${user.idFuncionario}`, {
-                headers: { Authorization: `Bearer ${user.token}` }
-            }).then(res => res.json()),
-            // Todos los formularios
-            fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
-                headers: { Authorization: `Bearer ${user.token}` }
-            }).then(res => res.json()),
-            // Cuotas asignadas al usuario
-            fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/mis`, {
-                headers: { Authorization: `Bearer ${user.token}` }
-            }).then(res => res.json())
-        ])
-            .then(([misFormularios, todosFormularios, cuotas]) => {
-                setStats({
-                    creados: Array.isArray(misFormularios) ? misFormularios.length : "-",
-                    activos: Array.isArray(todosFormularios) ? todosFormularios.filter(f => f.activo !== false).length : "-",
-                    asignados: Array.isArray(cuotas) ? cuotas.length : "-"
-                });
+        // Fetch cuotas assigned to me
+        fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/mis`, {
+            headers: { Authorization: `Bearer ${user.token}` }
+        })
+            .then(res => res.json())
+            .then(cuotas => {
+                if (!Array.isArray(cuotas)) {
+                    setStats({ pendiente: 0, urgentes: 0, completados: 0 });
+                    return;
+                }
+
+                // Fetch form definitions to get deadlines
+                fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
+                    headers: { Authorization: `Bearer ${user.token}` }
+                })
+                    .then(res => res.json())
+                    .then(formularios => {
+                        const formMap = {};
+                        (formularios || []).forEach(f => {
+                            formMap[f.id] = f;
+                        });
+
+                        const now = new Date();
+                        const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+                        let pendiente = 0;
+                        let urgentes = 0;
+                        let completados = 0;
+
+                        cuotas.forEach(c => {
+                            const avance = c.avance ?? 0;
+                            const cuotaAsignada = c.cuotaAsignada ?? 0;
+                            const restante = cuotaAsignada - avance;
+
+                            if (restante <= 0) {
+                                completados++;
+                            } else {
+                                pendiente += restante;
+
+                                // Check if form has deadline and it's within 3 days
+                                const form = formMap[c.formularioId];
+                                if (form?.fechaLimite) {
+                                    const deadline = new Date(form.fechaLimite);
+                                    if (deadline <= threeDaysFromNow && deadline > now) {
+                                        urgentes++;
+                                    }
+                                }
+                            }
+                        });
+
+                        setStats({ pendiente, urgentes, completados });
+                    })
+                    .catch(() => setStats({ pendiente: 0, urgentes: 0, completados: 0 }));
             })
-            .catch(() => setStats({}))
+            .catch(() => setStats({ pendiente: 0, urgentes: 0, completados: 0 }))
             .finally(() => setLoading(false));
     }, [user]);
 
-    // Botón flotante para crear formulario
-    const crearFormulario = () => {
-        navigate("/formularios/crear-formulario");
-    };
-
     return (
-        <div style={{
-            minHeight: "100vh",
-            background: "#f8fafc",
-            position: "relative"
-        }}>
-            <Header />
+        <FormulariosLayout>
+            <div className="min-h-[calc(100vh-140px)]">
+                {/* Dashboard Metrics */}
+                <DashboardMetrics stats={stats} loading={loading} />
 
-            <div className="container-lg py-3" style={{ maxWidth: 1350 }}>
-                <EstadisticasPanel stats={stats} loading={loading} />
+                {/* Main Content */}
+                <Outlet />
             </div>
-
-            {/* Contenido principal ocupa todo el espacio */}
-            <Container
-                className="pt-4"
-                style={{
-                    minHeight: "60vh",
-                    position: "relative"
-                }}
-            >
-                {/* Renderiza la lista de formularios o el contenido de rutas hijas */}
-                {children || <Outlet />}
-            </Container>
-
-            {/* Botón flotante crear formulario, abajo a la derecha */}
-            <Button
-                variant="light"
-                onClick={crearFormulario}
-                className="d-flex align-items-center justify-content-center"
-                style={{
-                    position: "fixed",
-                    bottom: 38,
-                    right: 38,
-                    width: 200,
-                    height: 66,
-                    borderRadius: "20px",
-                    boxShadow: "0 4px 22px #b2c6e677",
-                    background: azulSuave,
-                    color: "#fff",
-                    fontWeight: "bold",
-                    fontSize: 20,
-                    zIndex: 2024,
-                    border: "none",
-                    transition: "background .16s, box-shadow .14s, transform .10s"
-                }}
-                title="Crear nuevo formulario"
-                onMouseEnter={e => {
-                    e.currentTarget.style.background = verdeMenta;
-                    e.currentTarget.style.boxShadow = "0 8px 28px #a6e3cf55";
-                    e.currentTarget.style.transform = "scale(1.09)";
-                    e.currentTarget.style.color = "white";
-                    e.currentTarget.style.fontWeight = "bold";
-                }}
-                onMouseLeave={e => {
-                    e.currentTarget.style.background = azulSuave;
-                    e.currentTarget.style.boxShadow = "0 4px 22px #b2c6e677";
-                    e.currentTarget.style.transform = "none";
-                    e.currentTarget.style.color = "#fff";
-                    e.currentTarget.style.fontWeight = "bold";
-                }}
-            >
-                Nuevo formulario
-            </Button>
-        </div>
+        </FormulariosLayout>
     );
 };
 

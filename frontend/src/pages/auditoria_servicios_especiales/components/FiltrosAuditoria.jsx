@@ -1,33 +1,27 @@
-// javascript
-// frontend/src/pages/auditoria_servicios_especiales/components/FiltrosAuditoria.jsx
-import React, {useState} from "react";
-import {Button, ButtonGroup, Card, Col, Form, Row} from "react-bootstrap";
+import React, { useState } from "react";
 import UnidadesAsyncMulti from "../../../components/ComponentesAsyncSelect/AsyncUnidadesSelectAct.jsx";
 import AsyncMultiMemoIdsSelect from "../../../components/ComponentesAsyncSelect/AsyncMultiMemoIdsSelect.jsx";
-import {tipoFecha, tipoMemos} from "../utils/auditoriaMemosUtils.js";
-import DelitosAsyncMulti from "../../../components/ComponentesAsyncSelect/AsyncDelitosSelectAct.jsx";
+import { tipoFecha, tipoMemos } from "../utils/auditoriaMemosUtils.js";
 
 export default function FiltrosAuditoria({
-                                             user,
-                                             searchMode,
-                                             setSearchMode,
-                                             payload,
-                                             setPayload,
-                                             unidadesSeleccionadas,
-                                             setUnidadesSeleccionadas,
-                                             memoIds,
-                                             setMemoIds,
-                                             delitosSeleccionados,
-                                             setDelitos,
-                                             regionSeleccionada,
-                                             setRegionSeleccionada,
-                                             filtroDetenidos,
-                                             setFiltroDetenidos,
-                                             jerarquiaUnidades,
-                                             setIdSeleccion
-                                         }) {
-
-
+    user,
+    searchMode,
+    setSearchMode,
+    payload,
+    setPayload,
+    unidadesSeleccionadas,
+    setUnidadesSeleccionadas,
+    memoIds,
+    setMemoIds,
+    delitosSeleccionados,
+    setDelitos,
+    regionSeleccionada,
+    setRegionSeleccionada,
+    filtroDetenidos,
+    setFiltroDetenidos,
+    jerarquiaUnidades,
+    setIdSeleccion
+}) {
 
     const [subdireccion, setSubdireccion] = useState("");
     const [regionJefaturaNacional, setRegionJefaturaNacional] = useState("");
@@ -70,165 +64,188 @@ export default function FiltrosAuditoria({
     const handleRegionJefaturaNacional = (e) => {
         const arrayUnidades = [];
         const unidadesSubdireccion = jerarquiaUnidades.find(res => res.nombreRegion === e.target.value);
-        unidadesSubdireccion.hijos.map(hijo => hijo.nietos.map(nieto => (arrayUnidades.push({id: nieto.id, nombreUnidad: nieto.nombreUnidad}))));
-        const valoresFinales = arrayUnidades.filter(unidades => unidades.nombreUnidad.includes("REGION POLICIAL") || unidades.nombreUnidad.includes("JEFATURA NACIONAL"));
-        setNivelDos(valoresFinales);
+        if (unidadesSubdireccion) {
+            unidadesSubdireccion.hijos.map(hijo => hijo.nietos.map(nieto => (arrayUnidades.push({ id: nieto.id, nombreUnidad: nieto.nombreUnidad }))));
+            const valoresFinales = arrayUnidades.filter(unidades => unidades.nombreUnidad.includes("REGION POLICIAL") || unidades.nombreUnidad.includes("JEFATURA NACIONAL"));
+            setNivelDos(valoresFinales);
+        } else {
+            setNivelDos([]);
+        }
     }
 
     const handlePrefectura = (e) => {
+        if (!e.target.value) {
+            setNivelTres([]);
+            return;
+        }
 
         console.log(e.target.value);
 
-        if(String(e.target.value).includes("REGION POLICIAL")){
+        if (String(e.target.value).includes("REGION POLICIAL")) {
             const resultado = getIdsBajoPrefecturas(jerarquiaUnidades, e.target.value);
             const arrayUnidades = [];
             const unidadesSubdireccion = jerarquiaUnidades.find(res => res.nombreRegion === e.target.value);
-            unidadesSubdireccion.hijos.map(hijo => hijo.nietos.map(nieto => (arrayUnidades.push({id: nieto.id, nombreUnidad: nieto.nombreUnidad}))));
-            const valoresFinales = arrayUnidades.filter(unidades => unidades.nombreUnidad.includes("PREFECTURA"));
-            setNivelTres(valoresFinales);
-            setIdSeleccion(resultado);
+            if (unidadesSubdireccion) {
+                unidadesSubdireccion.hijos.map(hijo => hijo.nietos.map(nieto => (arrayUnidades.push({ id: nieto.id, nombreUnidad: nieto.nombreUnidad }))));
+                const valoresFinales = arrayUnidades.filter(unidades => unidades.nombreUnidad.includes("PREFECTURA"));
+                setNivelTres(valoresFinales);
+                setIdSeleccion(resultado);
+            }
             return;
         }
 
         const arrayUnidades = [];
         const unidadesSubdireccion = jerarquiaUnidades.find(res => res.nombreRegion === e.target.value);
-        unidadesSubdireccion.hijos.map(hijo => hijo.nietos.map(nieto => (arrayUnidades.push({id: nieto.id, nombreUnidad: nieto.nombreUnidad}))));
-        const valoresFinales = arrayUnidades.filter(unidades => unidades.nombreUnidad.includes("PREFECTURA"));
-        setNivelTres(valoresFinales);
-        setIdSeleccion(unidadesSubdireccion.idsNietos);
+        if (unidadesSubdireccion) {
+            unidadesSubdireccion.hijos.map(hijo => hijo.nietos.map(nieto => (arrayUnidades.push({ id: nieto.id, nombreUnidad: nieto.nombreUnidad }))));
+            const valoresFinales = arrayUnidades.filter(unidades => unidades.nombreUnidad.includes("PREFECTURA"));
+            setNivelTres(valoresFinales);
+            setIdSeleccion(unidadesSubdireccion.idsNietos);
+        }
     }
 
     const handleUnidad = (e) => {
         setUnidadSeleccionada(e.target.value);
+        if (!e.target.value) {
+            setNivelCuatro([]);
+            return;
+        }
         const arrayUnidades = [];
         const unidadesSubdireccion = jerarquiaUnidades.find(res => res.nombreRegion === e.target.value);
-        unidadesSubdireccion.hijos.map(hijo => hijo.nietos.map(nieto => (arrayUnidades.push({id: nieto.id, nombreUnidad: nieto.nombreUnidad}))));
-        setNivelCuatro(arrayUnidades);
-        setIdSeleccion(unidadesSubdireccion.idsNietos)
+        if (unidadesSubdireccion) {
+            unidadesSubdireccion.hijos.map(hijo => hijo.nietos.map(nieto => (arrayUnidades.push({ id: nieto.id, nombreUnidad: nieto.nombreUnidad }))));
+            setNivelCuatro(arrayUnidades);
+            setIdSeleccion(unidadesSubdireccion.idsNietos)
+        }
     }
 
-
+    const inputClass = "w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2";
+    const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1";
 
     return (
-        <Card className="mb-3">
-            <Card.Body>
-                <div className="d-flex flex-column flex-wrap align-items-left gap-3">
-                    <div className="d-flex align-items-center gap-2">
-                        <span className="text-muted small">Modo de búsqueda:</span>
-                        <ButtonGroup>
-                            <Button
-                                size="sm"
-                                variant={searchMode === "unidades" ? "primary" : "outline-primary"}
-                                onClick={() => {
-                                    setSearchMode("unidades");
-                                    setMemoIds([]);
-                                }}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+            <div className="p-5 border-b border-gray-100 bg-gray-50">
+                <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
+                    {/* Modo de búsqueda */}
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-700">Modo de búsqueda:</span>
+                        <div className="inline-flex bg-white rounded-lg border border-gray-200 p-1 shadow-sm">
+                            <button
+                                onClick={() => { setSearchMode("unidades"); setMemoIds([]); }}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${searchMode === "unidades" ? "bg-indigo-50 text-indigo-700 shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"}`}
                             >
                                 Por Unidades
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant={searchMode === "folio" ? "primary" : "outline-primary"}
-                                onClick={() => {
-                                    setSearchMode("folio");
-                                    setUnidadesSeleccionadas([]);
-                                }}
+                            </button>
+                            <button
+                                onClick={() => { setSearchMode("folio"); setUnidadesSeleccionadas([]); }}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${searchMode === "folio" ? "bg-indigo-50 text-indigo-700 shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"}`}
                             >
                                 Por ID memo
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant={searchMode === "delitos" ? "primary" : "outline-primary"}
-                                onClick={() => {
-                                    setSearchMode("delitos");
-                                    setUnidadesSeleccionadas([]);
-                                }}
+                            </button>
+                            <button
+                                onClick={() => { setSearchMode("delitos"); setUnidadesSeleccionadas([]); }}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${searchMode === "delitos" ? "bg-indigo-50 text-indigo-700 shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"}`}
                             >
                                 Filtro Grupal
-                            </Button>
-                        </ButtonGroup>
+                            </button>
+                        </div>
                     </div>
 
-                    {searchMode === "delitos" && (
-                        <Row className="mt-1">
-                            <Col>
-                                <div className="position-relative rounded-3 border border-info bg-info bg-opacity-10 p-3" role="alert" aria-live="polite">
-                                    <div className="d-flex align-items-center gap-2">
-                                        <span className="badge text-bg-info">🎯 Filtro grupal</span>
-                                        <strong className="text-info">Requisitos obligatorios</strong>
-                                    </div>
+                    {/* Botón de Filtro Rápido para Revisores/Jefes */}
+                    {(user?.roles?.some(r => ["ROLE_JEFE", "ROLE_REVISOR", "ROLE_CONTRALOR", "ROLE_ADMINISTRADOR"].includes(r)) ||
+                        user?.roles?.some(r => ["ROLE_JEFE", "ROLE_REVISOR", "ROLE_CONTRALOR", "ROLE_ADMINISTRADOR"].includes(r.authority || r.nombre))) && (
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-gray-700">Acción rápida:</span>
+                                <button
+                                    onClick={() => {
+                                        if (payload.estado === "SIN_REVISAR,PENDIENTE") {
+                                            setPayload(p => ({ ...p, estado: "" }));
+                                        } else {
+                                            setPayload(p => ({ ...p, estado: "SIN_REVISAR,PENDIENTE" }));
+                                        }
+                                    }}
+                                    className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-all border flex items-center gap-2 ${payload.estado === "SIN_REVISAR,PENDIENTE"
+                                            ? "bg-amber-100 text-amber-800 border-amber-300 shadow-sm"
+                                            : "bg-white text-gray-600 border-gray-300 hover:bg-amber-50 hover:text-amber-700"
+                                        }`}
+                                >
+                                    {payload.estado === "SIN_REVISAR,PENDIENTE" ? "★ Viendo Pendientes" : "☆ Ver Pendientes de Revisión"}
+                                </button>
+                            </div>
+                        )}
+                </div>
+            </div>
 
-                                    <div className="small mt-2 text-secondary">
-                                        Para ejecutar el filtro grupal debes seleccionar:
-                                        <strong> Tipo de fecha</strong>, <strong>Fecha inicio</strong>, <strong>Fecha término</strong> y
-                                        <strong> Tipo de memo</strong>.
-                                        <br/>
-                                        El filtro <u>solo</u> se ejecuta si escoges una
-                                        <strong> Región Policial</strong>, <strong> Jefatura Nacional</strong> o una
-                                        <strong> Prefectura</strong> específica.
-                                    </div>
-                                </div>
-                            </Col>
+            <div className="p-5 space-y-6">
 
-                        </Row>
-                    )}
+                {/* Alerta Modo Grupal */}
+                {searchMode === "delitos" && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Filtro grupal</span>
+                            <strong className="text-blue-900 text-sm">Requisitos obligatorios</strong>
+                        </div>
+                        <div className="text-sm text-blue-800">
+                            Para ejecutar el filtro grupal debes seleccionar: <strong>Tipo de fecha, Fecha inicio, Fecha término y Tipo de memo</strong>.
+                            <br />
+                            El filtro <u>solo</u> se ejecuta si escoges una <strong>Región Policial, Jefatura Nacional o una Prefectura</strong> específica.
+                        </div>
+                    </div>
+                )}
 
-                    <div className="w-100 d-flex flex-wrap align-items-center gap-3">
-                        <Form.Label className="mb-0 small text-muted">Tipo de fecha</Form.Label>
-                        <Form.Select
-                            size="sm"
-                            style={{maxWidth: 160}}
+                {/* Filtros Generales */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label className={labelClass}>Tipo de fecha</label>
+                        <select
+                            className={inputClass}
                             value={payload.tipoFecha}
-                            onChange={(e) => setPayload((p) => ({...p, tipoFecha: e.target.value}))}
+                            onChange={(e) => setPayload((p) => ({ ...p, tipoFecha: e.target.value }))}
                         >
                             {tipoFecha.map((t) => (
-                                <option key={t.value} value={t.value}>
-                                    {t.value}
-                                </option>
+                                <option key={t.value} value={t.value}>{t.value}</option>
                             ))}
-                        </Form.Select>
-
-                        <Form.Label className="mb-0 small text-muted">Fecha inicio</Form.Label>
-                        <Form.Control
-                            size="sm"
+                        </select>
+                    </div>
+                    <div>
+                        <label className={labelClass}>Fecha inicio</label>
+                        <input
                             type="datetime-local"
                             step="60"
-                            style={{maxWidth: 220}}
+                            className={inputClass}
                             value={payload.fechaInicio}
-                            onChange={(e) => setPayload((p) => ({...p, fechaInicio: e.target.value}))}
+                            onChange={(e) => setPayload((p) => ({ ...p, fechaInicio: e.target.value }))}
                         />
-
-                        <Form.Label className="mb-0 small text-muted ms-2">Fecha término</Form.Label>
-                        <Form.Control
-                            size="sm"
+                    </div>
+                    <div>
+                        <label className={labelClass}>Fecha término</label>
+                        <input
                             type="datetime-local"
                             step="60"
-                            style={{maxWidth: 220}}
+                            className={inputClass}
                             value={payload.fechaTermino}
-                            onChange={(e) => setPayload((p) => ({...p, fechaTermino: e.target.value}))}
+                            onChange={(e) => setPayload((p) => ({ ...p, fechaTermino: e.target.value }))}
                         />
-
-                        <Form.Label className="mb-0 small text-muted ms-2">Tipo de memo</Form.Label>
-                        <Form.Select
-                            size="sm"
-                            style={{maxWidth: 280}}
+                    </div>
+                    <div>
+                        <label className={labelClass}>Tipo de memo</label>
+                        <select
+                            className={inputClass}
                             value={payload.tipoMemo}
-                            onChange={(e) => setPayload((p) => ({...p, tipoMemo: e.target.value}))}
+                            onChange={(e) => setPayload((p) => ({ ...p, tipoMemo: e.target.value }))}
                         >
-                            {tipoMemos
-                                .map((t) => (
-                                    <option key={t.value} value={t.value}>
-                                        {t.value}
-                                    </option>
-                                ))}
-                        </Form.Select>
+                            {tipoMemos.map((t) => (
+                                <option key={t.value} value={t.value}>{t.value}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
-                <Row className="g-3 mt-2">
+                {/* Filtros Específicos por Modo */}
+                <div className="pt-2">
                     {searchMode === "unidades" && (
-                        <Col md={12}>
-                            <Form.Label className="mb-1">Unidades</Form.Label>
+                        <div>
+                            <label className={labelClass}>Unidades</label>
                             <UnidadesAsyncMulti
                                 value={unidadesSeleccionadas}
                                 onChange={setUnidadesSeleccionadas}
@@ -236,121 +253,113 @@ export default function FiltrosAuditoria({
                                 comunaSeleccionada={""}
                             />
                             {!!unidadesSeleccionadas.length && (
-                                <div className="small text-muted mt-1">
+                                <div className="text-xs text-gray-500 mt-1.5">
                                     Seleccionadas: {unidadesSeleccionadas.length}.
                                 </div>
                             )}
-                        </Col>
+                        </div>
                     )}
 
                     {searchMode === "folio" && (
-                        <Col md={8}>
-                            <Form.Label className="mb-1">IDs de Memo</Form.Label>
-                            <AsyncMultiMemoIdsSelect value={memoIds} onChange={setMemoIds}/>
+                        <div className="max-w-xl">
+                            <label className={labelClass}>IDs de Memo</label>
+                            <AsyncMultiMemoIdsSelect value={memoIds} onChange={setMemoIds} />
                             {!!memoIds.length && (
-                                <div className="small text-muted mt-1">IDs seleccionados: {memoIds.length}</div>
+                                <div className="text-xs text-gray-500 mt-1.5">IDs seleccionados: {memoIds.length}</div>
                             )}
-                        </Col>
+                        </div>
                     )}
 
                     {searchMode === "delitos" && (
-                        <Col md={12}>
-                            <Row className="g-3">
-                                <Form.Group as={Col} md={6} lg={4}>
-                                    <Form.Label className="mb-1">Subdirección</Form.Label>
-                                    <Form.Select size="sm" value={subdireccion} onChange={(e) => {
-                                        // 1. Actualiza su propio estado
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className={labelClass}>Subdirección</label>
+                                <select
+                                    className={inputClass}
+                                    value={subdireccion}
+                                    onChange={(e) => {
                                         setSubdireccion(e.target.value);
-
-                                        // 2. Llama a la función que calcula el Nivel 2 (pasando el evento 'e')
                                         handleRegionJefaturaNacional(e);
-
-                                        // 3. Resetea los estados hijos
                                         setNivelTres([]);
                                         setNivelCuatro([]);
-                                    }}>
-                                        <option value="">Elija una opción</option>
-                                        <option value="SUBDIRECCION DE INVESTIGACION POLICIAL">SUBDIRECCION DE INVESTIGACION POLICIAL</option>
-                                        <option value="SUBDIRECCION DE INTELIGENCIA CRIMEN ORGANIZADO Y SEGURIDAD MIGRATORIA">SUBDIRECCION DE INTELIGENCIA CRIMEN ORGANIZADO Y SEGURIDAD MIGRATORIA</option>
-                                    </Form.Select>
-                                </Form.Group>
-
-                                <Form.Group as={Col} md={6} lg={4}>
-                                    <Form.Label className="mb-1">Región Policial o Jefatura Nacional</Form.Label>
-                                    <Form.Select size="sm" value={regionJefaturaNacional} onChange={(e) => {
-                                        // 1. Actualiza su propio estado (LA CORRECCIÓN)
-                                        setRegionJefaturaNacional(e.target.value);
-
-                                        // 2. Llama a la función que calcula el Nivel 3
-                                        handlePrefectura(e);
-                                    }}>
-                                        <option value="">Elija una opción</option>
-                                        {nivelDos.length > 0 && (
-                                            nivelDos.map((u) => (
-                                                <option key={u.id} value={u.nombreUnidad}>{u.nombreUnidad}</option>
-                                            ))
-                                        )}
-                                    </Form.Select>
-                                </Form.Group>
-
-                                {/* Este condicional ahora es más simple y depende del estado correcto */}
-                                <Form.Group as={Col} md={6} lg={4}>
-                                    <Form.Label className="mb-1">Prefectura</Form.Label>
-                                    <Form.Select size="sm" value={prefectura} onChange={(e) => {
-                                        // 1. Actualiza su propio estado (LA CORRECCIÓN)
-                                        setPrefectura(e.target.value);
-
-                                        // 2. Llama a la función que calcula el Nivel 4
-                                        handleUnidad(e);
-
-                                    }}>
-                                        <option value="">Elija una opción</option>
-                                        {nivelTres.length > 0 && (
-                                            nivelTres.map((u) => (
-                                                <option key={u.id} value={u.nombreUnidad}>{u.nombreUnidad}</option>
-                                            ))
-                                        )}
-                                    </Form.Select>
-                                </Form.Group>
-                            </Row>
-                        </Col>
-                    )}
-                </Row>
-
-                {user?.siglasUnidad === "PMSUBDIPOL" && (
-                    <Row className="mt-3">
-                        <Col>
-                            <div className="bg-warning bg-opacity-10 border border-warning rounded p-3">
-                                <div className="d-flex align-items-center gap-2 mb-2">
-                                    <span className="fw-bold text-warning">🌍 Acceso Especial PMSUBDIPOL</span>
-                                </div>
-                                <small className="text-muted">
-                                    Como usuario de PMSUBDIPOL, tienes acceso al botón <strong>"Consulta
-                                    Global"</strong> que
-                                    permite consultar todos los memos de todas las unidades usando únicamente los
-                                    filtros de:
-                                    <strong> Tipo de fecha, Fecha inicio, Fecha término y Tipo de memo</strong>. Este
-                                    botón
-                                    ignora la selección de unidades específicas.
-                                </small>
+                                    }}
+                                >
+                                    <option value="">Elija una opción</option>
+                                    <option value="SUBDIRECCION DE INVESTIGACION POLICIAL">SUBDIRECCION DE INVESTIGACION POLICIAL</option>
+                                    <option value="SUBDIRECCION DE INTELIGENCIA CRIMEN ORGANIZADO Y SEGURIDAD MIGRATORIA">SUBDIRECCION DE INTELIGENCIA CRIMEN ORGANIZADO Y SEGURIDAD MIGRATORIA</option>
+                                </select>
                             </div>
-                        </Col>
-                    </Row>
+                            <div>
+                                <label className={labelClass}>Región Policial o Jefatura Nacional</label>
+                                <select
+                                    className={inputClass}
+                                    value={regionJefaturaNacional}
+                                    onChange={(e) => {
+                                        setRegionJefaturaNacional(e.target.value);
+                                        handlePrefectura(e);
+                                    }}
+                                >
+                                    <option value="">Elija una opción</option>
+                                    {nivelDos.length > 0 && (
+                                        nivelDos.map((u) => (
+                                            <option key={u.id} value={u.nombreUnidad}>{u.nombreUnidad}</option>
+                                        ))
+                                    )}
+                                </select>
+                            </div>
+                            <div>
+                                <label className={labelClass}>Prefectura</label>
+                                <select
+                                    className={inputClass}
+                                    value={prefectura}
+                                    onChange={(e) => {
+                                        setPrefectura(e.target.value);
+                                        handleUnidad(e);
+                                    }}
+                                >
+                                    <option value="">Elija una opción</option>
+                                    {nivelTres.length > 0 && (
+                                        nivelTres.map((u) => (
+                                            <option key={u.id} value={u.nombreUnidad}>{u.nombreUnidad}</option>
+                                        ))
+                                    )}
+                                </select>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Acceso Especial PMSUBDIPOL */}
+                {user?.siglasUnidad === "PMSUBDIPOL" && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-amber-600 font-bold text-sm">🌍 Acceso Especial PMSUBDIPOL</span>
+                        </div>
+                        <div className="text-sm text-amber-800 opacity-90">
+                            Como usuario de PMSUBDIPOL, tienes acceso al botón <strong>"Consulta Global"</strong> que
+                            permite consultar todos los memos de todas las unidades usando únicamente los
+                            filtros de: <strong>Tipo de fecha, Fecha inicio, Fecha término y Tipo de memo</strong>.
+                            Este botón ignora la selección de unidades específicas.
+                        </div>
+                    </div>
                 )}
 
-                <Row className="mt-2">
-                    <Col md={12}>
-                        <Form.Check
+                {/* Filtro Detenidos Checkbox */}
+                <div>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
                             type="checkbox"
-                            id="filtro-detenidos"
-                            label="🔒 Mostrar solo memorandos con personas detenidas (Detenido por PDI y Arrestado)"
                             checked={filtroDetenidos}
                             onChange={(e) => setFiltroDetenidos(e.target.checked)}
-                            className="text-primary"
+                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 transition-colors"
                         />
-                    </Col>
-                </Row>
-            </Card.Body>
-        </Card>
+                        <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 select-none">
+                            🔒 Mostrar solo memorandos con personas detenidas (Detenido por PDI y Arrestado)
+                        </span>
+                    </label>
+                </div>
+
+            </div>
+        </div>
     );
 }

@@ -133,8 +133,8 @@ public class AuthController {
         String tokenAd = "https://apialma.investigaciones.cl/api/Login/GetToken";
 
         Map<String, String> tokenBodyRequest = new HashMap<>();
-        tokenBodyRequest.put("usuarioAD", "lcarrascol");
-        tokenBodyRequest.put("contraseñaFun", "Pdi2024++++");
+        tokenBodyRequest.put("usuarioAD", "eramirezs");
+        tokenBodyRequest.put("contraseñaFun", "Mhb2015.@");
         tokenBodyRequest.put("keySistema", "UNE1KBATI6BNVLQF8Z9O");
 
         RestTemplate restTemplate = new RestTemplate();

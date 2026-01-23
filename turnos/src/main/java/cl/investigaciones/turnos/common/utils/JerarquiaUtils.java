@@ -8,7 +8,7 @@ public final class JerarquiaUtils {
 
     /* Orden oficial de los grados (sin OPP) */
     private static final List<String> GRADOS = List.of(
-            "PFT","SPF","COM","SBC","ISP","SBI","DTV","APS","AP","APP"
+            "PFT","SPF","COM","SBC","ISP","SBI","DTV","APS","AP","AP A/C"
     );
 
     /** Devuelve un entero: cuanto **menor**, más alto en jerarquía. */

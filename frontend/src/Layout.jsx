@@ -1,28 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
-import {
-    Container,
-    Row,
-    Col,
-    Navbar,
-    Nav,
-    Image as BImage,
-    Button,
-    Card,
-} from "react-bootstrap";
-import { FaUserCircle, FaSignOutAlt, FaChevronRight } from "react-icons/fa";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { User, LogOut, ChevronRight, ChevronDown, Menu } from "lucide-react";
 import PdiLogo from "./assets/imagenes/pdilogo.png";
 import { useAuth } from "./components/contexts/AuthContext.jsx";
-
-// PALETA DE COLORES
-const azulBase = "#2a4d7c";
-const azulMedio = "#4f7eb9";
-const azulClaro = "#b1cfff";
-const azulSidebar = "#eaf4fb";
-const blanco = "#fff";
-const grisClaro = "#f8fbfd";
-const textoPrincipal = "#22334a";
-const doradoSuave = "#ffe8a3";
+import clsx from "clsx";
 
 // ROLES
 const ROLES = {
@@ -31,41 +12,57 @@ const ROLES = {
     SECUIN: "ROLE_SECUIN",
     JEFE: "ROLE_JEFE",
     FUNCIONARIO: "ROLE_FUNCIONARIO",
+    PMSUBDIPOL: "ROLE_PMSUBDIPOL",
+    TURNOS: "ROLE_TURNOS",
+    TURNOS_RONDA: "ROLE_TURNOS_RONDA"
 };
 
-// MENÚ DE NAVEGACIÓN CON SUBMENÚS
+// MENÚ DE NAVEGACIÓN
 const navConfig = [
     {
-        label: "Dashboard",
+        label: "Dashboard Principal",
+        to: "/",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO, ROLES.PMSUBDIPOL, ROLES.TURNOS, ROLES.TURNOS_RONDA],
+    },
+    {
+        label: "Inicio",
         to: "/layout",
         allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO],
     },
     {
-        label: "Modificar turnos",
-        to: "/layout/modificaturnosunidad",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE],
+        label: "Mis Turnos",
+        to: "/layout/calendario",
+        allowedRoles: [ROLES.FUNCIONARIO, ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE],
     },
     {
-        label: "Gestión de Turnos",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN, ROLES.JEFE],
+        label: "Gestión Unidad",
+        allowedRoles: [ROLES.JEFE, ROLES.SUBJEFE, ROLES.ADMINISTRADOR, ROLES.TURNOS, ROLES.TURNOS_RONDA],
         submenu: [
-            { label: "Crear Calendario", to: "/layout/calendarios" },
-            { label: "Añadir personal", to: "/layout/asignacionunidad"},
-            { label: "Generar turnos", to: "/layout/calendario" },
+            { label: "Aportar Funcionarios", to: "/layout/asignacionunidad" },
+            { label: "Modificar Servicios", to: "/layout/modificaturnosunidad" },
         ]
     },
     {
-        label: "Zona Jefes",
-        to: "/layout/jefe",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE],
+        label: "Administración Turnos",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN, ROLES.PMSUBDIPOL],
+        submenu: [
+             { label: "Gestión de Turnos", to: "/layout/gestion" },
+             { label: "Personal Disponible", to: "/layout/disponibles" },
+             { label: "Plantillas", to: "/layout/plantillas" },
+        ]
     },
-
+    {
+        label: "Zona Jefatura",
+        to: "/layout/jefe",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE],
+    },
 ];
 
-export default function Layout() {
+export default function Layout({ children }) {
     const location = useLocation();
     const { user, logout } = useAuth();
     const [openMenus, setOpenMenus] = useState({});
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     const handleClickLogout = () => {
         logout();
@@ -89,219 +86,154 @@ export default function Layout() {
     };
 
     return (
-        <div style={{ minHeight: "100vh", background: grisClaro }}>
+        <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Header */}
-            <Navbar
-                expand="lg"
-                style={{
-                    background: azulBase,
-                    boxShadow: "0 2px 18px #23395d22",
-                    minHeight: 64,
-                    padding: "0.8rem 0",
-                }}
-                className="mb-2"
-            >
-                <Container fluid style={{ maxWidth: 1920 }}>
-                    <div className="d-flex align-items-center gap-3">
-                        <BImage src={PdiLogo} alt="Logo" height={48} />
-                        <div>
-                            <h4 className="mb-0 fw-bold" style={{ color: blanco, letterSpacing: 1.2, fontSize: 24 }}>
-                                Plataforma de gestión de turnos
-                            </h4>
-                            <span className="small" style={{ color: doradoSuave }}>
-                                Subdirección de Investigación Policial y Criminalística
-                            </span>
+            <nav className="bg-pdi-base text-white shadow-lg sticky top-0 z-50 h-16 flex-shrink-0">
+                <div className="container-fluid px-4 h-full flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors lg:hidden"
+                        >
+                            <Menu size={24} />
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <img src={PdiLogo} alt="Logo" className="h-10 w-auto drop-shadow-md" />
+                            <div className="hidden sm:block">
+                                <h4 className="font-bold text-lg tracking-wide leading-none text-white">
+                                    Plataforma Gestión de Turnos
+                                </h4>
+                                <span className="text-xs text-pdi-dorado font-medium opacity-90 block mt-1">
+                                    Subdirección de Investigación Policial y Criminalística
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <div className="d-flex align-items-center gap-3">
-                        <FaUserCircle size={26} color={blanco} />
-                        <span style={{ color: blanco, fontWeight: 600, fontSize: 17 }}>
-                            {user?.nombreUsuario || "Usuario"}
-                        </span>
-                        <Button
-                            variant="light"
+
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 bg-pdi-medio/30 py-1.5 px-4 rounded-full border border-white/10 backdrop-blur-sm">
+                            <User size={18} className="text-pdi-claro" />
+                            <span className="font-semibold text-sm hidden md:inline-block text-white">
+                                {user?.nombreUsuario || "Usuario"}
+                            </span>
+                        </div>
+                        <button
                             onClick={handleClickLogout}
-                            className="rounded-pill px-3 d-flex align-items-center"
-                            style={{
-                                borderColor: azulClaro,
-                                color: azulBase,
-                                fontWeight: 600,
-                                fontSize: 16,
-                            }}
+                            className="bg-white/10 hover:bg-white/20 text-white rounded-full p-2 md:px-4 md:py-1.5 flex items-center gap-2 font-medium transition-all text-sm group"
                         >
-                            <FaSignOutAlt className="me-2" />
-                            Cerrar sesión
-                        </Button>
+                            <LogOut size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+                            <span className="hidden md:inline">Salir</span>
+                        </button>
                     </div>
-                </Container>
-            </Navbar>
+                </div>
+            </nav>
 
-            {/* Main Content with Sidebar */}
-            <Container fluid style={{ maxWidth: 1920 }}>
-                <Row className="flex-nowrap" style={{ minHeight: "calc(100vh - 80px)" }}>
-                    {/* Sidebar */}
-                    <Col
-                        md={2}
-                        style={{
-                            background: azulSidebar,
-                            borderRight: `2px solid ${azulClaro}`,
-                            minHeight: "85vh",
-                            minWidth: 220,
-                            maxWidth: 270,
-                            paddingTop: 22,
-                            paddingBottom: 20,
-                            paddingLeft: 0,
-                            paddingRight: 0,
-                            boxShadow: "1.5px 0 9px #bfd3f325",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "start",
-                            zIndex: 2,
-                            fontSize: 17
-                        }}
-                    >
-                        <Nav className="flex-column w-100">
-                            {visibleNavItems.map((item) => {
-                                const isSubmenu = !!item.submenu;
-                                const isActive = location.pathname === item.to;
-                                const isAnySubActive = isSubmenu && item.submenu.some((sub) => location.pathname === sub.to);
-                                const isOpen = openMenus[item.label] || isAnySubActive;
+            {/* Main Content Area */}
+            <div className="flex flex-1 overflow-hidden relative">
+                {/* Sidebar */}
+                <div
+                    className={clsx(
+                        "bg-white border-r border-gray-200 w-64 flex-shrink-0 transition-all duration-300 absolute lg:static top-0 bottom-0 z-40 shadow-xl lg:shadow-none h-full overflow-y-auto",
+                        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0 lg:hidden"
+                    )}
+                    style={{
+                        height: 'calc(100vh - 64px)'
+                    }}
+                >
+                    <div className="py-6 px-3 flex flex-col gap-1">
+                        {visibleNavItems.map((item) => {
+                            const isSubmenu = !!item.submenu;
+                            const isActive = location.pathname === item.to;
+                            const isAnySubActive = isSubmenu && item.submenu.some((sub) => location.pathname === sub.to);
+                            const isOpen = openMenus[item.label] || isAnySubActive;
 
-                                if (isSubmenu) {
-                                    return (
-                                        <div key={item.label} className="w-100">
-                                            {/* Título del submenú */}
-                                            <div
-                                                onClick={() => toggleMenu(item.label)}
-                                                className={`
-                                                  my-1 py-2 px-3
-                                                  rounded-pill
-                                                  d-flex align-items-center gap-2
-                                                  ${isAnySubActive ? "fw-bold shadow-sm" : ""}
-                                                `}
-                                                style={{
-                                                    background: isAnySubActive ? azulMedio : "transparent",
-                                                    color: isAnySubActive ? blanco : textoPrincipal,
-                                                    fontSize: 14,
-                                                    marginLeft: 10,
-                                                    marginRight: 8,
-                                                    cursor: "pointer",
-                                                    transition: "background 0.2s, color 0.2s",
-                                                }}
-                                            >
-                                                <FaChevronRight
-                                                    size={19}
-                                                    style={{
-                                                        transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
-                                                        transition: "transform 0.2s",
-                                                        opacity: isAnySubActive ? 1 : 0.6,
-                                                    }}
-                                                />
+                            if (isSubmenu) {
+                                return (
+                                    <div key={item.label} className="mb-1">
+                                        <button
+                                            onClick={() => toggleMenu(item.label)}
+                                            className={clsx(
+                                                "w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 outline-none",
+                                                isAnySubActive 
+                                                    ? "bg-blue-50 text-pdi-base shadow-sm ring-1 ring-blue-100" 
+                                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${isAnySubActive ? "bg-pdi-base" : "bg-gray-300"}`}></div>
                                                 {item.label}
                                             </div>
+                                            <ChevronDown
+                                                size={16}
+                                                className={clsx("transition-transform duration-200", isOpen && "rotate-180")}
+                                            />
+                                        </button>
 
-                                            {/* Subitems */}
-                                            {isOpen && (
-                                                <div className="w-100">
-                                                    {item.submenu.map((subitem) => {
-                                                        const isActive = location.pathname === subitem.to;
-                                                        return (
-                                                            <Nav.Link
-                                                                as={Link}
-                                                                to={subitem.to}
-                                                                key={subitem.to}
-                                                                className={`
-                                                                  my-1 py-2 px-4
-                                                                  rounded-pill
-                                                                  d-flex align-items-center gap-2
-                                                                  ${isActive ? "fw-bold shadow-sm" : ""}
-                                                                `}
-                                                                style={{
-                                                                    background: isActive ? azulMedio : "transparent",
-                                                                    color: isActive ? blanco : textoPrincipal,
-                                                                    fontSize: 13.5,
-                                                                    marginLeft: 20,
-                                                                    marginRight: 8,
-                                                                    letterSpacing: 0.1,
-                                                                    transition: "background 0.2s, color 0.2s",
-                                                                }}
-                                                            >
-                                                                <FaChevronRight size={16} style={{ opacity: isActive ? 1 : 0.5 }} />
-                                                                {subitem.label}
-                                                            </Nav.Link>
-                                                        );
-                                                    })}
-                                                </div>
+                                        <div 
+                                            className={clsx(
+                                                "overflow-hidden transition-all duration-300 ease-in-out",
+                                                isOpen ? "max-h-60 opacity-100 mt-1" : "max-h-0 opacity-0"
                                             )}
+                                        >
+                                            <div className="pl-4 pr-2 flex flex-col gap-1 border-l-2 border-gray-100 ml-6">
+                                                {item.submenu.map((subitem) => {
+                                                    const isSubActive = location.pathname === subitem.to;
+                                                    return (
+                                                        <Link
+                                                            key={subitem.to}
+                                                            to={subitem.to}
+                                                            className={clsx(
+                                                                "block px-4 py-2.5 rounded-lg text-sm transition-colors",
+                                                                isSubActive 
+                                                                    ? "text-pdi-base font-semibold bg-blue-50/50" 
+                                                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50/50"
+                                                            )}
+                                                        >
+                                                            {subitem.label}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    );
-                                }
-
-                                // Ítem sin submenú
-                                return (
-                                    <Nav.Link
-                                        as={Link}
-                                        to={item.to}
-                                        key={item.to}
-                                        className={`
-                                          my-1 py-2 px-3
-                                          rounded-pill
-                                          d-flex align-items-center gap-2
-                                          ${isActive ? "fw-bold shadow-sm" : ""}
-                                        `}
-                                        style={{
-                                            background: isActive ? azulMedio : "transparent",
-                                            color: isActive ? blanco : textoPrincipal,
-                                            fontSize: 14,
-                                            marginLeft: 10,
-                                            marginRight: 8,
-                                            letterSpacing: 0.1,
-                                            boxShadow: isActive ? "0 2px 8px #4f7eb950" : undefined,
-                                            transition: "background 0.16s, color 0.16s",
-                                        }}
-                                    >
-                                        <FaChevronRight size={19} style={{ opacity: isActive ? 1 : 0.6 }} />
-                                        {item.label}
-                                    </Nav.Link>
+                                    </div>
                                 );
-                            })}
-                        </Nav>
+                            }
 
-                    </Col>
+                            // Regular Item
+                            return (
+                                <Link
+                                    key={item.to}
+                                    to={item.to}
+                                    className={clsx(
+                                        "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 mb-1",
+                                        isActive 
+                                            ? "bg-pdi-base text-white shadow-md shadow-blue-900/20" 
+                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    )}
+                                >
+                                    {isActive ? <ChevronRight size={18} /> : <div className="w-1.5 h-1.5 rounded-full bg-gray-300 ml-1"></div>}
+                                    {item.label}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
 
-                    {/* Main content */}
-                    <Col
-                        md={10}
-                        style={{
-                            background: grisClaro,
-                            minHeight: "85vh",
-                            borderRadius: "32px 0 0 32px",
-                            boxShadow: "-6px 0 42px #b1bed91b inset",
-                            padding: "18px 18px 20px 18px",
-                            zIndex: 1,
-                            maxWidth: "100%"
-                        }}
-                    >
-                        <Card
-                            style={{
-                                background: blanco,
-                                border: "none",
-                                borderRadius: 15,
-                                boxShadow: "0 8px 36px #b0c5e820",
-                                padding: 0,
-                                minHeight: "79vh",
-                                overflow: "visible",
-                                maxWidth: "100%",
-                                fontSize: 16.3,
-                            }}
-                        >
-                            <Card.Body className="p-2">
-                                <Outlet />
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
-            </Container>
+                {/* Mobile Backdrop */}
+                {sidebarOpen && (
+                    <div 
+                        className="fixed inset-0 bg-black/20 z-30 lg:hidden backdrop-blur-sm"
+                        onClick={() => setSidebarOpen(false)}
+                    />
+                )}
+
+                {/* Content */}
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-4 md:p-6 lg:p-8">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 min-h-full p-6 animate-in fade-in zoom-in-95 duration-300">
+                        {children || <Outlet />}
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }

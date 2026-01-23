@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Form, ListGroup, Spinner, Alert } from "react-bootstrap";
+import { Modal, Button, Form, Spinner, Alert, ListGroup } from "../../components/BootstrapAdapter.jsx";
 import axios from "axios";
 
 export default function AgregarPlantillasMes({

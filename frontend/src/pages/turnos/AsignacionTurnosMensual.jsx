@@ -5,7 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import axios                from "axios";
-import { Row, Col, Form, Spinner, Button, Card, Modal } from "react-bootstrap";
+import { Row, Col, Form, Spinner, Button, Card, Modal } from "../../components/BootstrapAdapter.jsx";
 import * as XLSX            from "xlsx";
 import CalendarioTurnosFuncionarios from "../calendarios/CalendarioTurnosFuncionarios.jsx";
 import { FaSyncAlt, FaSave, FaFileExcel } from "react-icons/fa"; // Para iconos de botones
@@ -233,7 +233,8 @@ export default function AsignacionTurnosMensual(){
 
             } catch (error) {
                 console.error("Error loading initial data:", error);
-                alert(`Error cargando datos iniciales: ${error.message}`);
+                // alert(`Error cargando datos iniciales: ${error.message}`); // Disabled annoyance
+                // We could set an error state here to show a UI message
             } finally {
                 if (alive) setLoading(false);
             }

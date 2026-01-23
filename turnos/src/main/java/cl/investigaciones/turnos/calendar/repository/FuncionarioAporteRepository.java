@@ -14,6 +14,8 @@ public interface FuncionarioAporteRepository extends JpaRepository<FuncionarioAp
     List<FuncionarioAporte> findByIdCalendarioAndIdUnidadAndDisponibleTrue(Long idCalendario, Long idUnidad);
 
     Page<FuncionarioAporte> findByIdCalendarioAndIdUnidad(Long idCalendario, Long idUnidad, Pageable pageable);
+    
+    Page<FuncionarioAporte> findByIdCalendarioAndIdUnidadAndDisponibleTrue(Long idCalendario, Long idUnidad, Pageable pageable);
 
     List<FuncionarioAporte> findByIdCalendarioAndDisponibleTrue(Long idCalendario);
 

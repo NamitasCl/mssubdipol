@@ -27,7 +27,10 @@ public class FormularioDefinicion {
 
     private LocalDateTime fechaCreacion = LocalDateTime.now();
 
+    private LocalDateTime fechaLimite; // null = no deadline
+
     @OneToMany(mappedBy = "formulario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("orden ASC")
     private List<FormularioCampo> campos = new ArrayList<>();
 
     @OneToMany(mappedBy = "formulario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

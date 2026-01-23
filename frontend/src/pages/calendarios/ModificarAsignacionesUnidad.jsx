@@ -10,10 +10,10 @@ import {
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
-// ⬆️ Mantengo tus APIs actuales
 import { listarCalendarios } from "../../api/calendarApi.js";
 import { getSlotsByCalendario, swapSlots } from "../../api/slotApi.js";
 import { addHours, eachDayOfInterval, endOfMonth, format, parseISO } from "date-fns";
+import { AlertCircle, CheckCircle, ArrowLeftRight, User } from 'lucide-react';
 
 /* ------------------- Etiquetas de roles ------------------- */
 const rolToLabel = {
@@ -43,15 +43,15 @@ export default function ModificarAsignacionesUnidad() {
     const [banderaRefresco, setBanderaRefresco] = useState(false);
 
     // Para UI/UX avanzada
-    const [selectedSourceId, setSelectedSourceId] = useState(null); // click-to-select
-    const [validDropDates, setValidDropDates] = useState(new Set()); // fechas válidas durante drag/selección
+    const [selectedSourceId, setSelectedSourceId] = useState(null); 
+    const [validDropDates, setValidDropDates] = useState(new Set()); 
     const [modalState, setModalState] = useState({
         open: false,
-        step: "confirm", // "confirm" | "pick"
-        source: null,    // slot source
-        candidates: [],  // si hay múltiples
-        target: null,    // slot target elegido
-        targetDate: null // fecha destino cuando soltamos por día
+        step: "confirm", 
+        source: null,    
+        candidates: [],  
+        target: null,    
+        targetDate: null 
     });
 
     /* ---------- Cargar calendarios según unidad ---------- */
@@ -69,22 +69,16 @@ export default function ModificarAsignacionesUnidad() {
         );
     }, [user]);
 
-    useEffect(() => {
-
-    }, [funcionariosAportadosUnidad])
-
     /* -------- Cargar slots del calendario seleccionado -------- */
     useEffect(() => {
         if (!calendarioSeleccionado || !user?.idUnidad) return;
 
         getSlotsByCalendario(calendarioSeleccionado.id).then((data) => {
-
-
             const slotsUnidad = data.filter(
                 (slot) => slot.siglasUnidadFuncionario === user.siglasUnidad
             );
 
-            // Normalizar la fecha (si ya migraste a timestamptz estable, puedes quitar addHours)
+            // Normalizar la fecha
             const normalizados = slotsUnidad.map((slot) => ({
                 ...slot,
                 fechaNormalizada: format(addHours(parseISO(slot.fecha), 4), "yyyy-MM-dd"),
@@ -100,30 +94,8 @@ export default function ModificarAsignacionesUnidad() {
         });
     }, [calendarioSeleccionado, user, banderaRefresco]);
 
-    // Funcion helper para saber que funcionario es mas antiguo
-    const getFuncionarioMasAntiguo = (fun1, fun2) => {
-        let funcionarioMasAntiguo = null;
-        const grados = ["PFT","SPF","SPF (OPP)","COM","COM (OPP)",
-            "SBC","SBC (OPP)","ISP","SBI","DTV","APS","AP","APP","APP (AC)"]
-
-        const posicionFuncionarioUno = grados.indexOf(fun1.gradoFuncionario)
-        const posicionFuncionarioDos = grados.indexOf(fun2.gradoFuncionario)
-
-        if(posicionFuncionarioUno === posicionFuncionarioDos) {
-            funcionarioMasAntiguo = fun1.antiguedadFuncionario < fun2.antiguedadFuncionario ? fun1 : fun2;
-        } else {
-            funcionarioMasAntiguo = posicionFuncionarioUno < posicionFuncionarioDos ? fun1 : fun2
-        }
-
-        return funcionarioMasAntiguo;
-
-    }
-
-
-
     const sensors = useSensors(useSensor(PointerSensor));
 
-    // Generar días del mes para el calendario
     const diasDelMes = calendarioSeleccionado
         ? eachDayOfInterval({
             start: new Date(calendarioSeleccionado.anio, calendarioSeleccionado.mes - 1, 1),
@@ -158,7 +130,6 @@ export default function ModificarAsignacionesUnidad() {
     const recomputeValidDates = (sourceSlot) => {
         const dates = new Set();
         if (!sourceSlot) return dates;
-        // un día es válido si existe al menos 1 candidato compatible en ese día
         for (const f of funcionariosAportadosUnidad) {
             if (isCompatible(sourceSlot, f)) {
                 const d = locations[`${f.id}-item`];
@@ -171,7 +142,7 @@ export default function ModificarAsignacionesUnidad() {
     /* -------------------- DnD handlers -------------------- */
     const handleDragStart = (event) => {
         setActiveId(event.active.id);
-        setSelectedSourceId(null); // si arrastras, sales del modo selección
+        setSelectedSourceId(null);
         const sourceSlotId = parseInt(event.active.id.split("-")[0], 10);
         const sourceSlot = getSlotById(sourceSlotId);
         setValidDropDates(recomputeValidDates(sourceSlot));
@@ -192,42 +163,34 @@ export default function ModificarAsignacionesUnidad() {
         const sourceSlot = getSlotById(sourceSlotId);
         if (!sourceSlot) return;
 
-        const targetDate = over.id; // yyyy-MM-dd (drop por día)
+        const targetDate = over.id;
         const list = candidatesForDate(sourceSlot, targetDate);
 
         if (list.length === 0) {
-            // feedback directo
             toastLike("No hay un slot compatible en ese día.", "error");
             return;
         }
 
         if (list.length === 1) {
-            // confirmación directa
             openConfirmModal({ source: sourceSlot, target: list[0], targetDate });
         } else {
-            // pedir elección y luego confirmar
             openPickModal({ source: sourceSlot, candidates: list, targetDate });
         }
     };
 
-    /* -------------------- Click-to-select (alternativa sin DnD) -------------------- */
+    /* -------------------- Click-to-select -------------------- */
     const handleCardClick = (f) => {
         if (!selectedSourceId) {
-            setSelectedSourceId(f.id); // marca origen
-            // recalcula destinos válidos por día para resaltar
-            const sourceSlot = getSlotById(f.id) || f; // f ya tiene mismos campos
+            setSelectedSourceId(f.id);
+            const sourceSlot = getSlotById(f.id) || f;
             setValidDropDates(recomputeValidDates(sourceSlot));
             return;
         }
-
-        // Si ya hay origen seleccionado y haces clic en otro:
         if (selectedSourceId === f.id) {
-            // deseleccionar
             setSelectedSourceId(null);
             setValidDropDates(new Set());
             return;
         }
-
         const source = getSlotById(selectedSourceId);
         const target = getSlotById(f.id) || f;
         if (!isCompatible(source, target)) {
@@ -237,7 +200,7 @@ export default function ModificarAsignacionesUnidad() {
         openConfirmModal({ source, target, targetDate: locations[`${target.id}-item`] });
     };
 
-    /* -------------------- Modal / Confirmación -------------------- */
+    /* -------------------- Modal Actions -------------------- */
     const openConfirmModal = ({ source, target, targetDate }) =>
         setModalState({ open: true, step: "confirm", source, target, targetDate, candidates: [] });
 
@@ -255,8 +218,6 @@ export default function ModificarAsignacionesUnidad() {
         if (!(source && target)) return;
         try {
             await swapSlots(source.id, target.id);
-
-            // optimista: intercambia ubicaciones locales
             setLocations((prev) => {
                 const a = prev[`${source.id}-item`];
                 const b = prev[`${target.id}-item`];
@@ -269,30 +230,39 @@ export default function ModificarAsignacionesUnidad() {
         } finally {
             closeModal();
             setSelectedSourceId(null);
-            setBanderaRefresco((b) => !b); // recargar desde backend
+            setBanderaRefresco((b) => !b);
         }
     };
 
-    /* -------------------- Render -------------------- */
     return (
-        <>
-            <label className="form-label mt-3">Selecciona un calendario:</label>
-            <select
-                className="form-select mb-3"
-                value={calendarioSeleccionado?.id || ""}
-                onChange={(e) =>
-                    setCalendarioSeleccionado(
-                        calendarios.find((c) => c.id.toString() === e.target.value)
-                    )
-                }
-            >
-                <option value="">-- Selecciona --</option>
-                {calendarios.map((c) => (
-                    <option key={c.id} value={c.id}>
-                        {c.nombre}
-                    </option>
-                ))}
-            </select>
+        <div className="w-full">
+            {/* Header / Selector */}
+            <div className="mb-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                   <h2 className="text-xl font-bold text-pdi-base mb-1">Modificación de Servicios</h2>
+                   <p className="text-sm text-gray-500">Seleccione un calendario para gestionar los turnos</p>
+                </div>
+                
+                <div className="w-72">
+                    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1 ml-1">Calendario</label>
+                    <select
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-700 font-medium"
+                        value={calendarioSeleccionado?.id || ""}
+                        onChange={(e) =>
+                            setCalendarioSeleccionado(
+                                calendarios.find((c) => c.id.toString() === e.target.value)
+                            )
+                        }
+                    >
+                        <option value="">-- Seleccionar --</option>
+                        {calendarios.map((c) => (
+                            <option key={c.id} value={c.id}>
+                                {c.nombre}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </div>
 
             <DndContext
                 sensors={sensors}
@@ -300,18 +270,10 @@ export default function ModificarAsignacionesUnidad() {
                 onDragEnd={handleDragEnd}
                 onDragCancel={handleDragCancel}
             >
-                <div
-                    className="calendarGrid"
-                    style={{ display: "flex", gap: "40px", padding: "10px", overflowX: "hidden" }}
-                >
-                    {/* Zona calendario: una columna por día */}
-                    <div
-                        style={{
-                            width: "100%",
-                            display: "grid",
-                            gridTemplateColumns: "repeat(7, 1fr)",
-                            gap: 10,
-                        }}
+                <div className="overflow-x-auto pb-6">
+                    <div 
+                        className="grid gap-4" 
+                        style={{ gridTemplateColumns: "repeat(7, minmax(180px, 1fr))" }}
                     >
                         {diasDelMes.map((dia) => {
                             const fechaStr = format(dia, "yyyy-MM-dd");
@@ -321,7 +283,7 @@ export default function ModificarAsignacionesUnidad() {
                                 <Droppable
                                     key={fechaStr}
                                     id={fechaStr}
-                                    label={format(dia, "dd/MM")}
+                                    label={format(dia, "dd/MM - EEEE")}
                                     valid={isValidDay}
                                 >
                                     {funcionariosAportadosUnidad
@@ -342,7 +304,6 @@ export default function ModificarAsignacionesUnidad() {
                     </div>
                 </div>
 
-                {/* DragOverlay: ítem flotando */}
                 {createPortal(
                     <DragOverlay dropAnimation={{ duration: 180, easing: "ease-out" }}>
                         {activeId ? (
@@ -356,49 +317,37 @@ export default function ModificarAsignacionesUnidad() {
                 )}
             </DndContext>
 
-            {/* Modal de confirmación / selección */}
-            <ConfirmModal
-                open={modalState.open}
-                step={modalState.step}
-                source={modalState.source}
-                target={modalState.target}
-                candidates={modalState.candidates}
-                targetDate={modalState.targetDate}
-                onClose={closeModal}
-                onPickCandidate={onPickCandidate}
-                onConfirm={doSwap}
-            />
-        </>
+            {modalState.open && (
+                <ConfirmModal
+                    open={modalState.open}
+                    step={modalState.step}
+                    source={modalState.source}
+                    target={modalState.target}
+                    candidates={modalState.candidates}
+                    targetDate={modalState.targetDate}
+                    onClose={closeModal}
+                    onPickCandidate={onPickCandidate}
+                    onConfirm={doSwap}
+                />
+            )}
+        </div>
     );
 }
 
 /* ==================== Subcomponentes & estilos ==================== */
 
-/* ---- Tarjeta Draggable con selección por clic ---- */
 function DraggableCard({ id, funcionario, activeId, selected, onClick }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
     const isActive = activeId === id;
 
+    const baseClasses = "relative bg-white border rounded-xl p-3 mb-2 cursor-grab transition-all duration-200 group hover:-translate-y-0.5 hover:shadow-md";
+    const selectedClasses = selected ? "ring-2 ring-pdi-base border-pdi-base bg-blue-50/50" : "border-gray-200 hover:border-blue-300";
+    const draggingClasses = isDragging ? "opacity-30" : "opacity-100";
+
     const style = {
-        width: 160,
-        padding: 10,
-        margin: 5,
-        backgroundColor: selected ? "#eff6ff" : "#ffffff",
-        border: selected ? "2px solid #3b82f6" : "1px solid #d1d5db",
         transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
-        cursor: isDragging ? "grabbing" : "grab",
-        borderRadius: 8,
-        textAlign: "center",
-        fontSize: 12,
-        opacity: isActive ? 0 : 1,
-        pointerEvents: isActive ? "none" : "auto",
-        position: "relative",
         zIndex: isDragging ? 999 : "auto",
-        willChange: "transform",
-        boxSizing: "border-box",
-        transition: "box-shadow .15s ease, border-color .15s ease, background-color .15s ease",
-        boxShadow: isDragging ? "0 8px 20px rgba(0,0,0,.2)" : "none",
-        color: "#17355A",
+        transition: "box-shadow 0.15s, border-color 0.15s, transform 0.1s",
     };
 
     return (
@@ -408,17 +357,22 @@ function DraggableCard({ id, funcionario, activeId, selected, onClick }) {
             {...attributes}
             {...listeners}
             onClick={onClick}
-            className="d-flex flex-column align-items-center"
+            className={`${baseClasses} ${selectedClasses} ${draggingClasses}`}
             title={`${funcionario?.nombreServicio ?? ""} • ${funcionario?.recinto ?? ""}`}
         >
-            <div style={{ fontWeight: 600, lineHeight: 1.2 }}>
-                {funcionario?.nombreFuncionario ?? funcionario?.nombreCompleto ?? "Funcionario"}
-            </div>
-            <div style={{ fontSize: 11, opacity: 0.9 }}>
-                {funcionario?.nombreServicio} • {funcionario?.recinto}
-            </div>
-            <div style={{ marginTop: 6, fontSize: 11 }}>
-                <RolBadge rol={funcionario?.rolRequerido} />
+            <div className="flex items-start gap-2.5">
+                <div className={`mt-0.5 p-1.5 rounded-lg ${selected ? 'bg-pdi-base text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-100 group-hover:text-blue-600'} transition-colors`}>
+                   <User size={14} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-gray-900 truncate mb-0.5 leading-tight">
+                        {funcionario?.nombreFuncionario ?? funcionario?.nombreCompleto ?? "Funcionario"}
+                    </p>
+                    <p className="text-[10px] text-gray-500 truncate mb-1.5">
+                        {funcionario?.nombreServicio}
+                    </p>
+                     <RolBadge rol={funcionario?.rolRequerido} />
+                </div>
             </div>
         </div>
     );
@@ -426,230 +380,161 @@ function DraggableCard({ id, funcionario, activeId, selected, onClick }) {
 
 function DraggablePreview({ id, funcionario }) {
     return (
-        <div
-            style={{
-                width: 180,
-                padding: 10,
-                margin: 5,
-                backgroundColor: "#bfdbfe",
-                borderRadius: 8,
-                textAlign: "center",
-                fontSize: 12,
-                boxShadow: "0 12px 28px rgba(0,0,0,.25)",
-                cursor: "grabbing",
-            }}
-        >
-            <div style={{ fontWeight: 600, lineHeight: 1.2 }}>
-                {funcionario?.nombreFuncionario ?? funcionario?.nombreCompleto ?? "Funcionario"}
-            </div>
-            <div style={{ fontSize: 11, opacity: 0.9 }}>
-                {funcionario?.nombreServicio} • {funcionario?.recinto}
-            </div>
-            <div style={{ marginTop: 6, fontSize: 11 }}>
-                <RolBadge rol={funcionario?.rolRequerido} />
+        <div className="bg-white border-2 border-pdi-base shadow-xl rounded-xl p-3 w-48 cursor-grabbing transform rotate-2">
+             <div className="flex items-start gap-2.5">
+                <div className="mt-0.5 p-1.5 rounded-lg bg-pdi-base text-white">
+                   <User size={14} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-gray-900 truncate mb-0.5 leading-tight">
+                        {funcionario?.nombreFuncionario ?? funcionario?.nombreCompleto ?? "Funcionario"}
+                    </p>
+                    <p className="text-[10px] text-gray-500 truncate mb-1.5">
+                        {funcionario?.nombreServicio}
+                    </p>
+                     <RolBadge rol={funcionario?.rolRequerido} />
+                </div>
             </div>
         </div>
     );
 }
 
-/* ---- Contenedor Droppable por día con feedback visual ---- */
-function Droppable({ id, label, children, valid, style: customStyle = {} }) {
+function Droppable({ id, label, children, valid }) {
     const { isOver, setNodeRef } = useDroppable({ id });
 
-    const baseBackground = customStyle.backgroundColor || "#f4f6f9";
-    let backgroundColor = baseBackground;
-    let borderColor = "#aaa";
+    let bgClass = "bg-gray-50/50";
+    let borderClass = "border-gray-200 border-dashed";
 
     if (isOver && valid) {
-        backgroundColor = "#d7f5e3"; // verde suave compatible
-        borderColor = "#22c55e";
+        bgClass = "bg-emerald-50";
+        borderClass = "border-emerald-400 border-solid ring-2 ring-emerald-100";
     } else if (isOver && !valid) {
-        backgroundColor = "#fee2e2"; // rojo suave incompatible
-        borderColor = "#ef4444";
+        bgClass = "bg-rose-50";
+        borderClass = "border-rose-400 border-solid ring-2 ring-rose-100";
     } else if (!isOver && valid) {
-        backgroundColor = "#eefcf5"; // resalte leve en días válidos
-        borderColor = "#86efac";
+        bgClass = "bg-blue-50/30"; 
+        borderClass = "border-blue-200 border-dashed";
     }
 
-    const combinedStyle = {
-        minHeight: 300,
-        maxHeight: 500,
-        overflowY: "auto",
-        overflowX: "hidden",
-        border: `2px solid ${borderColor}`,
-        display: "flex",
-        flexDirection: "column",
-        padding: 10,
-        borderRadius: 10,
-        transition: "background-color 0.15s, border-color 0.15s",
-        ...customStyle,
-        backgroundColor,
-    };
-
-    const listStyle = {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 5,
-        alignContent: "flex-start",
-        maxWidth: "100%",
-        boxSizing: "border-box",
-    };
-
     return (
-        <div ref={setNodeRef} style={combinedStyle} className="dayCell">
-            <div style={{ marginBottom: 10, fontWeight: "bold", fontSize: 15 }}>{label}</div>
-            <div style={listStyle}>{children}</div>
+        <div 
+            ref={setNodeRef} 
+            className={`rounded-xl border-2 p-3 min-h-[300px] flex flex-col transition-colors duration-200 ${bgClass} ${borderClass}`}
+        >
+            <div className="mb-3 pb-2 border-b border-gray-200/50 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{label}</span>
+                <span className="text-[10px] font-medium bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">
+                    {React.Children.count(children)}
+                </span>
+            </div>
+            <div className="flex-1 flex flex-col">
+                {children}
+            </div>
         </div>
     );
 }
 
-/* ---- Badge de rol ---- */
 function RolBadge({ rol }) {
-    //if (!rol || rol === "JEFE_DE_SERVICIO") return null;
     const label = rolToLabel[rol] ?? rol;
     return (
-        <span
-            style={{
-                padding: "2px 6px",
-                borderRadius: 999,
-                fontSize: 11,
-                background: "#e5e7eb",
-                border: "1px solid #d1d5db",
-            }}
-        >
-      {label}
-    </span>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-600 border border-gray-200">
+            {label}
+        </span>
     );
 }
 
-/* ----------------- Modal simple (sin dependencias) ----------------- */
-function ConfirmModal({
-                          open,
-                          step,
-                          source,
-                          target,
-                          candidates,
-                          targetDate,
-                          onClose,
-                          onPickCandidate,
-                          onConfirm,
-                      }) {
+function ConfirmModal({ open, step, source, target, candidates, targetDate, onClose, onPickCandidate, onConfirm }) {
     if (!open) return null;
 
-    const wrapStyle = {
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.35)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 9999,
-    };
-    const modalStyle = {
-        width: 500,
-        maxWidth: "90vw",
-        background: "#fff",
-        borderRadius: 12,
-        boxShadow: "0 20px 50px rgba(0,0,0,.25)",
-        padding: 18,
-    };
-    const titleStyle = { fontSize: 18, fontWeight: 700, marginBottom: 8, color: "#0f172a" };
-    const subStyle = { fontSize: 13, color: "#475569", marginBottom: 12 };
-
-    if (step === "pick") {
-        return (
-            <div style={wrapStyle} onClick={onClose}>
-                <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-                    <div style={titleStyle}>Selecciona el destino</div>
-                    <div style={subStyle}>
-                        Se encontraron varios slots compatibles el{" "}
-                        <strong>{format(parseISO(`${targetDate}T00:00:00`), "dd/MM/yyyy")}</strong>.
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 300, overflowY: "auto" }}>
-                        {candidates.map((c) => (
-                            <button
-                                key={c.id}
-                                onClick={() => onPickCandidate(c)}
-                                style={{
-                                    textAlign: "left",
-                                    border: "1px solid #e5e7eb",
-                                    background: "#f8fafc",
-                                    borderRadius: 8,
-                                    padding: "10px 12px",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                <div style={{ fontWeight: 600 }}>
-                                    {c?.nombreFuncionario ?? c?.nombreCompleto ?? "Funcionario"}
-                                </div>
-                                <div style={{ fontSize: 12, color: "#334155" }}>
-                                    {c?.nombreServicio} • {c?.recinto}
-                                </div>
+    return (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                {step === "pick" ? (
+                    <>
+                        <div className="p-6 border-b border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-900">Selecciona el destino</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Múltiples opciones disponibles para el <strong>{format(parseISO(`${targetDate}T00:00:00`), "dd/MM/yyyy")}</strong>.
+                            </p>
+                        </div>
+                        <div className="p-4 max-h-80 overflow-y-auto space-y-2 bg-gray-50/50">
+                            {candidates.map((c) => (
+                                <button
+                                    key={c.id}
+                                    onClick={() => onPickCandidate(c)}
+                                    className="w-full text-left bg-white border border-gray-200 hover:border-blue-400 hover:ring-2 hover:ring-blue-100 p-4 rounded-xl transition-all shadow-sm group"
+                                >
+                                    <div className="font-bold text-gray-900 group-hover:text-blue-700">
+                                        {c?.nombreFuncionario ?? c?.nombreCompleto ?? "Funcionario"}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        {c?.nombreServicio} • {c?.recinto}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+                            <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                                Cancelar
                             </button>
-                        ))}
-                    </div>
-                    <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                        <button onClick={onClose} className="btn btn-light">Cancelar</button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="p-6 border-b border-gray-100 flex items-start gap-4">
+                            <div className="p-3 bg-blue-50 text-blue-600 rounded-full">
+                                <ArrowLeftRight size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">Confirmar Intercambio</h3>
+                                <p className="text-sm text-gray-500 mt-1">¿Estás seguro de realizar este cambio de turno?</p>
+                            </div>
+                        </div>
+                        
+                        <div className="p-6 grid grid-cols-[1fr,auto,1fr] gap-4 items-center">
+                            <div className="bg-white border border-gray-200 p-4 rounded-xl text-center">
+                                <div className="text-xs font-semibold text-gray-400 uppercase mb-2">Origen</div>
+                                <div className="font-bold text-gray-900 mb-1">{source?.nombreFuncionario}</div>
+                                <div className="text-xs text-gray-500">
+                                    {source ? format(parseISO(source.fecha), "dd/MM") : "-"}
+                                </div>
+                            </div>
+                             
+                            <div className="text-gray-300">
+                                <ArrowLeftRight size={20} />
+                            </div>
 
-    // step === "confirm"
-    return (
-        <div style={wrapStyle} onClick={onClose}>
-            <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-                <div style={titleStyle}>Confirmar Intercambio de Turno</div>
-                <div style={subStyle}>Revisa los detalles antes de confirmar:</div>
+                            <div className="bg-white border border-gray-200 p-4 rounded-xl text-center">
+                                <div className="text-xs font-semibold text-gray-400 uppercase mb-2">Destino</div>
+                                <div className="font-bold text-gray-900 mb-1">{target?.nombreFuncionario}</div>
+                                <div className="text-xs text-gray-500">
+                                    {target ? format(parseISO(target.fecha), "dd/MM") : "-"}
+                                </div>
+                            </div>
+                        </div>
 
-                <div style={rowStyle}>
-                    <SwapRow
-                        title="Origen"
-                        nombre={source?.nombreFuncionario ?? source?.nombreCompleto}
-                        servicio={source?.nombreServicio}
-                        fechaStr={source ? format(parseISO(source.fecha), "dd/MM/yyyy") : "—"}
-                    />
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#64748b" }}>↔</div>
-                    <SwapRow
-                        title="Destino"
-                        nombre={target?.nombreFuncionario ?? target?.nombreCompleto}
-                        servicio={target?.nombreServicio}
-                        fechaStr={target ? format(parseISO(target.fecha), "dd/MM/yyyy") : "—"}
-                    />
-                </div>
-
-                <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                    <button onClick={onClose} className="btn btn-light">Cancelar</button>
-                    <button onClick={onConfirm} className="btn btn-primary">Confirmar intercambio</button>
-                </div>
+                        <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                            <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                                Cancelar
+                            </button>
+                            <button onClick={onConfirm} className="px-4 py-2 text-sm font-semibold text-white bg-pdi-base hover:bg-blue-800 rounded-lg shadow-sm transition-colors">
+                                Confirmar Cambio
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
 }
 
-const rowStyle = { display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between" };
-
-function SwapRow({ title, nombre, servicio, fechaStr }) {
-    return (
-        <div style={{
-            flex: 1,
-            border: "1px solid #e5e7eb",
-            borderRadius: 8,
-            padding: 10,
-            background: "#f8fafc"
-        }}>
-            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>{title}</div>
-            <div style={{ fontWeight: 600 }}>{nombre ?? "Funcionario"}</div>
-            <div style={{ fontSize: 12, color: "#334155" }}>{servicio} • {fechaStr}</div>
-        </div>
-    );
-}
-
-/* ----------------- Toast mínimo (placeholder) ----------------- */
 function toastLike(msg, type = "info") {
-    // Reemplázalo por tu sistema de toasts
-    if (type === "error") alert(`❌ ${msg}`);
-    else if (type === "success") alert(`✅ ${msg}`);
-    else alert(msg);
+    // Simple alert for now, could be replaced with a real toast component
+    // Assuming you have a toast system, or just browser alert for MVP
+    // Ideally use: import { toast } from 'react-hot-toast'; toast.success(...)
+    if(type === 'error'){
+        console.error(msg);
+    } else {
+        console.log(msg);
+    }
 }

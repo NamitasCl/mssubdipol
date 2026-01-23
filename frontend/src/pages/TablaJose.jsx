@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import axios from "axios";
 
@@ -12,9 +12,10 @@ const TablaJose = () => {
     const [vehiculos, setVehiculos] = React.useState([]);
     const [drogas, setDrogas] = React.useState([]);
 
-    const API_URL_PERSONAS = "http://localhost:8013/api/nodos/servicios-especiales/personas";
-    const API_URL_VEHICULOS = "http://localhost:8013/api/nodos/servicios-especiales/vehiculos";
-    const API_URL_DROGAS = "http://localhost:8013/api/nodos/servicios-especiales/drogas";
+    const NODOS_API_URL = import.meta.env.VITE_NODOS_API_URL || "http://localhost:8013/api/nodos";
+    const API_URL_PERSONAS = `${NODOS_API_URL}/servicios-especiales/personas`;
+    const API_URL_VEHICULOS = `${NODOS_API_URL}/servicios-especiales/vehiculos`;
+    const API_URL_DROGAS = `${NODOS_API_URL}/servicios-especiales/drogas`;
 
     useEffect(() => {
         const getFichas = async () => {
@@ -181,9 +182,9 @@ const TablaJose = () => {
 
     // Estilos básicos para la tabla (opcional)
     const styles = {
-        tabla: {width: '100%', borderCollapse: 'collapse', marginTop: '15px', fontSize: '0.9rem'},
-        th: {border: '1px solid #ddd', padding: '8px', backgroundColor: '#f4f4f4', textAlign: 'left'},
-        td: {border: '1px solid #ddd', padding: '8px', verticalAlign: 'top'},
+        tabla: { width: '100%', borderCollapse: 'collapse', marginTop: '15px', fontSize: '0.9rem' },
+        th: { border: '1px solid #ddd', padding: '8px', backgroundColor: '#f4f4f4', textAlign: 'left' },
+        td: { border: '1px solid #ddd', padding: '8px', verticalAlign: 'top' },
         boton: {
             marginTop: '15px',
             marginLeft: '10px',

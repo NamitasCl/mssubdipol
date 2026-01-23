@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Accordion,
     Alert,
@@ -12,7 +13,7 @@ import {
     Spinner,
     Table,
     Tooltip
-} from "react-bootstrap";
+} from "../../components/BootstrapAdapter.jsx";
 import {useAuth} from "../../components/contexts/AuthContext.jsx";
 import AgregarPlantillasMes from "../turnos/AgregarPlantillasMes.jsx";
 // import PlantillasTurnoCrudModal from "./PlantillasTurnoCrudModal"; // ← descomenta si lo usas
@@ -119,6 +120,7 @@ const tipos = [
 ];
 
 export default function CreadorCalendarios({onSeleccionar}) {
+    const navigate = useNavigate();
     const {user} = useAuth();
 
     /* ---------- estado general ---------- */
@@ -301,21 +303,25 @@ export default function CreadorCalendarios({onSeleccionar}) {
         setEliminarId(null);
     };
 
-
     /* ---------- render ---------- */
     return (
-        <div className="container">
+        <div className="p-6 lg:p-8 space-y-8">
             {/* ░░░ 1. Accordion Crear / Editar ░░░ */}
-            <Accordion activeKey={openCrear ? "crear" : null} className="mb-4">
+            <Accordion activeKey={openCrear ? "crear" : null} className="">
                 <Accordion.Item eventKey="crear">
                     <Accordion.Header onClick={() => setOpenCrear(!openCrear)}>
-                        {editarCalendario ? "Editar calendario" : "Crear nuevo calendario"}
+                        {editarCalendario ? "✏️ Editar calendario" : "➕ Crear nuevo calendario"}
                     </Accordion.Header>
 
                     <Accordion.Body>
-                        <Form onSubmit={handleCrearActualizarCalendario}>
-                            {/* === Datos generales === */}
-                            <Row>
+                        <Form onSubmit={handleCrearActualizarCalendario} className="space-y-6">
+                            {/* === Sección: Datos generales === */}
+                            <div className="bg-gray-50/50 rounded-xl p-5 border border-gray-100">
+                                <h4 className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-4 flex items-center gap-2">
+                                    <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">1</span>
+                                    Información Básica
+                                </h4>
+                                <Row className="gap-y-4">
                                 <Col md={6}>
                                     <Form.Group>
                                         <Form.Label>Nombre</Form.Label>
@@ -353,9 +359,16 @@ export default function CreadorCalendarios({onSeleccionar}) {
                                         />
                                     </Form.Group>
                                 </Col>
-                            </Row>
+                                </Row>
+                            </div>
 
-                            <Row className="mt-3 mb-3">
+                            {/* === Sección: Tipo y Unidad === */}
+                            <div className="bg-gray-50/50 rounded-xl p-5 border border-gray-100">
+                                <h4 className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-4 flex items-center gap-2">
+                                    <span className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-xs font-bold">2</span>
+                                    Tipo de Gestión
+                                </h4>
+                                <Row className="gap-y-4">
                                 <Col md={12} className="d-flex gap-3">
                                     <Form.Group style={{width: 300}}>
                                         <Form.Label>Tipo</Form.Label>
@@ -402,78 +415,79 @@ export default function CreadorCalendarios({onSeleccionar}) {
                                     </Form.Group>
                                 </Col>
                             </Row>
+                            </div>
 
-                            {
-                                form.tipo !== "PROCEPOL" && (
-                                    <>
-                                        {/* === Restricciones === */}
-                                        <div className="mt-4 mb-2">
-                                            <b>Restricciones de calendario</b>
-                                            <div className="border rounded p-2 bg-white">
-                                                {restriccionesDisponibles.map(r => (
-                                                    <Overlay key={r.key} mensaje={r.descripcion}>
-                                                        <div className="mb-2 d-flex align-items-center flex-wrap gap-2">
+                            {/* === Sección: Restricciones === */}
+                            {form.tipo !== "PROCEPOL" && (
+                                <div className="bg-amber-50/50 rounded-xl p-5 border border-amber-100">
+                                    <h4 className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-4 flex items-center gap-2">
+                                        <span className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 text-xs font-bold">3</span>
+                                        Restricciones del Calendario
+                                    </h4>
+                                    <p className="text-sm text-gray-500 mb-4">
+                                        Define las reglas que limitarán las asignaciones de turnos. Marca como <strong>"Fuerte"</strong> las restricciones obligatorias.
+                                    </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {restriccionesDisponibles.map(r => (
+                                            <Overlay key={r.key} mensaje={r.descripcion}>
+                                                <div className="bg-white rounded-lg p-3 border border-gray-100 hover:border-amber-200 transition-colors">
+                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                        <Form.Check
+                                                            type="checkbox"
+                                                            id={r.key}
+                                                            label={r.label}
+                                                            checked={!!restricciones[r.key]?.activa}
+                                                            onChange={e => handleCheckRestriccion(r.key, e.target.checked)}
+                                                        />
+
+                                                        {r.requiereValor && restricciones[r.key]?.activa && (
+                                                            <Form.Control
+                                                                style={{width: 80}}
+                                                                type={r.tipoValor}
+                                                                value={restricciones[r.key]?.valor ?? ""}
+                                                                min={r.tipoValor === "number" ? 1 : undefined}
+                                                                onChange={e => handleValorRestriccion(r.key, e.target.value)}
+                                                                placeholder={r.valorPlaceholder}
+                                                                className="!py-1 !text-sm"
+                                                            />
+                                                        )}
+
+                                                        {restricciones[r.key]?.activa && (
                                                             <Form.Check
                                                                 type="checkbox"
-                                                                id={r.key}
-                                                                label={r.label}
-                                                                checked={!!restricciones[r.key]?.activa}
-                                                                onChange={e => handleCheckRestriccion(r.key, e.target.checked)}
-                                                                className="me-2"
+                                                                id={`${r.key}_fuerte`}
+                                                                label="Fuerte"
+                                                                checked={!!restricciones[r.key]?.fuerte}
+                                                                onChange={e => handleFuerteRestriccion(r.key, e.target.checked)}
                                                             />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </Overlay>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                                                            {r.requiereValor && restricciones[r.key]?.activa && (
-                                                                <Form.Control
-                                                                    style={{width: 100}}
-                                                                    type={r.tipoValor}
-                                                                    value={restricciones[r.key]?.valor ?? ""}
-                                                                    min={r.tipoValor === "number" ? 1 : undefined}
-                                                                    onChange={e => handleValorRestriccion(r.key, e.target.value)}
-                                                                    placeholder={r.valorPlaceholder}
-                                                                />
-                                                            )}
-
-                                                            {restricciones[r.key]?.activa && (
-                                                                <Form.Check
-                                                                    type="checkbox"
-                                                                    id={`${r.key}_fuerte`}
-                                                                    label="Fuerte"
-                                                                    checked={!!restricciones[r.key]?.fuerte}
-                                                                    onChange={e => handleFuerteRestriccion(r.key, e.target.checked)}
-                                                                    className="ms-2"
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    </Overlay>
-                                                ))}
-                                            </div>
-                                            <small className="text-muted">
-                                                Marca las restricciones y define si son <b>fuertes</b> o sólo sugerencia.
-                                            </small>
-                                        </div>
-                                    </>
-                                )
-                            }
-
-                            {/* === Botones === */}
-                            <div className="mt-3 d-flex flex-wrap gap-2 align-items-center">
-                                {
-                                    form.tipo !== "PROCEPOL" && (
-                                        <Button type="button" onClick={() => setShowAgregarPlantillas(true)}>
+                            {/* === Sección: Acciones === */}
+                            <div className="bg-emerald-50/50 rounded-xl p-5 border border-emerald-100">
+                                <div className="flex flex-wrap gap-3 items-center">
+                                    {form.tipo !== "PROCEPOL" && (
+                                        <Button type="button" variant="outline-secondary" onClick={() => setShowAgregarPlantillas(true)}>
                                             + Agregar Servicios
                                         </Button>
-                                    )
-                                }
+                                    )}
 
-                                <Button variant="success" type="submit" disabled={saving}>
-                                    {saving ? <Spinner size="sm"/> : editarCalendario ? "Actualizar" : "Crear"}
-                                </Button>
+                                    <Button variant="success" type="submit" disabled={saving} className="!px-6">
+                                        {saving ? <Spinner size="sm"/> : editarCalendario ? "✔ Actualizar Calendario" : "✔ Crear Calendario"}
+                                    </Button>
 
-                                {formError && (
-                                    <Alert variant="danger" className="ms-3 mb-0 py-1 px-3">
-                                        {formError}
-                                    </Alert>
-                                )}
+                                    {formError && (
+                                        <Alert variant="danger" className="!py-2 !px-4 !mb-0">
+                                            {formError}
+                                        </Alert>
+                                    )}
+                                </div>
                             </div>
 
                             {plantillasSeleccionadas.length > 0 && (
@@ -507,79 +521,6 @@ export default function CreadorCalendarios({onSeleccionar}) {
             />
 
             {/* <PlantillasTurnoCrudModal show={false} onClose={() => {}} /> */}
-
-            {/* ░░░ 3. Tabla de calendarios ░░░ */}
-            <h5 className="mt-4 mb-3">Mis calendarios</h5>
-            {loading && <Spinner/>}
-            <Table striped bordered hover>
-                <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Mes/Año</th>
-                    <th>Tipo</th>
-                    <th>Unidad / Complejo</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                {calendarios.map(cal => (
-                    <tr key={cal.id}>
-                        <td>{cal.nombre}</td>
-                        <td>
-                            {cal.mes}/{cal.anio}
-                        </td>
-                        <td>{cal.tipo}</td>
-                        <td>
-                            {cal.tipo === "COMPLEJO"
-                                ? cal.nombreComplejo
-                                : cal.siglasUnidad ?? cal.idUnidad}
-                        </td>
-                        <td>{cal.estado}</td>
-                        <td>
-                            {(cal.tipo === "COMPLEJO" || cal.tipo === "PROCEPOL") && (
-                                <Button
-                                    variant="info"
-                                    size="sm"
-                                    onClick={() => onSeleccionar(cal.id)}
-                                    className="me-1"
-                                >
-                                    Configurar unidades
-                                </Button>
-                            )}
-                            <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() => setEliminarId(cal.id)}
-                                className="me-1"
-                            >
-                                Eliminar
-                            </Button>
-                            <Button
-                                variant="warning"
-                                size="sm"
-                                onClick={() => setEditarCalendario(cal)}
-                            >
-                                Editar
-                            </Button>
-                        </td>
-                    </tr>
-                ))}
-                </tbody>
-            </Table>
-
-            {/* modal eliminar */}
-            <Modal show={!!eliminarId} onHide={() => setEliminarId(null)} centered>
-                <Modal.Body>¿Seguro que quieres eliminar este calendario?</Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setEliminarId(null)}>
-                        Cancelar
-                    </Button>
-                    <Button variant="danger" onClick={() => handleEliminar(eliminarId)}>
-                        Eliminar
-                    </Button>
-                </Modal.Footer>
-            </Modal>
         </div>
     );
 }
