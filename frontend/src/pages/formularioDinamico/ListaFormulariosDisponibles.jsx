@@ -22,6 +22,9 @@ import { useNavigate } from "react-router-dom";
 import DelegarCuotaFormulario from "./DelegarCuotaFormulario";
 import clsx from "clsx";
 
+// Fallback URL for forms API
+const FORMS_API_URL = import.meta.env.VITE_FORMS_API_URL || 'http://localhost:8012/api/formularios';
+
 export default function ListaFormulariosDisponibles() {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -45,13 +48,13 @@ export default function ListaFormulariosDisponibles() {
                 setError(null);
 
                 const [formsRes, misFormsRes, cuotasRes] = await Promise.all([
-                    fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
+                    fetch(`${FORMS_API_URL}/dinamico/definicion`, {
                         headers: { Authorization: `Bearer ${user.token}` },
                     }).then(r => r.json()),
-                    fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/creador/${user.idFuncionario}`, {
+                    fetch(`${FORMS_API_URL}/dinamico/definicion/creador/${user.idFuncionario}`, {
                         headers: { Authorization: `Bearer ${user.token}` },
                     }).then(r => r.json()),
-                    fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/mis`, {
+                    fetch(`${FORMS_API_URL}/dinamico/cuotas/mis`, {
                         headers: { Authorization: `Bearer ${user.token}` },
                     }).then(r => r.json()),
                 ]);
@@ -114,7 +117,7 @@ export default function ListaFormulariosDisponibles() {
 
         setDeleting(formId);
         try {
-            const res = await fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formId}`, {
+            const res = await fetch(`${FORMS_API_URL}/dinamico/definicion/${formId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${user.token}` },
             });
@@ -241,6 +244,13 @@ export default function ListaFormulariosDisponibles() {
 
                                     {/* Actions */}
                                     <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex gap-2">
+                                        <button
+                                            onClick={() => navigate(`/formularios/formulario/${form.id}`)}
+                                            className="flex-1 px-3 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors flex items-center justify-center gap-1.5"
+                                        >
+                                            <PlusCircle size={16} />
+                                            Completar
+                                        </button>
                                         <button
                                             onClick={() => navigate(`/formularios/verregistros`, { state: { formularioId: form.id, esCuotaPadre: true } })}
                                             className="flex-1 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"

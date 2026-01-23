@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Button, Card } from "react-bootstrap";
+import { Form, Button, Card } from "../../components/BootstrapAdapter.jsx";
 import {
     SUBFORMULARIOS_CATALOGO,
 } from "./FormBuilderEditor";

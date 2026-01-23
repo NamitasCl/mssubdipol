@@ -103,6 +103,7 @@ export const Button = ({ children, variant = "primary", size, onClick, disabled,
     danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
     "outline-secondary": "border border-gray-300 text-gray-700 hover:bg-gray-50",
     "outline-primary": "border border-blue-600 text-blue-600 hover:bg-blue-50",
+    "outline-danger": "border border-red-500 text-red-500 hover:bg-red-50",
   };
   const sizes = {
     sm: "px-3 py-1.5 text-xs",
@@ -122,12 +123,23 @@ export const Spinner = ({ animation, size, className = "" }) => (
   <div className={`inline-block animate-spin rounded-full border-2 border-current border-t-transparent text-white ${size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'} ${className}`} role="status" />
 );
 
-export const Modal = ({ show, onHide, centered, children }) => {
+export const Modal = ({ show, onHide, centered, size, fullscreen, children }) => {
   if (!show) return null;
+  
+  let widthClass = "max-w-lg"; // default
+  if (size === 'sm') widthClass = "max-w-md"; // smaller
+  if (size === 'lg') widthClass = "max-w-2xl";
+  if (size === 'xl') widthClass = "max-w-6xl"; // wider for import modal
+  if (fullscreen) widthClass = "w-screen h-screen max-w-none rounded-none m-0";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center ${fullscreen ? '' : 'p-4'}`}>
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onHide}></div>
-      <div className={`relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${centered ? 'my-auto' : 'mt-10'}`}>
+      <div className={`relative bg-white shadow-xl w-full flex flex-col bg-clip-border outline-none text-current 
+        ${fullscreen ? 'h-full rounded-none' : 'rounded-2xl max-h-[90vh]'} 
+        ${widthClass} 
+        animate-in fade-in zoom-in-95 duration-200 
+        ${centered && !fullscreen ? 'my-auto' : (!fullscreen ? 'mt-10' : '')}`}>
         {children}
       </div>
     </div>

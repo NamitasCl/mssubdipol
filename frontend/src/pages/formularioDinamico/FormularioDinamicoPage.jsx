@@ -8,10 +8,13 @@ import {
     Spinner,
     Alert,
     Button,
-} from "react-bootstrap";
+} from "../../components/BootstrapAdapter.jsx";
 import axios from "axios";
 import FormularioDinamico from "./FormularioDinamico";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
+
+// Fallback URL for forms API
+const FORMS_API_URL = import.meta.env.VITE_FORMS_API_URL || 'http://localhost:8012/api/formularios';
 
 export default function FormularioDinamicoPage() {
     const { id: formularioId } = useParams();
@@ -36,7 +39,7 @@ export default function FormularioDinamicoPage() {
 
         axios
             .get(
-                `${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formularioId}`,
+                `${FORMS_API_URL}/dinamico/definicion/${formularioId}`,
                 { headers: { Authorization: `Bearer ${user.token}` } }
             )
             .then((r) => {
@@ -55,7 +58,7 @@ export default function FormularioDinamicoPage() {
         setLoading(true);
         axios
             .get(
-                `${import.meta.env.VITE_FORMS_API_URL}/dinamico/registros/registro/${registroId}`,
+                `${FORMS_API_URL}/dinamico/registros/registro/${registroId}`,
                 { headers: { Authorization: `Bearer ${user.token}` } }
             )
             .then((r) => setRegistro(r.data))
@@ -67,8 +70,8 @@ export default function FormularioDinamicoPage() {
     const guardar = (values, regId) => {
 
         const url = regId
-            ? `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${regId}`
-            : `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros`;
+            ? `${FORMS_API_URL}/dinamicos/registros/${regId}`
+            : `${FORMS_API_URL}/dinamicos/registros`;
 
         const metodo = regId ? "put" : "post";
 

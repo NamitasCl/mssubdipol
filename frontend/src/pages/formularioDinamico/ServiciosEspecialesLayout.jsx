@@ -4,6 +4,9 @@ import { useAuth } from "../../components/contexts/AuthContext.jsx";
 import { ClipboardList, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
 import FormulariosLayout from "./FormulariosLayout";
 
+// Fallback URL for forms API
+const FORMS_API_URL = import.meta.env.VITE_FORMS_API_URL || 'http://localhost:8012/api/formularios';
+
 // Dashboard with actionable metrics and bold colors
 function DashboardMetrics({ stats, loading }) {
     const tarjetas = [
@@ -72,7 +75,7 @@ const ServiciosEspecialesPanelLayout = () => {
         setLoading(true);
 
         // Fetch cuotas assigned to me
-        fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/cuotas/mis`, {
+        fetch(`${FORMS_API_URL}/dinamico/cuotas/mis`, {
             headers: { Authorization: `Bearer ${user.token}` }
         })
             .then(res => res.json())
@@ -83,7 +86,7 @@ const ServiciosEspecialesPanelLayout = () => {
                 }
 
                 // Fetch form definitions to get deadlines
-                fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion`, {
+                fetch(`${FORMS_API_URL}/dinamico/definicion`, {
                     headers: { Authorization: `Bearer ${user.token}` }
                 })
                     .then(res => res.json())

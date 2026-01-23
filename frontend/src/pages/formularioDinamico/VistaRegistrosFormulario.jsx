@@ -11,13 +11,15 @@ import {
     Spinner,
     Alert,
     Modal,
-    Badge,
-} from "react-bootstrap";
+} from "../../components/BootstrapAdapter.jsx";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
-import * as XLSX from "xlsx";
+import { ReactSpreadsheetImport } from "react-spreadsheet-import";
 import { saveAs } from "file-saver";
 import axios from "axios";
 import FormularioDinamico from "./FormularioDinamico";
+
+// Fallback URL for forms API
+const FORMS_API_URL = import.meta.env.VITE_FORMS_API_URL || 'http://localhost:8012/api/formularios';
 
 const doradoPDI = "#FFC700";
 const azulPDI   = "#17355A";
@@ -74,13 +76,16 @@ export default function VistaRegistrosFormulario() {
     const [registroEdit,   setRegistroEdit]   = useState(null);
     const [showEditModal,  setShowEditModal]  = useState(false);
 
+    /* ------------ import Excel (New Library) ------------ */
+    const [isOpen, setIsOpen] = useState(false);
+
     /* =======================================================
          1)   CARGAR DEFINICIÓN DE FORMULARIO
     ======================================================= */
     useEffect(() => {
         if (!formularioId) return;
         setLoading(true); setError(null);
-        fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamico/definicion/${formularioId}`,
+        fetch(`${FORMS_API_URL}/dinamico/definicion/${formularioId}`,
             { headers:{ Authorization:`Bearer ${user.token}` } })
             .then(r=>r.json())
             .then(def => { setFormulario(def); setCampos(def.campos || []); })
@@ -95,7 +100,7 @@ export default function VistaRegistrosFormulario() {
         if (!formularioId) return;
         setLoading(true); setError(null);
 
-        fetch(`${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${formularioId}`,
+        fetch(`${FORMS_API_URL}/dinamicos/registros/${formularioId}`,
             { headers:{ Authorization:`Bearer ${user.token}` } })
             .then(r=>r.json())
             .then(data => {
@@ -362,7 +367,7 @@ export default function VistaRegistrosFormulario() {
     /* ------------ CRUD helpers (eliminar / actualizar) ------------ */
     const eliminarRegistroFormulario = (registroId) =>
         axios.delete(
-            `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${registroId}`,
+            `${FORMS_API_URL}/dinamicos/registros/${registroId}`,
             { headers: { Authorization: `Bearer ${user.token}` } }
         );
 
@@ -377,7 +382,7 @@ export default function VistaRegistrosFormulario() {
         if (!registroEdit) return;
         try {
             await axios.put(
-                `${import.meta.env.VITE_FORMS_API_URL}/dinamicos/registros/${registroEdit.id}`,
+                `${FORMS_API_URL}/dinamicos/registros/${registroEdit.id}`,
                 { datos: datosActualizados },
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
@@ -393,6 +398,107 @@ export default function VistaRegistrosFormulario() {
     };
 
     /* =======================================================
+         IMPORT EXCEL - Handlers
+    ======================================================= */
+    
+
+
+    // Column mapping state
+    const [columnMapping, setColumnMapping] = useState([]);
+    const [importMode, setImportMode] = useState('name'); // 'name' | 'position'
+    const [importOffset, setImportOffset] = useState(0); // 0 = Start at Col A, 1 = Start at Col B
+    const [hasHeaders, setHasHeaders] = useState(true);
+
+    // Find matching campo by label or nombre (with fuzzy matching)
+    // ... (rest of findCampoMatch)
+
+
+
+    // ... (handleFileSelect updates mostly same, just checking hasHeaders)
+
+
+
+
+
+
+    // 1. Configure fields for the wizard based on 'campos'
+    const fields = useMemo(() => {
+        return campos.map(c => {
+            // Determine type
+            let type = "input"; // default text
+            if (c.tipo === "checkbox" || c.type === "checkbox") type = "checkbox";
+            if (c.tipo === "select" || c.type === "select") type = "select";
+
+            // Options for select
+            let options = [];
+            if (type === "select" && c.opciones) {
+                const rawOps = Array.isArray(c.opciones) ? c.opciones : (typeof c.opciones === 'string' ? c.opciones.split(',') : []);
+                options = rawOps.map(op => {
+                    const label = typeof op === 'object' ? (op.label || op.nombre) : op;
+                    const value = typeof op === 'object' ? (op.value || op.id) : op;
+                    return { label: String(label).trim(), value: String(value).trim() };
+                });
+            }
+
+            return {
+                // Key metadata for the library
+                label: c.etiqueta || c.nombre,
+                key: c.nombre,
+                alternateMatches: [c.nombre, c.etiqueta], // Helps detailed matching
+                fieldType: {
+                    type: type,
+                    options: options.length > 0 ? options : undefined,
+                },
+                example: "Ejemplo...",
+                validations: [
+                    {
+                        rule: "required",
+                        errorMessage: "Este campo es obligatorio",
+                        level: c.requerido ? "error" : "info",
+                    },
+                ],
+            };
+        });
+    }, [campos]);
+
+    // 2. Handle final submit from the wizard
+    const handleImportSubmit = async (data) => {
+        // data.validData contains the clean array of objects
+        const validRows = data.validData;
+
+        if (!validRows || validRows.length === 0) {
+            alert("No hay registros válidos para importar.");
+            return;
+        }
+
+        setLoading(true); 
+        
+        // Iterate and POST
+        // Note: The library returns mapped data in 'validRows', keyed by 'key' (c.nombre)
+        const promises = validRows.map(row => 
+            axios.post(
+                `${FORMS_API_URL}/dinamicos/registros`,
+                {
+                    formularioId: Number(formularioId),
+                    datos: row,
+                },
+                { headers: { Authorization: `Bearer ${user.token}` } }
+            ).catch(err => ({ error: err }))
+        );
+
+        const results = await Promise.all(promises);
+        const successCount = results.filter(r => !r || !r.error).length;
+        const errorCount = results.length - successCount;
+
+        setLoading(false);
+        setIsOpen(false); // Close wizard
+        
+        alert(`Importación completada:\n✅ ${successCount} registros importados\n❌ ${errorCount} errores`);
+        cargarRegistros();
+    };
+
+
+    /* =======================================================
            RENDER
     ======================================================= */
     if (!formularioId)
@@ -405,17 +511,39 @@ export default function VistaRegistrosFormulario() {
     return (
         <div className="container-fluid py-4">
             {/* ---------------- Buttons top ---------------- */}
-            <div className="d-flex justify-content-end gap-2 mb-2">
-                <Button variant="outline-secondary" onClick={() => navigate(-1)}>
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                marginBottom: '16px',
+                flexWrap: 'wrap',
+                gap: '12px'
+            }}>
+                <Button 
+                    variant="outline-secondary" 
+                    onClick={() => navigate(-1)}
+                    style={{ minWidth: '100px' }}
+                >
                     ← Volver
                 </Button>
-                <Button
-                    variant="success"
-                    onClick={exportarExcel}
-                    disabled={loading || registrosMostrados.length === 0}
-                >
-                    Exportar a Excel
-                </Button>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <Button
+                        variant="primary"
+                        onClick={() => setIsOpen(true)}
+                        disabled={loading}
+                        style={{ minWidth: '180px' }}
+                    >
+                        📥 Importar desde Excel
+                    </Button>
+                    <Button
+                        variant="success"
+                        onClick={exportarExcel}
+                        disabled={loading || registrosMostrados.length === 0}
+                        style={{ minWidth: '150px' }}
+                    >
+                        📤 Exportar a Excel
+                    </Button>
+                </div>
             </div>
 
             <h3 style={{ color: azulPDI }}>
@@ -426,27 +554,34 @@ export default function VistaRegistrosFormulario() {
             {loading ? (
                 <Spinner animation="border" />
             ) : (
+                <div style={{ overflowX: 'auto' }}>
                 <Table bordered hover responsive size="sm">
                     <thead>
                     <tr>
-                        <th style={{ height: 60 }}>
-                            <div style={{height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                #
-                            </div>
+                        <th style={{ minWidth: 40, maxWidth: 50, textAlign: 'center', verticalAlign: 'middle', padding: '8px 4px', fontSize: '12px' }}>
+                            #
                         </th>
                         {campos.map((c) => (
-                            <th key={c.nombre} style={{ height: 60, textAlign: 'center' }}>
-                                <div style={{height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                    {c.etiqueta || c.nombre}
-                                </div>
+                            <th 
+                                key={c.nombre} 
+                                title={c.etiqueta || c.nombre}
+                                style={{ 
+                                    minWidth: 100,
+                                    maxWidth: 150, 
+                                    textAlign: 'center', 
+                                    verticalAlign: 'middle',
+                                    padding: '8px 6px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    lineHeight: 1.2,
+                                    wordBreak: 'break-word'
+                                }}
+                            >
+                                {c.etiqueta || c.nombre}
                             </th>
                         ))}
-                        {/*<th>Ingresado por</th>
-                        <th>Fecha</th>*/}
-                        <th style={{ height: 60 }}>
-                            <div style={{height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                Acciones
-                            </div>
+                        <th style={{ minWidth: 140, maxWidth: 160, textAlign: 'center', verticalAlign: 'middle', padding: '8px 4px', fontSize: '12px' }}>
+                            Acciones
                         </th>
                     </tr>
                     </thead>
@@ -517,6 +652,7 @@ export default function VistaRegistrosFormulario() {
                     )}
                     </tbody>
                 </Table>
+                </div>
             )}
 
             {/* ---------------- Modal Subformulario ---------------- */}
@@ -586,6 +722,60 @@ export default function VistaRegistrosFormulario() {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+
+
+            {/* ---------------- New Wizard Import Component ---------------- */}
+            <ReactSpreadsheetImport
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                onSubmit={handleImportSubmit}
+                fields={fields}
+                onCancel={() => setIsOpen(false)}
+                translations={{
+                    uploadStep: {
+                        title: "Subir archivo",
+                        manifestTitle: "Datos",
+                        manifestDescription: "(Arrastra tu archivo aquí)",
+                        maxRecords: {
+                          short: "Max registros",
+                          tooMany: "Demasiados registros"
+                        },
+                        dropzone: {
+                          title: "Subir .xlsx",
+                          errorToastDescription: "Archivo rechazado",
+                          activeDropzoneTitle: "Suelta archivo aquí...",
+                          buttonTitle: "Seleccionar archivo",
+                          loadingTitle: "Procesando...",
+                        },
+                        selectSheet: {
+                          title: "Selecciona la hoja",
+                          nextButtonTitle: "Siguiente"
+                        },
+                    },
+                    selectHeaderStep: {
+                        title: "Seleccionar encabezado",
+                        subtitle: "Selecciona la fila que contiene los nombres de columna",
+                    },
+                    matchColumnsStep: {
+                        title: "Mapear columnas",
+                        nextButtonTitle: "Confirmar",
+                        userTableTitle: "Tu archivo",
+                        templateTitle: "Campos requeridos",
+                        selectPlaceholder: "Seleccionar columna...",
+                        ignoredColumnText: "(Ignorar columna)",
+                        subTitle: "Selecciona qué columnas de tu Excel corresponden a cada campo",
+                    },
+                    validationStep: {
+                        title: "Validar datos",
+                        nextButtonTitle: "Importar",
+                        backButtonTitle: "Atrás",
+                        noRowsMessage: "No hay datos",
+                        noRowsWarning: "No se encontraron filas válidas",
+                        dataLabel: "Datos válidos",
+                    },
+                }}
+            />
         </div>
     );
 }
