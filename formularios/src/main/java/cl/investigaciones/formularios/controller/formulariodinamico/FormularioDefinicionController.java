@@ -46,8 +46,20 @@ public class FormularioDefinicionController {
     }
 
     @DeleteMapping("/definicion/{id}")
-    public ResponseEntity<Void> eliminarFormulario(@PathVariable Long id) {
-        service.eliminarFormulario(id); // Puedes implementar borrado lógico o físico
+    public ResponseEntity<Void> eliminarFormulario(
+            @PathVariable Long id,
+            @AuthenticationPrincipal JwtUserPrincipal principal) {
+        
+        // Validate authorization: only creator or admin can delete
+        FormularioDefinicionResponseDTO form = service.obtenerDefinicionPorId(id);
+        boolean isCreator = form.getIdCreador() != null && form.getIdCreador().equals(principal.getIdFuncionario());
+        boolean isAdmin = principal.getRoles() != null && principal.getRoles().contains("ROLE_ADMINISTRADOR");
+        
+        if (!isCreator && !isAdmin) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        service.eliminarFormulario(id);
         return ResponseEntity.noContent().build();
     }
 

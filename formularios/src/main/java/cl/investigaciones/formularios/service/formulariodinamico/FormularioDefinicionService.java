@@ -47,6 +47,7 @@ public class FormularioDefinicionService {
         entidad.setActivo(true);
         entidad.setFechaCreacion(LocalDateTime.now());
         entidad.setIdCreador(idCreador);
+        entidad.setFechaLimite(dto.getFechaLimite()); // optional deadline
 
         // Guardar primero para obtener el ID
         definicionRepo.save(entidad);
@@ -131,6 +132,7 @@ public class FormularioDefinicionService {
         dto.setDescripcion(entidad.getDescripcion());
         dto.setActivo(entidad.isActivo());
         dto.setFechaCreacion(entidad.getFechaCreacion());
+        dto.setFechaLimite(entidad.getFechaLimite());
         dto.setCampos(
                 entidad.getCampos().stream().map(c -> {
                     FormularioCampoDTO cDTO = new FormularioCampoDTO();

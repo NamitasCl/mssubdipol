@@ -25,7 +25,8 @@ const Dashboard = () => {
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
     const handleDownloadReport = () => {
-        window.location.href = 'http://localhost:8080/api/reports/deployments/excel';
+        const baseUrl = import.meta.env.VITE_SGE_API_URL || 'http://localhost:8080/api';
+        window.location.href = `${baseUrl}/reports/deployments/excel`;
     };
 
     return (
@@ -69,7 +70,7 @@ const Dashboard = () => {
                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <h3 className="text-lg font-semibold mb-4">Distribución por Región</h3>
                     <div style={{ width: '100%', height: 300 }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <BarChart data={regionData}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="name" />
@@ -85,7 +86,7 @@ const Dashboard = () => {
                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <h3 className="text-lg font-semibold mb-4">Especialidades en Terreno</h3>
                     <div style={{ width: '100%', height: 300 }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <PieChart>
                                 <Pie
                                     data={espData}
@@ -113,7 +114,7 @@ const Dashboard = () => {
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold">Gestión de Reportes</h3>
-                    <button 
+                    <button
                         onClick={handleDownloadReport}
                         className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
                     >

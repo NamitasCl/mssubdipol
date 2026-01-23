@@ -42,6 +42,12 @@ public class FormularioRegistroService {
         FormularioDefinicion def = definicionRepo.findById(dto.getFormularioId())
                 .orElseThrow(() -> new IllegalArgumentException("Formulario no existe"));
 
+        // Validate deadline
+        if (def.getFechaLimite() != null && LocalDateTime.now().isAfter(def.getFechaLimite())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                "El plazo para completar este formulario ha vencido");
+        }
+
         FormularioRegistro reg = new FormularioRegistro();
         reg.setFormulario(def);
         reg.setIdFuncionario(usuarioId);

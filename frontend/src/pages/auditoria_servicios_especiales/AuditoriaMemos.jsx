@@ -1,28 +1,25 @@
-import React, {useMemo, useState, useEffect} from "react";
-import {Button, Container, Spinner} from "react-bootstrap";
+import React, { useMemo, useState, useEffect } from "react";
 import {
     consultaMemosServiciosEspeciales,
     consultarMemosPorIds,
     consultaTodosMemosPMSUBDIPOL,
     obtenerEstadisticas,
 } from "../../api/nodosApi.js";
-import {useAuth} from "../../components/contexts/AuthContext.jsx";
-import {useNavigate} from "react-router-dom";
+import { useAuth } from "../../components/contexts/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
 
-import {normalizeMemo, toUTCISO} from "./utils/auditoriaMemosUtils.js";
+import { normalizeMemo, toUTCISO } from "./utils/auditoriaMemosUtils.js";
 import FiltrosAuditoria from "./components/FiltrosAuditoria.jsx";
 import MemoDetalleModal from "./components/MemoDetalleModal.jsx";
 import TablaAuditoria from "./components/TablaAuditoria.jsx";
 import ModalesRevision from "./components/ModalesRevision.jsx";
 import SessionExpiryBadge from "../../components/SessionExpiryBadge.jsx";
 import toast from "bootstrap/js/src/toast.js";
-import {getUnidadesConJerarquia} from "../../api/commonServicesApi.js";
+import { getUnidadesConJerarquia } from "../../api/commonServicesApi.js";
 
 export default function AuditoriaMemos() {
 
-    const {user, loading, logout, renewAccessToken} = useAuth();
-    const navigate = useNavigate();
-
+    const { user, logout, renewAccessToken } = useAuth();
     /*console.log("User en auditoria: ", user);*/
 
     const [searchMode, setSearchMode] = useState("unidades");
@@ -40,6 +37,7 @@ export default function AuditoriaMemos() {
         tipoFecha: "FECHA REGISTRO",
         tipoMemo: "TODOS",
         folio: "",
+        estado: "", // "SIN_REVISAR,PENDIENTE" o null
     });
 
     const [unidadesSeleccionadas, setUnidadesSeleccionadas] = useState([]);
@@ -52,7 +50,7 @@ export default function AuditoriaMemos() {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [sort, setSort] = useState({by: "_fechaSort", dir: "desc"});
+    const [sort, setSort] = useState({ by: "_fechaSort", dir: "desc" });
     const [filtroDetenidos, setFiltroDetenidos] = useState(false);
 
     const [jerarquiaUnidades, setJerarquiaUnidades] = useState([]);
@@ -83,6 +81,7 @@ export default function AuditoriaMemos() {
         tipoFecha: payload.tipoFecha || null,
         tipoMemo: payload.tipoMemo === "TODOS" ? null : payload.tipoMemo,
         filtroDetenidos: filtroDetenidos,
+        estadoRevision: payload.estado || null,
     });
 
     const handleConsultaTodosPMSUBDIPOL = async () => {
@@ -121,15 +120,16 @@ export default function AuditoriaMemos() {
             tipoFecha: payload.tipoFecha || null,
             tipoMemo: payload.tipoMemo === "TODOS" ? null : payload.tipoMemo,
             filtroDetenidos: filtroDetenidos,
+            estadoRevision: payload.estado || null,
         };
 
         if (searchMode === "unidades") {
             const unidades = (unidadesSeleccionadas || []).map((o) => o.value);
-            return {modo: "unidades", ...base, unidades, unidad: unidades[0] || null};
+            return { modo: "unidades", ...base, unidades, unidad: unidades[0] || null };
         }
 
         if (searchMode === "delitos") {
-            return {modo: "delitos", ...base, identificadoresUnidades: idSeleccion}
+            return { modo: "delitos", ...base, identificadoresUnidades: idSeleccion }
         }
 
         return {
@@ -223,35 +223,8 @@ export default function AuditoriaMemos() {
 
     const toggleSort = (by) => {
         setSort((prev) =>
-            prev.by === by ? {by, dir: prev.dir === "asc" ? "desc" : "asc"} : {by, dir: "asc"}
+            prev.by === by ? { by, dir: prev.dir === "asc" ? "desc" : "asc" } : { by, dir: "asc" }
         );
-    };
-
-    const exportCsv = () => {
-        const headers = ["ID", "Fecha", "Tipo", "Folio", "RUC", "Unidad", "Estado", "Relato"];
-        const rows = filteredSorted.map((m) => [
-            m.id,
-            m.fecha,
-            m.tipo,
-            m.folio,
-            m.ruc,
-            m.unidad,
-            m.estado,
-            m.relato?.replace(/"/g, '""') || "",
-        ]);
-        const csv = [
-            headers.join(","),
-            ...rows.map((r) =>
-                r.map((c) => (typeof c === "string" && c.includes(",") ? `"${c}"` : c)).join(",")
-            ),
-        ].join("\n");
-        const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `auditoria_memos_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
     };
 
     const exportarEstadisticas = async () => {
@@ -347,7 +320,7 @@ export default function AuditoriaMemos() {
     };
 
     const handleMemoUpdated = (memoId, nuevoEstado) => {
-        setMemos((memos) => memos.map((m) => (m.id === memoId ? {...m, estado: nuevoEstado} : m)));
+        setMemos((memos) => memos.map((m) => (m.id === memoId ? { ...m, estado: nuevoEstado } : m)));
         resetModales();
     };
 
@@ -359,61 +332,57 @@ export default function AuditoriaMemos() {
         }
     };
 
-    async function handleRefresh() {
-        try {
-            await renewAccessToken();
-        } catch (e) {
-            console.error("No se pudo renovar el token", e);
-            logout();
-        }
-    }
+
 
     return (
-        <Container fluid className="p-3">
-            <div className="d-flex align-items-center justify-content-xl-between mb-3">
+        <div className="p-4">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
-                    <h4 className="mb-0">📋 Auditoría de Registros RAC</h4>
-                    <small className="text-muted">
-                        Busca por <strong>Unidades</strong> o por <strong>Folio</strong>. Las fechas y el{" "}
-                        <strong>Tipo de memo</strong> aplican a ambos modos.
-                    </small>
+                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        <span className="text-3xl">📋</span>
+                        Auditoría de Registros RAC
+                    </h1>
+                    <p className="text-gray-500 text-sm mt-1">
+                        Busca por <strong className="text-gray-700">Unidades</strong>, <strong className="text-gray-700">Folio</strong> o <strong className="text-gray-700">Jerarquía</strong>.
+                        Las fechas y el tipo de memo aplican a todos los modos.
+                    </p>
                 </div>
 
-                {/*<div className="d-flex align-items-center gap-2">
-                    {loading && (
-                        <>
-                            <Spinner size="sm" animation="border"/>
-                            <small className="text-muted">Verificando sesión…</small>
-                        </>
-                    )}
-                    <SessionExpiryBadge onExpire={() => logout()} onRefresh={handleRefresh}/>
-                </div>*/}
-
-                <div className="d-flex gap-2">
-                    <Button onClick={() => navigate("/")} variant="outline-secondary" size="sm">
-                        Volver al Dashboard
-                    </Button>
-                    <Button
-                        variant={!!memos.length ? "outline-secondary" : "secondary"}
-                        size="sm"
+                <div className="flex flex-wrap gap-2">
+                    <button
                         onClick={clearFilters}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all ${memos.length
+                            ? "border-gray-300 text-gray-600 hover:bg-gray-100"
+                            : "border-gray-400 text-gray-700 bg-gray-100"
+                            }`}
                     >
                         Limpiar
-                    </Button>
-                    <Button variant="primary" size="sm" onClick={handleFiltrar}>
+                    </button>
+                    <button
+                        onClick={handleFiltrar}
+                        className="px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm"
+                    >
                         Filtrar
-                    </Button>
+                    </button>
 
                     {user?.siglasUnidad === "PMSUBDIPOL" && (
-                        <Button
-                            variant="warning"
-                            size="sm"
+                        <button
                             onClick={handleConsultaTodosPMSUBDIPOL}
                             disabled={loadingTabla}
                             title="Consulta todos los memos sin restricción de unidad (solo para PMSUBDIPOL)"
+                            className="px-4 py-2 text-sm font-medium rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
-                            {loadingTabla ? <Spinner size="sm" animation="border"/> : <>🌍 Consulta Global</>}
-                        </Button>
+                            {loadingTabla ? (
+                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            ) : (
+                                <span>🌍</span>
+                            )}
+                            Consulta Global
+                        </button>
                     )}
                 </div>
             </div>
@@ -478,6 +447,6 @@ export default function AuditoriaMemos() {
                 onMemoUpdated={handleMemoUpdated}
                 showNotification={showNotification}
             />
-        </Container>
+        </div>
     );
 }
