@@ -12,33 +12,49 @@ const ROLES = {
     SECUIN: "ROLE_SECUIN",
     JEFE: "ROLE_JEFE",
     FUNCIONARIO: "ROLE_FUNCIONARIO",
+    PMSUBDIPOL: "ROLE_PMSUBDIPOL",
+    TURNOS: "ROLE_TURNOS",
+    TURNOS_RONDA: "ROLE_TURNOS_RONDA"
 };
 
 // MENÚ DE NAVEGACIÓN
 const navConfig = [
     {
-        label: "Dashboard",
+        label: "Dashboard Principal",
+        to: "/",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO, ROLES.PMSUBDIPOL, ROLES.TURNOS, ROLES.TURNOS_RONDA],
+    },
+    {
+        label: "Inicio",
         to: "/layout",
         allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.SECUIN, ROLES.JEFE, ROLES.FUNCIONARIO],
     },
     {
-        label: "Modificar turnos",
-        to: "/layout/modificaturnosunidad",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SUBJEFE, ROLES.JEFE],
+        label: "Mis Turnos",
+        to: "/layout/calendario",
+        allowedRoles: [ROLES.FUNCIONARIO, ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE],
     },
     {
-        label: "Gestión de Turnos",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN, ROLES.JEFE],
+        label: "Gestión Unidad",
+        allowedRoles: [ROLES.JEFE, ROLES.SUBJEFE, ROLES.ADMINISTRADOR, ROLES.TURNOS, ROLES.TURNOS_RONDA],
         submenu: [
-            { label: "Crear Calendario", to: "/layout/calendarios" },
-            { label: "Añadir personal", to: "/layout/asignacionunidad"},
-            { label: "Generar turnos", to: "/layout/calendario" },
+            { label: "Aportar Funcionarios", to: "/layout/asignacionunidad" },
+            { label: "Modificar Servicios", to: "/layout/modificaturnosunidad" },
         ]
     },
     {
-        label: "Zona Jefes",
+        label: "Administración Turnos",
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.SECUIN, ROLES.PMSUBDIPOL],
+        submenu: [
+             { label: "Gestión de Turnos", to: "/layout/gestion" },
+             { label: "Personal Disponible", to: "/layout/disponibles" },
+             { label: "Plantillas", to: "/layout/plantillas" },
+        ]
+    },
+    {
+        label: "Zona Jefatura",
         to: "/layout/jefe",
-        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE, ROLES.SUBJEFE],
+        allowedRoles: [ROLES.ADMINISTRADOR, ROLES.JEFE],
     },
 ];
 

@@ -56,9 +56,9 @@ export default function ListaFormulariosDisponibles() {
                     }).then(r => r.json()),
                 ]);
 
-                setFormularios(formsRes);
+                setFormularios(Array.isArray(formsRes) ? formsRes : []);
                 setMisFormularios(Array.isArray(misFormsRes) ? misFormsRes : []);
-                setCuotas(cuotasRes);
+                setCuotas(Array.isArray(cuotasRes) ? cuotasRes : []);
             } catch (e) {
                 setError(e.message || "Error de red");
             } finally {

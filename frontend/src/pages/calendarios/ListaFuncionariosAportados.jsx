@@ -35,7 +35,19 @@ export default function ListaFuncionariosAportados({ show, onHide, calendarioId,
         if (!window.confirm("¿Seguro que deseas quitar este funcionario del aporte?")) return;
         setLoading(true);
         eliminarFuncionarioAportado(id, user.idFuncionario)
-            .then(() => cargarFuncionarios(pagina)) // recargar misma página
+            .then(() => {
+                // Optimistically remove the item from the local list
+                const updatedList = funcionarios.filter(f => f.id !== id);
+                setFuncionarios(updatedList);
+                
+                // If we deleted the last item on the current page and it's not the first page,
+                // go back one page. Otherwise, reload the current page to get fresh data.
+                if (updatedList.length === 0 && pagina > 0) {
+                    cargarFuncionarios(pagina - 1);
+                } else {
+                    cargarFuncionarios(pagina);
+                }
+            })
             .catch(() => {
                 setError("No se pudo eliminar");
                 setLoading(false);

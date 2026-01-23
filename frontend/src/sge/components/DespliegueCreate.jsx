@@ -52,8 +52,18 @@ const DespliegueCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Backend expects yyyy-MM-dd'T'HH:mm:ss
+      // Remove milliseconds and 'Z' from ISO string for fechaSolicitud
+      const formattedSolicitud = formData.fechaSolicitud.split('.')[0]; 
+      
+      // Ensure datetime-local values have seconds
+      const formatLocal = (val) => val && val.length === 16 ? `${val}:00` : val;
+
       const payload = {
         ...formData,
+        fechaSolicitud: formattedSolicitud,
+        fechaInicio: formatLocal(formData.fechaInicio),
+        fechaTermino: formatLocal(formData.fechaTermino),
         evento: { id: eventId } // Link to event
       };
       await axios.post(`/api/eventos/${eventId}/despliegues`, payload);

@@ -4,7 +4,22 @@ import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
-    plugins: [react()],
+    plugins: [
+        react(),
+        {
+            name: 'redirect-missing-slash',
+            configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                    if (req.url === '/turnos') {
+                        res.writeHead(301, { Location: '/turnos/' });
+                        res.end();
+                    } else {
+                        next();
+                    }
+                });
+            }
+        }
+    ],
     base: '/turnos/',
     server: {
         proxy: {
