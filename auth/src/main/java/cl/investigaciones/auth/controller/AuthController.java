@@ -153,4 +153,40 @@ public class AuthController {
         TokenActiveDirectoryDTO token = response.getBody().getResult();
         return ResponseEntity.ok(token.getToken());
     }
+    /**
+     * DEV LOGIN - Bypass AD/VPN for development
+     */
+    @PostMapping("/dev-login")
+    public ResponseEntity<?> devLogin(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+        if (username == null || username.isEmpty()) {
+            return ResponseEntity.badRequest().body("Username requerido");
+        }
+        
+        System.out.println("[AUTH] Dev Login attempt for: " + username);
+
+        Optional<Usuario> optUser = usuarioRepository.findByUsernameIgnoreCase(username);
+        if (!optUser.isPresent()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no encontrado en BD local");
+        }
+        
+        UsuarioDetails usuarioDetails = new UsuarioDetails(optUser.get());
+
+        String access = jwtUtil.generateAccessToken(
+                usuarioDetails.getUsername(),
+                usuarioDetails.getRoles(),
+                usuarioDetails.getNombreCompleto(),
+                usuarioDetails.getNombreCargo(),
+                usuarioDetails.getSiglasUnidad(),
+                usuarioDetails.getIdUnidad(),
+                usuarioDetails.isAdmin(),
+                usuarioDetails.getId(),
+                usuarioDetails.getPermisos(),
+                usuarioDetails.getNombrePerfil(),
+                usuarioDetails.getNombreUnidad()
+        );
+        String refresh = jwtUtil.generateRefreshToken(usuarioDetails.getUsername());
+
+        return ResponseEntity.ok(new AuthResponse(access, refresh, jwtUtil.getExpEpochSeconds(access)));
+    }
 }

@@ -32,4 +32,12 @@ public class FuncionarioController {
         repository.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> count(@RequestParam(required = false) String unidad) {
+        if (unidad != null) {
+            return ResponseEntity.ok(repository.countByUnidad(unidad));
+        }
+        return ResponseEntity.ok(repository.count());
+    }
 }

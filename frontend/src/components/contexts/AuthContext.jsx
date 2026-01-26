@@ -137,18 +137,14 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem(SS_USER, JSON.stringify(mockUser));
 
         // --- ¡AQUÍ ESTÁ EL CAMBIO! ---
-        const FAKE_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOSVNUUkFET1IiLCJST0xFX0pFRkUiLCJST0xFX0ZVTkNJT05BUklPIl0sIm5vbWJyZVVzdWFyaW8iOiJFTlpPIEFMRUpBTkRSTyBSQU1JUkVaIFNJTFZBIiwibm9tYnJlVW5pZGFkIjoiUExBTkEgTUFZT1IgREUgTEEgU1VCRElQT0wiLCJzaWdsYXNVbmlkYWQiOiJQTVNVQkRJUE9MIiwiaXNBZG1pbiI6dHJ1ZSwic3ViIjoiRVJBTUlSRVpTIiwiaWF0IjoxNjc4ODg2NDAwLCJleHAiOjk5OTk5OTk5OTl9.Mz09GJfnGENN1GmoKfKTQfZUMGh51NQJeR7eEPRQnrs";
+        const FAKE_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOSVNUUkFET1IiLCJST0xFX0pFRkUiLCJST0xFX0ZVTkNJT05BUklPIl0sIm5vbWJyZVVzdWFyaW8iOiJFTlpPIEFMRUpBTkRSTyBSQU1JUkVaIFNJTFZBIiwibm9tYnJlVW5pZGFkIjoiUExBTkEgTUFZT1IgREUgTEEgU1VCRElQT0wiLCJzaWdsYXNVbmlkYWQiOiJQTVNVQkRJUE9MIiwiaXNBZG1pbiI6dHJ1ZSwic3ViIjoiRVJBTUlSRVpTIiwiaWF0IjoxNjc4ODg2NDAwLCJleHAiOjk5OTk5OTk5OTl9.CYb7vi1btnCYQG_swjFHW8l4adKEc_Y63Kc_bMQqcDM";
         sessionStorage.setItem(SS_TOKEN, FAKE_JWT);
     }
 
     const login = async (credentials) => {
+        const endpoint = credentials.isDev ? '/dev-login' : '/login';
 
-        // if (import.meta.env.VITE_MODE_ACTUAL === "desarrollo") {
-        //     fakeLogin();
-        //     return;
-        // }
-
-        const res = await fetch(`${import.meta.env.VITE_AUTH_API_URL}/login`, {
+        const res = await fetch(`${import.meta.env.VITE_AUTH_API_URL}${endpoint}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(credentials),

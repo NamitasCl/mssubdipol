@@ -18,7 +18,10 @@ export default function AsyncUnidadesSelect({ value, onChange, user }) {
                     resp.data.map(f => ({
                         value: f.idUnidad ?? f.id, // ajusta el campo segun el dto
                         label: f.nombreUnidad ?? f.nombre,
-                        siglasUnidad: f.siglasUnidad
+                        siglasUnidad: f.siglasUnidad,
+                        regionPolicial: f.regionPolicial,
+                        nombreRegion: f.nombreRegion,
+                        fullObject: f
                     }))
                 );
             })

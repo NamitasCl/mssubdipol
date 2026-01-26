@@ -17,6 +17,7 @@ public class InicializadorRoles implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println("Inicializando roles...");
+        // Existing roles
         crearRolSiNoExiste("ROLE_JEFE");
         crearRolSiNoExiste("ROLE_SUBJEFE");
         crearRolSiNoExiste("ROLE_FUNCIONARIO");
@@ -25,6 +26,11 @@ public class InicializadorRoles implements CommandLineRunner {
         crearRolSiNoExiste("ROLE_TURNOS_RONDA");
         crearRolSiNoExiste("ROLE_REVISOR");
         crearRolSiNoExiste("ROLE_JENADEP");
+        
+        // SGE-specific roles for delegation flow
+        crearRolSiNoExiste("ROLE_DIRECTOR");   // Dashboard view only, national scope
+        crearRolSiNoExiste("ROLE_PM_SUB");     // Plana Mayor Subdirección - creates events
+        crearRolSiNoExiste("ROLE_PM_REG");     // Plana Mayor Regional - manages region resources
     }
 
     private void crearRolSiNoExiste(String rol) {

@@ -15,6 +15,12 @@ public class Recurso {
     
     @Enumerated(EnumType.STRING)
     private EstadoRecurso estado;
+    
+    private String unidadDueña;
+    
+    private Integer cantidad; // New field for quantity
+
+    private String registeredBy;
 
     public enum EstadoRecurso {
         OPERATIVO, MANTENCION, BAJA

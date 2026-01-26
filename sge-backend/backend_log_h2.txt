@@ -1,0 +1,84 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< cl.sge:backend >---------------------------
+[INFO] Building SGE-Chile Backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.0:run (default-cli) > test-compile @ backend >>>
+Downloading from central: https://repo.maven.apache.org/maven2/com/h2database/h2/2.2.224/h2-2.2.224.pom
+Progress (1): 1.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/com/h2database/h2/2.2.224/h2-2.2.224.pom (1.1 kB at 1.8 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/h2database/h2/2.2.224/h2-2.2.224.jar
+Progress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.1/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.2/2.6 MBProgress (1): 0.3/2.6 MBProgress (1): 0.3/2.6 MBProgress (1): 0.3/2.6 MBProgress (1): 0.3/2.6 MBProgress (1): 0.3/2.6 MBProgress (1): 0.3/2.6 MBProgress (1): 0.3/2.6 MBProgress (1): 0.4/2.6 MBProgress (1): 0.4/2.6 MBProgress (1): 0.4/2.6 MBProgress (1): 0.4/2.6 MBProgress (1): 0.4/2.6 MBProgress (1): 0.4/2.6 MBProgress (1): 0.5/2.6 MBProgress (1): 0.5/2.6 MBProgress (1): 0.5/2.6 MBProgress (1): 0.5/2.6 MBProgress (1): 0.5/2.6 MBProgress (1): 0.5/2.6 MBProgress (1): 0.5/2.6 MBProgress (1): 0.6/2.6 MBProgress (1): 0.6/2.6 MBProgress (1): 0.6/2.6 MBProgress (1): 0.6/2.6 MBProgress (1): 0.6/2.6 MBProgress (1): 0.6/2.6 MBProgress (1): 0.7/2.6 MBProgress (1): 0.7/2.6 MBProgress (1): 0.7/2.6 MBProgress (1): 0.7/2.6 MBProgress (1): 0.7/2.6 MBProgress (1): 0.7/2.6 MBProgress (1): 0.8/2.6 MBProgress (1): 0.8/2.6 MBProgress (1): 0.8/2.6 MBProgress (1): 0.8/2.6 MBProgress (1): 0.8/2.6 MBProgress (1): 0.8/2.6 MBProgress (1): 0.9/2.6 MBProgress (1): 0.9/2.6 MBProgress (1): 0.9/2.6 MBProgress (1): 0.9/2.6 MBProgress (1): 0.9/2.6 MBProgress (1): 0.9/2.6 MBProgress (1): 1.0/2.6 MBProgress (1): 1.0/2.6 MBProgress (1): 1.0/2.6 MBProgress (1): 1.0/2.6 MBProgress (1): 1.0/2.6 MBProgress (1): 1.0/2.6 MBProgress (1): 1.1/2.6 MBProgress (1): 1.1/2.6 MBProgress (1): 1.1/2.6 MBProgress (1): 1.1/2.6 MBProgress (1): 1.1/2.6 MBProgress (1): 1.1/2.6 MBProgress (1): 1.2/2.6 MBProgress (1): 1.2/2.6 MBProgress (1): 1.2/2.6 MBProgress (1): 1.2/2.6 MBProgress (1): 1.2/2.6 MBProgress (1): 1.2/2.6 MBProgress (1): 1.2/2.6 MBProgress (1): 1.3/2.6 MBProgress (1): 1.3/2.6 MBProgress (1): 1.3/2.6 MBProgress (1): 1.3/2.6 MBProgress (1): 1.3/2.6 MBProgress (1): 1.3/2.6 MBProgress (1): 1.4/2.6 MBProgress (1): 1.4/2.6 MBProgress (1): 1.4/2.6 MBProgress (1): 1.4/2.6 MBProgress (1): 1.4/2.6 MBProgress (1): 1.4/2.6 MBProgress (1): 1.5/2.6 MBProgress (1): 1.5/2.6 MBProgress (1): 1.5/2.6 MBProgress (1): 1.5/2.6 MBProgress (1): 1.5/2.6 MBProgress (1): 1.5/2.6 MBProgress (1): 1.6/2.6 MBProgress (1): 1.6/2.6 MBProgress (1): 1.6/2.6 MBProgress (1): 1.6/2.6 MBProgress (1): 1.6/2.6 MBProgress (1): 1.6/2.6 MBProgress (1): 1.7/2.6 MBProgress (1): 1.7/2.6 MBProgress (1): 1.7/2.6 MBProgress (1): 1.7/2.6 MBProgress (1): 1.7/2.6 MBProgress (1): 1.7/2.6 MBProgress (1): 1.8/2.6 MBProgress (1): 1.8/2.6 MBProgress (1): 1.8/2.6 MBProgress (1): 1.8/2.6 MBProgress (1): 1.8/2.6 MBProgress (1): 1.8/2.6 MBProgress (1): 1.9/2.6 MBProgress (1): 1.9/2.6 MBProgress (1): 1.9/2.6 MBProgress (1): 1.9/2.6 MBProgress (1): 1.9/2.6 MBProgress (1): 1.9/2.6 MBProgress (1): 1.9/2.6 MBProgress (1): 2.0/2.6 MBProgress (1): 2.0/2.6 MBProgress (1): 2.0/2.6 MBProgress (1): 2.0/2.6 MBProgress (1): 2.0/2.6 MBProgress (1): 2.0/2.6 MBProgress (1): 2.1/2.6 MBProgress (1): 2.1/2.6 MBProgress (1): 2.1/2.6 MBProgress (1): 2.1/2.6 MBProgress (1): 2.1/2.6 MBProgress (1): 2.1/2.6 MBProgress (1): 2.2/2.6 MBProgress (1): 2.2/2.6 MBProgress (1): 2.2/2.6 MBProgress (1): 2.2/2.6 MBProgress (1): 2.2/2.6 MBProgress (1): 2.2/2.6 MBProgress (1): 2.3/2.6 MBProgress (1): 2.3/2.6 MBProgress (1): 2.3/2.6 MBProgress (1): 2.3/2.6 MBProgress (1): 2.3/2.6 MBProgress (1): 2.3/2.6 MBProgress (1): 2.4/2.6 MBProgress (1): 2.4/2.6 MBProgress (1): 2.4/2.6 MBProgress (1): 2.4/2.6 MBProgress (1): 2.4/2.6 MBProgress (1): 2.4/2.6 MBProgress (1): 2.5/2.6 MBProgress (1): 2.5/2.6 MBProgress (1): 2.5/2.6 MBProgress (1): 2.5/2.6 MBProgress (1): 2.5/2.6 MBProgress (1): 2.5/2.6 MBProgress (1): 2.6/2.6 MBProgress (1): 2.6/2.6 MBProgress (1): 2.6/2.6 MBProgress (1): 2.6/2.6 MBProgress (1): 2.6 MB                        Downloaded from central: https://repo.maven.apache.org/maven2/com/h2database/h2/2.2.224/h2-2.2.224.jar (2.6 MB at 6.6 MB/s)
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ backend ---
+[INFO] skip non existing resourceDirectory /home/namas/mssubdipol/sge-backend/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ backend ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] <<< spring-boot:3.2.0:run (default-cli) < test-compile @ backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.0:run (default-cli) @ backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.0)
+
+2026-01-24T21:54:04.546-03:00  INFO 629231 --- [sge-backend] [           main] cl.sge.SgeApplication                    : Starting SgeApplication using Java 21.0.9 with PID 629231 (/home/namas/mssubdipol/sge-backend/target/classes started by namas in /home/namas/mssubdipol/sge-backend)
+2026-01-24T21:54:04.548-03:00  INFO 629231 --- [sge-backend] [           main] cl.sge.SgeApplication                    : No active profile set, falling back to 1 default profile: "default"
+2026-01-24T21:54:05.087-03:00  INFO 629231 --- [sge-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-24T21:54:05.157-03:00  INFO 629231 --- [sge-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 64 ms. Found 12 JPA repository interfaces.
+2026-01-24T21:54:05.613-03:00  INFO 629231 --- [sge-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-24T21:54:05.620-03:00  INFO 629231 --- [sge-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-24T21:54:05.621-03:00  INFO 629231 --- [sge-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.16]
+2026-01-24T21:54:05.657-03:00  INFO 629231 --- [sge-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-24T21:54:05.658-03:00  INFO 629231 --- [sge-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1068 ms
+2026-01-24T21:54:05.753-03:00  INFO 629231 --- [sge-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-24T21:54:05.912-03:00  INFO 629231 --- [sge-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:sgedb user=SA
+2026-01-24T21:54:05.913-03:00  INFO 629231 --- [sge-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-24T21:54:05.978-03:00  INFO 629231 --- [sge-backend] [           main] o.f.c.internal.license.VersionPrinter    : Flyway Community Edition 9.22.3 by Redgate
+2026-01-24T21:54:05.978-03:00  INFO 629231 --- [sge-backend] [           main] o.f.c.internal.license.VersionPrinter    : See release notes here: https://rd.gt/416ObMi
+2026-01-24T21:54:05.978-03:00  INFO 629231 --- [sge-backend] [           main] o.f.c.internal.license.VersionPrinter    : 
+2026-01-24T21:54:06.016-03:00  INFO 629231 --- [sge-backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:h2:mem:sgedb (H2 2.2)
+2026-01-24T21:54:06.021-03:00  WARN 629231 --- [sge-backend] [           main] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: H2 2.2.224 is newer than this version of Flyway and support has not been tested. The latest supported version of H2 is 2.2.220.
+2026-01-24T21:54:06.039-03:00  INFO 629231 --- [sge-backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "PUBLIC"."flyway_schema_history" does not exist yet
+2026-01-24T21:54:06.042-03:00  INFO 629231 --- [sge-backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.012s)
+2026-01-24T21:54:06.046-03:00  INFO 629231 --- [sge-backend] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "PUBLIC"."flyway_schema_history" ...
+2026-01-24T21:54:06.068-03:00  INFO 629231 --- [sge-backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "PUBLIC": << Empty Schema >>
+2026-01-24T21:54:06.076-03:00  INFO 629231 --- [sge-backend] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "1 - init schema"
+2026-01-24T21:54:06.111-03:00  INFO 629231 --- [sge-backend] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "PUBLIC", now at version v1 (execution time 00:00.025s)
+2026-01-24T21:54:06.189-03:00  INFO 629231 --- [sge-backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-24T21:54:06.226-03:00  INFO 629231 --- [sge-backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.3.1.Final
+2026-01-24T21:54:06.250-03:00  INFO 629231 --- [sge-backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-24T21:54:06.416-03:00  INFO 629231 --- [sge-backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-24T21:54:06.444-03:00  WARN 629231 --- [sge-backend] [           main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-24T21:54:07.428-03:00  INFO 629231 --- [sge-backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-24T21:54:07.514-03:00  INFO 629231 --- [sge-backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-24T21:54:08.120-03:00  INFO 629231 --- [sge-backend] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-24T21:54:08.759-03:00  WARN 629231 --- [sge-backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-24T21:54:08.779-03:00  WARN 629231 --- [sge-backend] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: aec2c6db-36ea-4598-a2dd-feae3ec009f6
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-01-24T21:54:09.092-03:00  INFO 629231 --- [sge-backend] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@4bfd9e3a, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@562a4bac, org.springframework.security.web.context.SecurityContextHolderFilter@41c02b8c, org.springframework.security.web.header.HeaderWriterFilter@62c63900, org.springframework.web.filter.CorsFilter@56c45636, org.springframework.security.web.authentication.logout.LogoutFilter@51386308, cl.sge.config.JwtFilter@76536c53, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@5b3847f5, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@385abc08, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@6becf200, org.springframework.security.web.session.SessionManagementFilter@62c72490, org.springframework.security.web.access.ExceptionTranslationFilter@137b9be1, org.springframework.security.web.access.intercept.AuthorizationFilter@763d7eef]
+2026-01-24T21:54:09.385-03:00  INFO 629231 --- [sge-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-01-24T21:54:09.393-03:00  INFO 629231 --- [sge-backend] [           main] cl.sge.SgeApplication                    : Started SgeApplication in 5.17 seconds (process running for 5.437)
+2026-01-24T21:54:46.293-03:00  INFO 629231 --- [sge-backend] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-24T21:54:46.294-03:00  INFO 629231 --- [sge-backend] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-24T21:54:46.296-03:00  INFO 629231 --- [sge-backend] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

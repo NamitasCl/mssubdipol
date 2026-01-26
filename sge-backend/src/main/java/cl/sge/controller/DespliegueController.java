@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class DespliegueController {
 
     @Autowired
@@ -55,5 +54,11 @@ public class DespliegueController {
             LocalDateTime nuevaFecha = LocalDateTime.parse(fechaStr);
             return ResponseEntity.ok(despliegueService.prorrogarDespliegue(id, nuevaFecha));
         }
+    }
+
+    @DeleteMapping("/despliegues/{id}")
+    public ResponseEntity<Void> deleteDespliegue(@PathVariable Long id) {
+        despliegueService.deleteDespliegue(id);
+        return ResponseEntity.noContent().build();
     }
 }

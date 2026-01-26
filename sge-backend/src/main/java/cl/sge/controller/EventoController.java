@@ -33,4 +33,8 @@ public class EventoController {
     public Evento create(@RequestBody Evento evento) {
         return repository.save(evento);
     }
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        repository.deleteById(id);
+    }
 }

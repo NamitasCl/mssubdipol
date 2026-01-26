@@ -17,7 +17,13 @@ public class RecursoController {
     }
 
     @GetMapping
-    public List<Recurso> getAll() {
+    public List<Recurso> getAll(@RequestParam(required = false) String unidad, @RequestParam(required = false) String registeredBy) {
+        if (registeredBy != null && !registeredBy.isEmpty()) {
+            return repository.findByRegisteredBy(registeredBy);
+        }
+        if (unidad != null && !unidad.isEmpty()) {
+            return repository.findByUnidadDueña(unidad);
+        }
         return repository.findAll();
     }
 

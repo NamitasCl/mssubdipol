@@ -10,50 +10,60 @@ const UNIDADES_BASE = `${COMMON_BASE}/unidades`;
 
 /* -------- Funcionarios -------- */
 export async function searchFuncionarios(term) {
-    const {data} = await axios.get(`${FUNCIONARIOS_BASE}/search`, {params: {term}});
+    const { data } = await axios.get(`${FUNCIONARIOS_BASE}/search`, { params: { term } });
     return data;
 }
 
 export async function searchFuncionariosPorUnidad(unidad, term = "") {
-    const params = {unidad};
+    const params = { unidad };
     if (term) params.term = term;
-    const {data} = await axios.get(`${FUNCIONARIOS_BASE}/porunidad`, {params});
+    const { data } = await axios.get(`${FUNCIONARIOS_BASE}/porunidad`, { params });
     return data;
 }
 
 export async function getFuncionarioByIdFun(idFun) {
-    const {data} = await axios.get(`${FUNCIONARIOS_BASE}/${idFun}`);
+    const { data } = await axios.get(`${FUNCIONARIOS_BASE}/${idFun}`);
     return data;
 }
 
 export async function testFuncionariosCron() {
-    const {data} = await axios.get(`${FUNCIONARIOS_BASE}/test-cron`);
+    const { data } = await axios.get(`${FUNCIONARIOS_BASE}/test-cron`);
     return data;
 }
 
 /* -------- Unidades / Regiones -------- */
 export async function getRegionesUnidades() {
-    const {data} = await axios.get(`${UNIDADES_BASE}/regiones`);
+    const { data } = await axios.get(`${UNIDADES_BASE}/regiones`);
 
 
     return data; // <- OJO: retorna el arreglo directo
+}
+
+export async function getRegionesPoliciales() {
+    const { data } = await axios.get(`${UNIDADES_BASE}/regiones-policiales`);
+    return data;
 }
 
 /**
  * Obtengo las unidades asociadas a una region
  * */
 export async function getUnidadesByRegion(region) {
-    const {data} = await axios.post(`${UNIDADES_BASE}/region`, {region});
+    const { data } = await axios.post(`${UNIDADES_BASE}/region`, { region });
     return data;
 }
 
 export async function getJefaturasNacionalesPrefecturas() {
-    const {data} = await axios.get(`${UNIDADES_BASE}/jefaturasnacionalesprefecturas`);
+    const { data } = await axios.get(`${UNIDADES_BASE}/jefaturasnacionalesprefecturas`);
     return data;
 }
 
 export async function getUnidadesConJerarquia() {
-    const {data} = await axios.get(`${UNIDADES_BASE}`);
+    const { data } = await axios.get(`${UNIDADES_BASE}`);
+    return data;
+}
+
+export async function getUnitContext(nombreUnidad) {
+    const { data } = await axios.get(`${UNIDADES_BASE}/contexto`, { params: { unidad: nombreUnidad } });
     return data;
 }
 
@@ -63,4 +73,7 @@ export default {
     getFuncionarioByIdFun,
     testFuncionariosCron,
     getRegionesUnidades,
+    getRegionesPoliciales,
+    getJefaturasNacionalesPrefecturas,
+    getUnitContext,
 };

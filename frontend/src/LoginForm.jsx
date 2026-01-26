@@ -11,15 +11,23 @@ const LoginForm = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDevMode, setIsDevMode] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
         try {
-            await login({ username, password });
+            if (isDevMode) {
+                // Dev Login bypass
+                await login({ username, isDev: true });
+            } else {
+                // Standard Login
+                await login({ username, password });
+            }
             navigate("/");
         } catch (err) {
+            console.error(err);
             setError("Credenciales incorrectas. Verifique e intente nuevamente.");
             setIsLoading(false);
         }
@@ -36,12 +44,12 @@ const LoginForm = () => {
 
             {/* Back Button */}
             <div className="absolute top-6 right-6 z-20">
-                <button 
-                    onClick={() => window.location.href="https://rac.investigaciones.cl/opciones/"}
+                <button
+                    onClick={() => window.location.href = "https://rac.investigaciones.cl/opciones/"}
                     className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-full text-sm font-medium border border-white/10 backdrop-blur-md transition-all flex items-center gap-2 group"
                 >
                     Volver a RAC
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
             </div>
 
@@ -54,10 +62,10 @@ const LoginForm = () => {
                     <div className="flex flex-col items-center mb-8">
                         <div className="relative mb-4 group">
                             <div className="absolute inset-0 bg-blue-500 blur-xl opacity-30 group-hover:opacity-50 transition-opacity rounded-full"></div>
-                            <img 
-                                src={PdiLogo} 
-                                alt="Logo PDI" 
-                                className="h-20 w-auto relative drop-shadow-lg transform group-hover:scale-105 transition-transform duration-500" 
+                            <img
+                                src={PdiLogo}
+                                alt="Logo PDI"
+                                className="h-20 w-auto relative drop-shadow-lg transform group-hover:scale-105 transition-transform duration-500"
                             />
                         </div>
                         <h2 className="text-white font-bold text-2xl tracking-wide text-center mb-1">
@@ -114,25 +122,39 @@ const LoginForm = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-yellow-500 hover:bg-yellow-500 text-slate-900 font-bold py-3.5 rounded-xl shadow-md border-b-4 border-yellow-600 active:border-b-0 active:translate-y-1 transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`w-full font-bold py-3.5 rounded-xl shadow-md border-b-4 active:border-b-0 active:translate-y-1 transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isDevMode
+                                ? "bg-purple-600 hover:bg-purple-500 text-white border-purple-800"
+                                : "bg-yellow-500 hover:bg-yellow-500 text-slate-900 border-yellow-600"
+                                }`}
                         >
                             {isLoading ? (
-                                <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+                                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                             ) : (
                                 <>
-                                    INGRESAR AL SISTEMA
-                                    <ShieldCheck size={20} className="text-slate-900/80"/>
+                                    {isDevMode ? "INGRESAR (DEV MODE)" : "INGRESAR AL SISTEMA"}
+                                    {isDevMode ? <Lock size={20} className="text-white/80" /> : <ShieldCheck size={20} className="text-slate-900/80" />}
                                 </>
                             )}
                         </button>
                     </form>
+
+                    {/* Dev Mode Toggle */}
+                    <div className="flex justify-center mt-4">
+                        <button
+                            type="button"
+                            onClick={() => setIsDevMode(!isDevMode)}
+                            className="text-xs text-slate-600 hover:text-purple-400 transition-colors flex items-center gap-1"
+                        >
+                            <User size={10} /> {isDevMode ? "Volver a Modo Producción" : "Modo Desarrollador"}
+                        </button>
+                    </div>
 
                     <div className="mt-8 pt-6 border-t border-white/10 text-center">
                         <p className="text-slate-400 text-xs">
                             Sistema Integrado de Gestión de Servicios
                         </p>
                         <p className="text-slate-500 text-[10px] mt-1">
-                             © {new Date().getFullYear()} Subdirección de Investigación Policial y Criminalística
+                            © {new Date().getFullYear()} Subdirección de Investigación Policial y Criminalística
                         </p>
                     </div>
                 </div>

@@ -15,6 +15,7 @@ public class RequerimientoRegional {
     private Long id;
 
     @ManyToOne
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Evento evento;
 
     private String region; // Name of the region (e.g., "Metropolitana", "Valparaíso")

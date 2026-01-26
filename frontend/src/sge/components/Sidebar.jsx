@@ -1,30 +1,36 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Truck, Map, FileSpreadsheet, Flame, X, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, Truck, Map, FileSpreadsheet, Flame, X, ChevronRight, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../../components/contexts/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
+    const { user } = useAuth();
+    const isAdminOrJefe = user?.roles?.some(r => r.includes("ADMINISTRADOR") || r.includes("JEFE"));
+
     const navItems = [
-        { to: "/", icon: <LayoutDashboard size={20} />, text: "Dashboard Principal" },
-        { to: "/sge/eventos", icon: <Flame size={20} />, text: "Eventos" },
-        { to: "/sge/despliegues", icon: <Map size={20} />, text: "Despliegues" },
-        { to: "/sge/funcionarios", icon: <Users size={20} />, text: "Funcionarios" },
-        { to: "/sge/vehiculos", icon: <Truck size={20} />, text: "Vehículos" },
-        { to: "/sge/inventario", icon: <FileSpreadsheet size={20} />, text: "Inventario" },
-    ];
+        { to: "/sge", icon: <LayoutDashboard size={20} />, text: "Dashboard SGE", public: true },
+        { to: "/sge/disponibilidad/reportar", icon: <Users size={20} />, text: "Reportar Disponibilidad", public: true },
+        // Restricted Items
+        { to: "/sge/eventos", icon: <Flame size={20} />, text: "Eventos", restricted: true },
+        { to: "/sge/despliegues", icon: <Map size={20} />, text: "Despliegues", restricted: true },
+        { to: "/sge/funcionarios", icon: <Users size={20} />, text: "Funcionarios", restricted: true },
+        { to: "/sge/vehiculos", icon: <Truck size={20} />, text: "Vehículos", restricted: true },
+        { to: "/sge/inventario", icon: <FileSpreadsheet size={20} />, text: "Inventario", restricted: true },
+        { to: "/sge/familiares", icon: <Users size={20} />, text: "Registro Afectados", restricted: true },
+    ].filter(item => item.public || (item.restricted && isAdminOrJefe));
 
     return (
         <>
             {/* Overlay for mobile */}
-            <div 
+            <div
                 className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 transition-opacity lg:hidden ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={onClose}
             ></div>
 
             {/* Sidebar */}
-            <aside 
-                className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto shadow-2xl lg:shadow-none flex flex-col ${
-                    isOpen ? 'translate-x-0' : '-translate-x-full'
-                }`}
+            <aside
+                className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto shadow-2xl lg:shadow-none flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between h-20 px-6 border-b border-gray-100 bg-pdi-base text-white">
@@ -56,8 +62,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                             }}
                             className={({ isActive }) => `
                                 flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200 font-medium text-sm group
-                                ${isActive 
-                                    ? 'bg-gradient-to-r from-pdi-base to-pdi-base/90 text-white shadow-md shadow-blue-900/20' 
+                                ${isActive
+                                    ? 'bg-gradient-to-r from-pdi-base to-pdi-base/90 text-white shadow-md shadow-blue-900/20'
                                     : 'text-gray-600 hover:bg-white hover:text-pdi-base hover:shadow-sm'
                                 }
                             `}
@@ -75,14 +81,26 @@ const Sidebar = ({ isOpen, onClose }) => {
                             )}
                         </NavLink>
                     ))}
+
+                    <a
+                        href="http://localhost:5173/turnos"
+                        className="flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200 font-medium text-sm group text-gray-600 hover:bg-white hover:text-pdi-base hover:shadow-sm"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="text-gray-400 group-hover:text-pdi-base transition-colors">
+                                <ArrowLeft size={20} />
+                            </div>
+                            <span>Volver a Turnos</span>
+                        </div>
+                    </a>
                 </nav>
-                
+
                 {/* Footer */}
                 <div className="p-4 border-t border-gray-200 bg-white">
-                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100">
+                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                         <span className="text-xs font-medium text-blue-700">Sistema Operativo</span>
-                     </div>
+                    </div>
                 </div>
             </aside>
         </>

@@ -240,6 +240,36 @@ public class UnidadesService {
                 .toList();
     }
 
+    public cl.investigaciones.commonservices.dto.UnitContextDTO getUnitContext(String nombreUnidad) {
+        Unidad start = unidadesRepository.findFirstByNombreUnidad(nombreUnidad)
+                .orElseThrow(() -> new RuntimeException("Unidad no encontrada: " + nombreUnidad));
+        
+        String region = start.getNombreRegion();
+        String subdireccion = "No determinada";
+
+        Unidad current = start;
+        Set<String> visited = new HashSet<>();
+        
+        // Traverse up
+        while (current != null) {
+            String name = current.getNombreUnidad();
+            if (visited.contains(name)) break; // Prevent infinite loops
+            visited.add(name);
+
+            if (name != null && name.toUpperCase().startsWith("SUBDIRECCI")) {
+                subdireccion = name;
+                break;
+            }
+
+            String parentName = current.getNombreUnidadReporta();
+            if (parentName == null || parentName.isBlank()) break;
+            
+            current = unidadesRepository.findFirstByNombreUnidad(parentName).orElse(null);
+        }
+
+        return new cl.investigaciones.commonservices.dto.UnitContextDTO(region, subdireccion);
+    }
+
     // Helper para evitar NPE en claves de agrupación
     private static String nvl(String s) {
         return (s == null || s.isBlank()) ? "(SIN INFORMAR)" : s;

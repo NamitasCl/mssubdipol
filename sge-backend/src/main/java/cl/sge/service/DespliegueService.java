@@ -81,4 +81,11 @@ public class DespliegueService {
 
         return despliegueRepository.save(despliegue);
     }
+    @Transactional
+    public void deleteDespliegue(Long id) {
+        if (!despliegueRepository.existsById(id)) {
+            throw new RuntimeException("Despliegue no encontrado");
+        }
+        despliegueRepository.deleteById(id);
+    }
 }

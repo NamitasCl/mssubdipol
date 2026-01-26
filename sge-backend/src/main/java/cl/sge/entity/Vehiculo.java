@@ -10,6 +10,7 @@ public class Vehiculo {
     private String sigla;
     private String tipo;
     private Integer capacidad;
+    private String unidad; // Added to link vehicle to specific unit
     
     @Enumerated(EnumType.STRING)
     private EstadoLogistico estado;

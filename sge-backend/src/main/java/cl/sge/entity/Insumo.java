@@ -18,4 +18,8 @@ public class Insumo {
     private String unidad; // Litros, Kilos, U.
     
     private LocalDate fechaVencimiento;
+    
+    private String unidadDueña;
+    
+    private String registeredBy;
 }

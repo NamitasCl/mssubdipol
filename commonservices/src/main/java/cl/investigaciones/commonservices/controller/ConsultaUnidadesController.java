@@ -111,5 +111,15 @@ public class ConsultaUnidadesController {
         }
     }
 
+    @GetMapping("/contexto")
+    public ResponseEntity<?> getUnitContext(@RequestParam String unidad) {
+        try {
+            cl.investigaciones.commonservices.dto.UnitContextDTO context = unidadesService.getUnitContext(unidad);
+            return ResponseEntity.ok(context);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al obtener contexto: " + e.getMessage());
+        }
+    }
+
 
 }

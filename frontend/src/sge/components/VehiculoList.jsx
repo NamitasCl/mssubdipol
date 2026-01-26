@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import sgeApi from '../../api/sgeApi';
 import { Plus, Trash2 } from 'lucide-react';
 
 const VehiculoList = () => {
@@ -12,7 +12,7 @@ const VehiculoList = () => {
 
     const fetchVehiculos = async () => {
         try {
-            const res = await axios.get('/api/vehiculos');
+            const res = await sgeApi.get('/vehiculos');
             setVehiculos(res.data);
         } catch (error) {
             console.error("Error fetching vehicles", error);
@@ -26,7 +26,7 @@ const VehiculoList = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/vehiculos', newVehiculo);
+            await sgeApi.post('/vehiculos', newVehiculo);
             setNewVehiculo({ sigla: '', tipo: '', capacidad: 0, estado: 'OPERATIVO' });
             fetchVehiculos();
         } catch (error) {
@@ -36,63 +36,63 @@ const VehiculoList = () => {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`/api/vehiculos/${id}`);
+            await sgeApi.delete(`/vehiculos/${id}`);
             fetchVehiculos();
         } catch (error) {
-           console.error("Error deleting", error);
+            console.error("Error deleting", error);
         }
     }
 
     return (
         <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Plus size={20}/> Nuevo Vehículo</h2>
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Plus size={20} /> Nuevo Vehículo</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Sigla / Patente</label>
-                            <input 
-                                name="sigla" 
-                                value={newVehiculo.sigla} 
-                                onChange={handleInput} 
-                                placeholder="Ej: PDI-1234" 
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" 
-                                required 
+                            <input
+                                name="sigla"
+                                value={newVehiculo.sigla}
+                                onChange={handleInput}
+                                placeholder="Ej: PDI-1234"
+                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
                             />
                             <p className="text-xs text-gray-500 mt-1">Identificador único del vehículo.</p>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Vehículo</label>
-                            <input 
-                                name="tipo" 
-                                value={newVehiculo.tipo} 
-                                onChange={handleInput} 
-                                placeholder="Ej: Camioneta 4x4, Zodiak, Helicóptero" 
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" 
-                                required 
+                            <input
+                                name="tipo"
+                                value={newVehiculo.tipo}
+                                onChange={handleInput}
+                                placeholder="Ej: Camioneta 4x4, Zodiak, Helicóptero"
+                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Capacidad de Personas</label>
-                            <input 
-                                type="number" 
-                                name="capacidad" 
-                                value={newVehiculo.capacidad} 
-                                onChange={handleInput} 
+                            <input
+                                type="number"
+                                name="capacidad"
+                                value={newVehiculo.capacidad}
+                                onChange={handleInput}
                                 min="0"
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" 
-                                required 
+                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                required
                             />
                         </div>
-                        
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Estado Operativo</label>
-                            <select 
-                                name="estado" 
-                                value={newVehiculo.estado} 
-                                onChange={handleInput} 
+                            <select
+                                name="estado"
+                                value={newVehiculo.estado}
+                                onChange={handleInput}
                                 className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                             >
                                 <option value="OPERATIVO">Operativo - Disponible para uso</option>
@@ -101,13 +101,13 @@ const VehiculoList = () => {
                             </select>
                         </div>
                     </div>
-                    
+
                     <div className="flex justify-end pt-2">
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition shadow font-medium flex items-center gap-2"
                         >
-                            <Plus size={20}/> Registrar Nuevo Vehículo
+                            <Plus size={20} /> Registrar Nuevo Vehículo
                         </button>
                     </div>
                 </form>
@@ -141,7 +141,7 @@ const VehiculoList = () => {
                                             </span>
                                         </td>
                                         <td className="p-3 border-b">
-                                            <button onClick={() => handleDelete(v.sigla)} className="text-red-500 hover:text-red-700"><Trash2 size={18}/></button>
+                                            <button onClick={() => handleDelete(v.sigla)} className="text-red-500 hover:text-red-700"><Trash2 size={18} /></button>
                                         </td>
                                     </tr>
                                 ))

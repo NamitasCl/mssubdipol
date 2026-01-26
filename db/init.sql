@@ -3,3 +3,4 @@ CREATE DATABASE turnos;
 CREATE DATABASE commonservices;
 CREATE DATABASE formularios;
 CREATE DATABASE sge_db;
+CREATE DATABASE rac;

@@ -18,6 +18,7 @@ public class Despliegue {
     private Long id;
 
     @ManyToOne
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("despliegues")
     private Evento evento;
 
     private String descripcion; // Zone description or specific mission
@@ -39,11 +40,33 @@ public class Despliegue {
     private LocalDateTime fechaInicio;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime fechaTermino;
+    private LocalDateTime fechaTermino; // NULL = Indefinido/Activo
+    
+    // Computed property: Deployment is active if no end date or end date is in future
+    @Transient
+    public boolean isActivo() {
+        return fechaTermino == null || fechaTermino.isAfter(LocalDateTime.now());
+    }
+    
+    // Computed property: Human-readable temporal state
+    @Transient
+    public String getEstadoTemporal() {
+        if (fechaTermino == null) return "INDEFINIDO";
+        if (fechaTermino.isAfter(LocalDateTime.now())) return "ACTIVO";
+        return "FINALIZADO";
+    }
     
     private Integer numeroProrrogas = 0;
     
     // Provisiones linked specifically to this deployment context
     @OneToOne(cascade = CascadeType.ALL)
     private Provisiones provisiones;
+
+    @OneToMany(mappedBy = "despliegue", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private List<SolicitudRecurso> solicitudes;
+    
+    @OneToMany(mappedBy = "despliegue", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private List<AsignacionRecurso> asignaciones;
 }

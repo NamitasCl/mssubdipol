@@ -13,6 +13,8 @@ public interface UnidadesRepository extends JpaRepository<Unidad, Long> {
 
     Optional<Unidad> findFirstBySiglasUnidad(String siglasUnidad);
 
+    Optional<Unidad> findFirstByNombreUnidad(String nombreUnidad);
+
     List<Unidad> findByNombreUnidadContainingIgnoreCase(String nombre);
 
     @Query("SELECT DISTINCT u.nombreUnidad FROM Unidad u WHERE u.nombreUnidad IS NOT NULL")
