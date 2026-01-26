@@ -21,6 +21,7 @@ public class SolicitudRecursoController {
 
     private final SolicitudRecursoService solicitudService;
     private final SolicitudRecursoRepository solicitudRepository;
+    private final cl.sge.service.ExcelService excelService;
 
     /**
      * Create a new resource request - PM_SUB only
@@ -57,7 +58,7 @@ public class SolicitudRecursoController {
      * Get solicitudes assigned to my unit - JEFE view
      */
     @GetMapping("/mi-unidad")
-    @PreAuthorize("hasRole('JEFE')")
+    @PreAuthorize("hasAnyRole('JEFE', 'ADMINISTRADOR', 'DIRECTOR')")
     public ResponseEntity<List<SolicitudRecurso>> getMisSolicitudesUnidad(
             @RequestParam String unidad) {
         return ResponseEntity.ok(solicitudService.getSolicitudesByUnidad(unidad));
@@ -81,7 +82,7 @@ public class SolicitudRecursoController {
      * Assign resources to a solicitud - PM_REG or JEFE
      */
     @PostMapping("/{id}/asignar")
-    @PreAuthorize("hasAnyRole('PM_REG', 'JEFE')")
+    @PreAuthorize("hasAnyRole('PM_REG', 'JEFE', 'ADMINISTRADOR', 'DIRECTOR')")
     public ResponseEntity<AsignacionRecurso> asignarRecursos(
             @PathVariable Long id,
             @RequestBody AsignacionRecurso asignacion,
@@ -123,5 +124,31 @@ public class SolicitudRecursoController {
             "funcionariosRequeridos", solicitud.getFuncionariosRequeridos(),
             "vehiculosRequeridos", solicitud.getVehiculosRequeridos()
         ));
+    }
+
+    /**
+     * Get officials available/assigned to a request (to be used as vehicle crew)
+     */
+    @GetMapping("/{id}/funcionarios-asignados")
+    @PreAuthorize("hasAnyRole('JEFE', 'ADMINISTRADOR', 'DIRECTOR')")
+    public ResponseEntity<List<cl.sge.entity.Funcionario>> getFuncionariosAsignados(
+            @PathVariable Long id,
+            @RequestParam String unidad) {
+        return ResponseEntity.ok(solicitudService.getFuncionariosAsignados(id, unidad));
+    }
+
+    @GetMapping("/{id}/reporte/dotacion")
+    public ResponseEntity<org.springframework.core.io.Resource> descargarReporteDotacion(@PathVariable Long id) {
+        try {
+            java.io.ByteArrayInputStream in = excelService.generateDotacionReport(id);
+            org.springframework.core.io.InputStreamResource file = new org.springframework.core.io.InputStreamResource(in);
+
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=reporte_dotacion_" + id + ".xlsx")
+                    .contentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(file);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Error generando reporte: " + e.getMessage());
+        }
     }
 }

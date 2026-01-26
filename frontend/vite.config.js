@@ -23,6 +23,10 @@ export default defineConfig({
     base: '/turnos/',
     server: {
         proxy: {
+            '/api/nodos': {
+                target: 'http://nodos:8013',
+                changeOrigin: true,
+            },
             '/api': {
                 target: 'http://sge-backend:8080', // sge-backend docker service
                 changeOrigin: true,

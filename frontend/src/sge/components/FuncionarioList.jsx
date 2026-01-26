@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import sgeApi from '../../api/sgeApi';
-import { Plus, Trash2, UserPlus, FileBadge, MapPin, Search, Filter, Mail, Phone, Shield, CheckSquare, Save } from 'lucide-react';
+import { Plus, Trash2, UserPlus, FileBadge, MapPin, Search, Filter, Mail, Phone, Shield, CheckSquare, Save, Briefcase, AlertCircle, CheckCircle } from 'lucide-react';
 import AsyncUnidadSelect from '../../components/ComponentesAsyncSelect/AsyncUnidadSelect.jsx';
 import { useAuth } from '../../components/contexts/AuthContext.jsx';
 
@@ -21,9 +21,27 @@ const FuncionarioList = () => {
     const [importDetails, setImportDetails] = useState({}); // { idFun: { telefono: '', especialidades: [] } }
     const [loadingCandidates, setLoadingCandidates] = useState(false);
 
+
+    
+    // Assignment Mode State
+    const [viewMode, setViewMode] = useState('list'); // 'list', 'import', 'assign'
+    const [myRequests, setMyRequests] = useState([]);
+    const [selectedRequestId, setSelectedRequestId] = useState('');
+    const [assignmentSelection, setAssignmentSelection] = useState([]);
+    const [assigning, setAssigning] = useState(false);
+
     useEffect(() => {
         fetchFuncionarios();
     }, []);
+
+    // Load requests when switching to assignment mode
+    useEffect(() => {
+        if (viewMode === 'assign' && user?.nombreUnidad) {
+            sgeApi.get(`/solicitudes/mi-unidad?unidad=${user.nombreUnidad}`)
+                .then(res => setMyRequests(res.data))
+                .catch(err => console.error("Error loading requests", err));
+        }
+    }, [viewMode, user]);
 
     const fetchFuncionarios = async () => {
         try {
@@ -139,17 +157,254 @@ const FuncionarioList = () => {
         catch (e) { console.error(e); }
     };
 
+    const handleAssignmentSubmit = async () => {
+        if (!selectedRequestId || assignmentSelection.length === 0) return;
+        
+        setAssigning(true);
+        try {
+            const request = myRequests.find(r => r.id === parseInt(selectedRequestId));
+            const payload = {
+                funcionarios: assignmentSelection.map(rut => ({ rut })), // Backend expects list of objects with ID/RUT
+                solicitud: { id: parseInt(selectedRequestId) },
+                despliegue: { id: request.despliegue.id },
+                unidadOrigen: user.nombreUnidad,
+                fechaAsignacion: new Date().toISOString().split('.')[0] // Remove .sssZ
+            };
+
+            await sgeApi.post(`/solicitudes/${selectedRequestId}/asignar`, payload);
+            alert("Personal asignado correctamente.");
+            
+            // Allow user to assign more or reset
+            setAssignmentSelection([]);
+            // Refresh requests to update counters
+            const res = await sgeApi.get(`/solicitudes/mi-unidad?unidad=${user.nombreUnidad}`);
+            setMyRequests(res.data);
+            
+        } catch (error) {
+            console.error("Assignment error", error);
+            alert("Error al asignar personal: " + (error.response?.data?.message || error.message));
+        } finally {
+            setAssigning(false);
+        }
+    };
+
+    const toggleAssignmentSelection = (rut) => {
+        const request = myRequests.find(r => r.id === parseInt(selectedRequestId));
+        if (!request) return;
+        
+        const remainingNeeded = (request.funcionariosRequeridos || 0) - (request.funcionariosAsignados || 0);
+        const currentSelectionCount = assignmentSelection.length;
+        
+        if (assignmentSelection.includes(rut)) {
+            setAssignmentSelection(prev => prev.filter(id => id !== rut));
+        } else {
+            // Check limit
+            if (currentSelectionCount >= remainingNeeded) {
+                alert(`Solo se requieren ${remainingNeeded} funcionarios más para este evento.`);
+                return;
+            }
+            setAssignmentSelection(prev => [...prev, rut]);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-fade-in">
             {/* Header Section */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Gestión de Funcionarios</h1>
                     <p className="text-gray-500 mt-1">Administración de la dotación y personal activo</p>
                 </div>
+                
+                {/* View Switcher */}
+                <div className="flex bg-gray-100 p-1 rounded-lg">
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'list' 
+                            ? 'bg-white text-gray-900 shadow-sm' 
+                            : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Dotación
+                    </button>
+                    <button
+                        onClick={() => setViewMode('import')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'import' 
+                            ? 'bg-white text-primary-700 shadow-sm' 
+                            : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Incorporación
+                    </button>
+                    <button
+                        onClick={() => setViewMode('assign')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'assign' 
+                            ? 'bg-white text-emerald-700 shadow-sm' 
+                            : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        <Briefcase size={16} /> Asignación Eventos
+                    </button>
+                </div>
             </div>
 
+            {/* ASSIGNMENT MODE */}
+            {viewMode === 'assign' && (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Left: Request Selector */}
+                        <div className="lg:col-span-1 space-y-4">
+                           <div className="bg-white p-5 rounded-xl shadow-sm border border-emerald-100">
+                                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                    <Shield size={18} className="text-emerald-600" />
+                                    Eventos Activos
+                                </h3>
+                                
+                                {myRequests.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-400 text-sm">
+                                        No hay solicitudes pendientes para su unidad.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {myRequests.map(req => {
+                                            const isActive = selectedRequestId === req.id;
+                                            const pending = (req.funcionariosRequeridos || 0) - (req.funcionariosAsignados || 0);
+                                            const isComplete = pending <= 0;
+                                            
+                                            // Extract event description safely
+                                            const eventDesc = req.despliegue?.evento?.descripcion || "Evento sin descripción";
+                                            const zoneDesc = req.despliegue?.descripcion || "Zona sin nombre";
+                                            
+                                            return (
+                                                <div 
+                                                    key={req.id}
+                                                    onClick={() => !isComplete && setSelectedRequestId(req.id)}
+                                                    className={`
+                                                        p-4 rounded-lg border transition-all cursor-pointer relative overflow-hidden
+                                                        ${isActive ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-gray-200 hover:border-emerald-300 hover:bg-gray-50'}
+                                                        ${isComplete ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}
+                                                    `}
+                                                >
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                                            REQ #{req.id}
+                                                        </span>
+                                                        {isComplete && <CheckCircle size={16} className="text-green-600" />}
+                                                    </div>
+                                                    <h4 className="font-bold text-gray-800 text-sm">{eventDesc}</h4>
+                                                    <p className="text-xs text-gray-500 mb-3">{zoneDesc}</p>
+                                                    
+                                                    <div className="flex items-center justify-between text-xs">
+                                                        <span className="text-gray-500">Progreso:</span>
+                                                        <span className={`font-bold ${isComplete ? 'text-green-600' : 'text-orange-600'}`}>
+                                                            {req.funcionariosAsignados} / {req.funcionariosRequeridos}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    {/* Progress Bar */}
+                                                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
+                                                        <div 
+                                                            className={`h-1.5 rounded-full ${isComplete ? 'bg-green-500' : 'bg-orange-500'}`}
+                                                            style={{ width: `${Math.min(100, (req.funcionariosAsignados / req.funcionariosRequeridos) * 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                           </div>
+                        </div>
+                        
+                        {/* Right: Personnel Selection */}
+                        <div className="lg:col-span-2">
+                            {selectedRequestId ? (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[600px]">
+                                    {(() => {
+                                        const req = myRequests.find(r => r.id === parseInt(selectedRequestId));
+                                        if (!req) return null;
+                                        
+                                        const remaining = (req.funcionariosRequeridos || 0) - (req.funcionariosAsignados || 0);
+                                        const currentCount = assignmentSelection.length;
+                                        const isFull = currentCount >= remaining;
+                                        
+                                        return (
+                                            <>
+                                                <div className="p-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                                                    <div>
+                                                        <h3 className="font-bold text-gray-800">Selección de Personal</h3>
+                                                        <p className="text-xs text-gray-500">
+                                                            Seleccione <strong className="text-orange-600">{remaining}</strong> funcionarios para completar el requerimiento.
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`px-4 py-2 rounded-lg font-bold text-xl ${isFull ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
+                                                            {currentCount} <span className="text-sm font-normal text-gray-500">/ {remaining}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="flex-1 overflow-y-auto p-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        {funcionarios.filter(f => !f.estado || f.estado === 'DISPONIBLE').map(f => {
+                                                            const isSelected = assignmentSelection.includes(f.rut);
+                                                            return (
+                                                                <div 
+                                                                    key={f.rut}
+                                                                    onClick={() => toggleAssignmentSelection(f.rut)}
+                                                                    className={`
+                                                                        p-3 rounded-lg border flex items-center gap-3 cursor-pointer transition-all
+                                                                        ${isSelected 
+                                                                            ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-400' 
+                                                                            : 'border-gray-200 hover:bg-gray-50 hover:border-blue-200'}
+                                                                        ${(isFull && !isSelected) ? 'opacity-50' : 'opacity-100'}
+                                                                    `}
+                                                                >
+                                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                                                                        {f.nombre ? f.nombre.substring(0, 1) : '?'}
+                                                                    </div>
+                                                                    <div className="overflow-hidden">
+                                                                        <p className="font-bold text-sm text-gray-800 truncate">{f.grado} {f.nombre}</p>
+                                                                        <p className="text-xs text-gray-500 truncate">{f.rut}</p>
+                                                                    </div>
+                                                                    {isSelected && <CheckCircle size={18} className="text-blue-500 ml-auto" />}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+                                                    <button
+                                                        onClick={handleAssignmentSubmit}
+                                                        disabled={currentCount === 0 || assigning}
+                                                        className={`
+                                                            px-6 py-2.5 rounded-lg font-bold text-white shadow-md flex items-center gap-2
+                                                            ${(currentCount === 0 || assigning) ? 'bg-gray-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}
+                                                        `}
+                                                    >
+                                                        {assigning ? (
+                                                            <>Procesando...</>
+                                                        ) : (
+                                                            <><Save size={18} /> Confirmar Asignación ({currentCount})</>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            ) : (
+                                <div className="h-full bg-gray-50 rounded-xl border border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 p-8">
+                                    <AlertCircle size={48} className="mb-4 opacity-50" />
+                                    <p className="text-lg font-medium">Seleccione un evento para comenzar</p>
+                                    <p className="text-sm">Haga clic en una tarjeta de evento en la izquierda.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Registration Card - REDESIGNED */}
+            {viewMode === 'import' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="bg-primary-900 px-6 py-4 flex justify-between items-center">
                     <h2 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -285,8 +540,10 @@ const FuncionarioList = () => {
                     )}
                 </div>
             </div>
+            )}
 
             {/* List Table */}
+            {viewMode === 'list' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                     <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -353,6 +610,7 @@ const FuncionarioList = () => {
                     </table>
                 </div>
             </div>
+            )}
         </div>
     );
 };

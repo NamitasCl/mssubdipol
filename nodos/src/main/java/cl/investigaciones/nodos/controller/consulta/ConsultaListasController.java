@@ -18,9 +18,16 @@ import java.util.stream.Collectors;
 public class ConsultaListasController {
 
     private final ListaDelitoRepository listaDelitoRepository;
+    private final cl.investigaciones.nodos.repository.consulta.ListaUnidadRepository listaUnidadRepository;
+    private final cl.investigaciones.nodos.repository.consulta.ListaTipoVehiculoRepository listaTipoVehiculoRepository;
 
-    public ConsultaListasController(ListaDelitoRepository listaDelitoRepository) {
+    public ConsultaListasController(
+            ListaDelitoRepository listaDelitoRepository,
+            cl.investigaciones.nodos.repository.consulta.ListaUnidadRepository listaUnidadRepository,
+            cl.investigaciones.nodos.repository.consulta.ListaTipoVehiculoRepository listaTipoVehiculoRepository) {
         this.listaDelitoRepository = listaDelitoRepository;
+        this.listaUnidadRepository = listaUnidadRepository;
+        this.listaTipoVehiculoRepository = listaTipoVehiculoRepository;
     }
 
     @GetMapping("/delitos")
@@ -40,6 +47,16 @@ public class ConsultaListasController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ha ocurrido un error obteniendo el delito requerido.");
         }
+    }
+
+    @GetMapping("/tipo-vehiculo")
+    public ResponseEntity<?> getAllTipoVehiculo() {
+        return ResponseEntity.ok(listaTipoVehiculoRepository.findAllByOrderByTipoVehiculoAsc());
+    }
+
+    @GetMapping("/unidades")
+    public ResponseEntity<?> getAllUnidades() {
+        return ResponseEntity.ok(listaUnidadRepository.findAll());
     }
 
 }

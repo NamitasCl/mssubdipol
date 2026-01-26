@@ -90,7 +90,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                             <div className="text-gray-400 group-hover:text-pdi-base transition-colors">
                                 <ArrowLeft size={20} />
                             </div>
-                            <span>Volver a Turnos</span>
+                            <span>Volver al Dashboard principal</span>
                         </div>
                     </a>
                 </nav>

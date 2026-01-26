@@ -56,16 +56,20 @@ public class SolicitudRecursoService {
     public AsignacionRecurso asignarRecursos(AsignacionRecurso asignacion) {
         // Validate funcionarios are not already deployed
         LocalDateTime now = LocalDateTime.now();
-        for (var func : asignacion.getFuncionarios()) {
-            if (asignacionRepository.isFuncionarioDesplegado(func.getRut(), now)) {
-                throw new RuntimeException("Funcionario " + func.getRut() + " ya está desplegado en otra emergencia");
+        if (asignacion.getFuncionarios() != null) {
+            for (var func : asignacion.getFuncionarios()) {
+                if (asignacionRepository.isFuncionarioDesplegado(func.getRut(), now)) {
+                    throw new RuntimeException("Funcionario " + func.getRut() + " ya está desplegado en otra emergencia");
+                }
             }
         }
         
         // Validate vehicles are not already deployed
-        for (var vehiculo : asignacion.getVehiculos()) {
-            if (asignacionRepository.isVehiculoDesplegado(vehiculo.getSigla(), now)) {
-                throw new RuntimeException("Vehículo " + vehiculo.getSigla() + " ya está desplegado");
+        if (asignacion.getVehiculos() != null) {
+            for (var vehiculo : asignacion.getVehiculos()) {
+                if (asignacionRepository.isVehiculoDesplegado(vehiculo.getSigla(), now)) {
+                    throw new RuntimeException("Vehículo " + vehiculo.getSigla() + " ya está desplegado");
+                }
             }
         }
         
@@ -149,5 +153,12 @@ public class SolicitudRecursoService {
         int totalAsignado = funcCount + vehCount;
         double porcentaje = totalRequerido > 0 ? (double) totalAsignado / totalRequerido * 100 : 0;
         solicitud.setPorcentajeCumplimiento(porcentaje);
+    }
+
+    /**
+     * Get officials assigned by a unit to a request (for vehicle crew allocation)
+     */
+    public List<cl.sge.entity.Funcionario> getFuncionariosAsignados(Long solicitudId, String unidadOrigen) {
+        return asignacionRepository.findFuncionariosBySolicitudAndUnidad(solicitudId, unidadOrigen);
     }
 }

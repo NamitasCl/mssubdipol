@@ -64,4 +64,13 @@ public interface AsignacionRecursoRepository extends JpaRepository<AsignacionRec
         AND (d.fechaTermino IS NULL OR d.fechaTermino > :now)
     """)
     Optional<AsignacionRecurso> findCurrentAssignmentByFuncionario(@Param("rut") String rut, @Param("now") LocalDateTime now);
+
+    // Get officials assigned by a unit to a specific request (for vehicle crew selection)
+    @Query("""
+        SELECT DISTINCT f FROM AsignacionRecurso ar
+        JOIN ar.funcionarios f
+        WHERE ar.solicitud.id = :solicitudId
+        AND ar.unidadOrigen = :unidadOrigen
+    """)
+    List<cl.sge.entity.Funcionario> findFuncionariosBySolicitudAndUnidad(@Param("solicitudId") Long solicitudId, @Param("unidadOrigen") String unidadOrigen);
 }
