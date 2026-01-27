@@ -12,6 +12,7 @@ const InventarioList = () => {
 
     const [newRecurso, setNewRecurso] = useState({ nombre: '', tipo: '', cantidad: 1, estado: 'OPERATIVO', unidadObj: null });
     const [newInsumo, setNewInsumo] = useState({ nombre: '', tipo: '', cantidad: 0, unidad: '', fechaVencimiento: '', unidadObj: null });
+    const [tiposRecursos, setTiposRecursos] = useState([]); // New state for dynamic types
 
     useEffect(() => {
         if (user?.nombreUnidad) {
@@ -22,12 +23,14 @@ const InventarioList = () => {
     const fetchData = async () => {
         try {
             const params = { registeredBy: user.username || user.name }; // Filter by creator
-            const [recRes, insRes] = await Promise.all([
+            const [recRes, insRes, typesRes] = await Promise.all([
                 sgeApi.get('/recursos', { params }),
-                sgeApi.get('/insumos', { params })
+                sgeApi.get('/insumos', { params }),
+                sgeApi.get('/tipos-recursos') // Fetch types
             ]);
             setRecursos(recRes.data);
             setInsumos(insRes.data);
+            setTiposRecursos(typesRes.data);
         } catch (error) { console.error(error); }
     };
 
@@ -35,17 +38,15 @@ const InventarioList = () => {
         e.preventDefault();
         try {
             const unidadToSave = newRecurso.unidadObj ? newRecurso.unidadObj.label : user.nombreUnidad;
-            await sgeApi.post('/recursos', {
+            const res = await sgeApi.post('/recursos', {
                 ...newRecurso,
                 unidadDueña: unidadToSave,
                 registeredBy: user.username || user.name
             });
             setNewRecurso({ nombre: '', tipo: '', cantidad: 1, estado: 'OPERATIVO', unidadObj: null });
-            // If the unit matches the filter or we are admin, maybe refresh? 
-            // Ideally we should ask if we want to refresh based on the selected unit. 
-            // For now, let's refresh if it matches current user unit, otherwise just clear form.
-            if (unidadToSave === user.nombreUnidad) fetchData();
-            else alert("Recurso creado en otra unidad");
+
+            // Optimistic update - always add since list filters by creator
+            setRecursos(prev => [...prev, res.data]);
         } catch (error) { console.error(error); }
     };
 
@@ -53,14 +54,15 @@ const InventarioList = () => {
         e.preventDefault();
         try {
             const unidadToSave = newInsumo.unidadObj ? newInsumo.unidadObj.label : user.nombreUnidad;
-            await sgeApi.post('/insumos', {
+            const res = await sgeApi.post('/insumos', {
                 ...newInsumo,
                 unidadDueña: unidadToSave,
                 registeredBy: user.username || user.name
             });
             setNewInsumo({ nombre: '', tipo: '', cantidad: 0, unidad: '', fechaVencimiento: '', unidadObj: null });
-            if (unidadToSave === user.nombreUnidad) fetchData();
-            else alert("Insumo creado en otra unidad");
+
+            // Optimistic update - always add since list filters by creator
+            setInsumos(prev => [...prev, res.data]);
         } catch (error) { console.error(error); }
     };
 
@@ -120,13 +122,9 @@ const InventarioList = () => {
                                     required
                                 >
                                     <option value="">Seleccione...</option>
-                                    <option value="Energía">Energía</option>
-                                    <option value="Vehículos">Vehículos</option>
-                                    <option value="Herramientas">Herramientas</option>
-                                    <option value="Comunicaciones">Comunicaciones</option>
-                                    <option value="Campamento">Campamento</option>
-                                    <option value="Tecnología">Tecnología</option>
-                                    <option value="Otro">Otro</option>
+                                    {tiposRecursos.map(t => (
+                                        <option key={t.id} value={t.nombre}>{t.nombre}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
@@ -162,6 +160,7 @@ const InventarioList = () => {
                                     <th className="p-3">Nombre</th>
                                     <th className="p-3">Tipo</th>
                                     <th className="p-3">Cantidad</th>
+                                    <th className="p-3">Unidad</th>
                                     <th className="p-3">Estado</th>
                                     <th className="p-3">Acciones</th>
                                 </tr>
@@ -173,6 +172,7 @@ const InventarioList = () => {
                                         <td className="p-3 font-medium">{r.nombre}</td>
                                         <td className="p-3">{r.tipo}</td>
                                         <td className="p-3 font-bold">{r.cantidad || 0}</td>
+                                        <td className="p-3 text-sm text-gray-600">{r.unidadDueña}</td>
                                         <td className="p-3">
                                             <span className={`px-2 py-1 rounded text-xs ${r.estado === 'OPERATIVO' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                                 {r.estado}
@@ -183,7 +183,7 @@ const InventarioList = () => {
                                         </td>
                                     </tr>
                                 ))}
-                                {recursos.length === 0 && <tr><td colSpan="6" className="p-4 text-center text-gray-500">No hay equipos registrados.</td></tr>}
+                                {recursos.length === 0 && <tr><td colSpan="7" className="p-4 text-center text-gray-500">No hay equipos registrados.</td></tr>}
                             </tbody>
                         </table>
                     </div>
@@ -229,7 +229,8 @@ const InventarioList = () => {
                                     <th className="p-3">ID</th>
                                     <th className="p-3">Nombre</th>
                                     <th className="p-3">Cantidad</th>
-                                    <th className="p-3">Unidad</th>
+                                    <th className="p-3">U. Medida</th>
+                                    <th className="p-3">Unidad Dueña</th>
                                     <th className="p-3">Acciones</th>
                                 </tr>
                             </thead>
@@ -240,12 +241,13 @@ const InventarioList = () => {
                                         <td className="p-3 font-medium">{i.nombre}</td>
                                         <td className="p-3 font-bold text-blue-600">{i.cantidad}</td>
                                         <td className="p-3 text-gray-600">{i.unidad}</td>
+                                        <td className="p-3 text-gray-600 text-sm">{i.unidadDueña}</td>
                                         <td className="p-3">
                                             <button onClick={() => handleDelete('insumos', i.id)} className="text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
                                         </td>
                                     </tr>
                                 ))}
-                                {insumos.length === 0 && <tr><td colSpan="5" className="p-4 text-center text-gray-500">No hay insumos registrados.</td></tr>}
+                                {insumos.length === 0 && <tr><td colSpan="6" className="p-4 text-center text-gray-500">No hay insumos registrados.</td></tr>}
                             </tbody>
                         </table>
                     </div>

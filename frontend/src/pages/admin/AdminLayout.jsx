@@ -11,7 +11,9 @@ import {
     Database,
     RefreshCw,
     Settings,
-    ChevronRight
+    ChevronRight,
+    List,
+    LayoutDashboard
 } from "lucide-react";
 import PdiLogo from "../../assets/imagenes/pdilogo.png";
 import { useAuth } from "../../components/contexts/AuthContext.jsx";
@@ -34,10 +36,16 @@ const navConfig = [
         to: "/admin/unidades",
         icon: Building2,
     },
+
     {
-        label: "Formularios",
-        to: "/admin/formularios",
-        icon: FileText,
+        label: "Listas Sistema",
+        to: "/admin/listas",
+        icon: List,
+    },
+    {
+        label: "Módulos Dashboard",
+        to: "/admin/config-modulos",
+        icon: LayoutDashboard,
     },
 ];
 

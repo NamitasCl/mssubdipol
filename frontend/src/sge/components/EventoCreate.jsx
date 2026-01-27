@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MapPicker from './MapPicker';
 import sgeApi from '../../api/sgeApi';
@@ -18,6 +18,14 @@ const EventoCreate = () => {
     // Send local time formatted for LocalDateTime (YYYY-MM-DDTHH:mm:ss)
     fecha: new Date(Date.now() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 19)
   });
+  const [tiposEventos, setTiposEventos] = useState([]);
+
+  useEffect(() => {
+    // Fetch Event Types
+    sgeApi.get('/tipos-eventos')
+      .then(res => setTiposEventos(res.data))
+      .catch(err => console.error("Error loading event types", err));
+  }, []);
 
   const regionsList = [
     "Arica y Parinacota", "Tarapacá", "Antofagasta", "Atacama", "Coquimbo", "Valparaíso",
@@ -134,12 +142,14 @@ const EventoCreate = () => {
                     onChange={handleChange}
                     className="w-full rounded-lg border-gray-300 shadow-sm p-2.5 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   >
-                    <option>Incendio</option>
-                    <option>Terremoto</option>
-                    <option>Inundación</option>
-                    <option>Accidente Vehicular</option>
-                    <option>Orden Público</option>
-                    <option>Otro</option>
+                    {tiposEventos.length === 0 ? (
+                      <>
+                        <option>Incendio</option>
+                        <option>Terremoto</option>
+                      </>
+                    ) : (
+                      tiposEventos.map(t => <option key={t.id} value={t.nombre}>{t.nombre}</option>)
+                    )}
                   </select>
                 </div>
 

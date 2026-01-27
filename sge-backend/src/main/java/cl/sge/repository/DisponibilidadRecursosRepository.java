@@ -23,4 +23,6 @@ public interface DisponibilidadRecursosRepository extends JpaRepository<Disponib
         String regionOJefatura, 
         DisponibilidadRecursos.EstadoDisponibilidad estado
     );
+    // Find available resources by event ID
+    List<DisponibilidadRecursos> findByEventoIdAndEstado(Long eventoId, DisponibilidadRecursos.EstadoDisponibilidad estado);
 }

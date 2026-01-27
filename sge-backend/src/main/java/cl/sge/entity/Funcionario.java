@@ -19,12 +19,7 @@ public class Funcionario {
     private String telefono;
 
     @ElementCollection
-    @Enumerated(EnumType.STRING)
-    private List<Especialidad> especialidades;
-
-    public enum Especialidad {
-        AUDITOR, ENFERMERO, PARAMEDICO, MEDICO, ABOGADO,
-        PSICOLOGO, KINESIOLOGO, INGENIERO, TECNICO,
-        BOMBERO, DRON, OTRO
-    }
+    @CollectionTable(name = "funcionario_especialidades", joinColumns = @JoinColumn(name = "funcionario_rut"))
+    @Column(name = "especialidad")
+    private List<String> especialidades;
 }

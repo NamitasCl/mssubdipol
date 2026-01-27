@@ -38,9 +38,12 @@ public class DisponibilidadController {
         return repository.findByRegionOJefatura(regionOJefatura);
     }
 
-    // Get only disponible resources
+    // Get only disponible resources, optionally filtered by event
     @GetMapping("/disponibles")
-    public List<DisponibilidadRecursos> getDisponibles() {
+    public List<DisponibilidadRecursos> getDisponibles(@RequestParam(required = false) Long eventoId) {
+        if (eventoId != null) {
+            return repository.findByEventoIdAndEstado(eventoId, DisponibilidadRecursos.EstadoDisponibilidad.DISPONIBLE);
+        }
         return repository.findByEstado(DisponibilidadRecursos.EstadoDisponibilidad.DISPONIBLE);
     }
 

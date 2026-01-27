@@ -33,6 +33,8 @@ import AdminFormulariosPage from "./pages/admin/AdminFormulariosPage.jsx";
 import PlantillaTurnoBuilder from "./pages/calendarios/PlantillaTurnoBuilder.jsx";
 import GrafoIndex from "./pages/grafos/GrafoIndex.jsx";
 import PanelAdministracionAportes from "./pages/admin/PanelAdministracionAportes.jsx";
+import AdminLists from "./pages/admin/AdminLists.jsx";
+import AdminModules from "./pages/admin/AdminModules.jsx";
 import AuditoriaMemos from "./pages/auditoria_servicios_especiales/AuditoriaMemos.jsx";
 import AuditoriaLayout from "./pages/auditoria_servicios_especiales/AuditoriaLayout.jsx";
 import TablaJose from "./pages/TablaJose.jsx";
@@ -85,7 +87,10 @@ export default function App() {
                     <Route path="unidades" element={<AdminUnidades />} />
                     <Route path="formularios" element={<AdminFormulariosPage />} />
                     <Route path="plantillas" element={<PlantillaTurnoBuilder />} />
+
                     <Route path="aportefuncionarios" element={<PanelAdministracionAportes />} />
+                    <Route path="listas" element={<AdminLists />} />
+                    <Route path="config-modulos" element={<AdminModules />} />
                 </Route>
                 <Route path="/auditoria" element={<AuthGuard><AuditoriaLayout /></AuthGuard>}>
                     <Route index element={<AuditoriaMemos />} />

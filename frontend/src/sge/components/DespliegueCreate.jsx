@@ -58,7 +58,7 @@ const DespliegueCreate = () => {
         });
 
         // Fetch disponibilidad reportada
-        sgeApi.get('/disponibilidad/disponibles').then(res => {
+        sgeApi.get('/disponibilidad/disponibles', { params: { eventoId: eventId } }).then(res => {
             setDisponibilidad(res.data);
             // Initialize solicitudes state
             const initialSolicitudes = {};
