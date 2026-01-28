@@ -5,9 +5,12 @@ import cl.investigaciones.nodos.service.relatojenadep.RelatoJenadepService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/nodos/relatojenadep")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class RelatoJenadepController {
 
     private final RelatoJenadepService relatoJenadepService;

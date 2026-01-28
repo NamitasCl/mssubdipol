@@ -7,9 +7,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/turnos/plantillas")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class PlantillaTurnoController {
     private final PlantillaTurnoService service;
 

@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/vehiculos")
+@PreAuthorize("isAuthenticated()")
 public class VehiculoController {
 
     private final VehiculoRepository repository;

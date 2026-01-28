@@ -9,7 +9,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // Add import
+
 @Configuration
+@EnableMethodSecurity // Enable @PreAuthorize
 public class SecurityConfig {
 
     @Autowired
@@ -25,7 +28,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated() // Require authentication
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

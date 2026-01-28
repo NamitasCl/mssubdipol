@@ -4,6 +4,19 @@ const api = axios.create({
     baseURL: import.meta.env.VITE_TURNOS_API_URL
 });
 
+// Request interceptor to attach JWT token
+api.interceptors.request.use(
+    (config) => {
+        const token = sessionStorage.getItem("token");
+        if (token) {
+            const cleanToken = token.startsWith("Bearer ") ? token.slice(7) : token;
+            config.headers.Authorization = `Bearer ${cleanToken}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 // --- Calendarios ---
 export const fetchCalendarios = () => api.get("/calendars");
 export const createCalendario = (dto) => api.post("/calendars", dto);

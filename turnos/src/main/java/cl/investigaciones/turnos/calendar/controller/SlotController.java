@@ -11,10 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/turnos/slots")
 @CrossOrigin("*")
 @Slf4j
+@PreAuthorize("isAuthenticated()")
 public class SlotController {
 
     private final SlotService slotService;

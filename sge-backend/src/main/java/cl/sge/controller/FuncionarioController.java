@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/funcionarios")
+@PreAuthorize("isAuthenticated()")
 public class FuncionarioController {
 
     private final FuncionarioRepository repository;

@@ -7,9 +7,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/turnos/calendario")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class CalendarioController {
     private final CalendarioService servicio;
 

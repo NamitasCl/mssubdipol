@@ -20,9 +20,12 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/nodos/memo-revisado")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class MemoRevisadoController {
 
     private final MemoRevisadoRepository memoRevisadoRepository;

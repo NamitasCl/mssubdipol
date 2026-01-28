@@ -8,7 +8,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
+@PreAuthorize("isAuthenticated()")
 public class RolServicioController {
     @GetMapping("/api/turnos/enumtype/roles-servicio")
     public List<Map<String, String>> listarRolesServicio() {

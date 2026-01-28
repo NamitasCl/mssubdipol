@@ -1,26 +1,27 @@
-import axios from "axios";
-const API_URL = `${import.meta.env.VITE_TURNOS_API_URL}/calendario`;
+import api from "./turnosApi";
+
+const API_PATH = "/calendario";
 
 export async function listarCalendarios() {
-    const res = await axios.get(API_URL);
+    const res = await api.get(API_PATH);
     return res.data;
 }
 
 export async function crearCalendario(data, usuario) {
-    const res = await axios.post(API_URL, data, { headers: { usuario } });
+    const res = await api.post(API_PATH, data, { headers: { usuario } });
     return res.data;
 }
 
 export async function buscarCalendario(id) {
-    const res = await axios.get(`${API_URL}/${id}`);
+    const res = await api.get(`${API_PATH}/${id}`);
     return res.data;
 }
 
 export async function eliminarCalendario(id, usuario) {
-    await axios.delete(`${API_URL}/${id}`, { headers: { usuario } });
+    await api.delete(`${API_PATH}/${id}`, { headers: { usuario } });
 }
 
 export async function actualizarCalendario(id, data, usuario) {
-    const res = await axios.put(`${API_URL}/${id}`, data, { headers: { usuario } });
+    const res = await api.put(`${API_PATH}/${id}`, data, { headers: { usuario } });
     return res.data;
 }

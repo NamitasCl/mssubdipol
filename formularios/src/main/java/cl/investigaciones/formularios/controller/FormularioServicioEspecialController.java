@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/formularios")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class FormularioServicioEspecialController {
 
     private final FormularioServicioEspecialService service;

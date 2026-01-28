@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/turnos/asignacion-funcionario")
+@PreAuthorize("isAuthenticated()")
 public class AsignacionFuncionarioController {
 
     private final AsignacionFuncionariosService asignacionFuncionariosService;

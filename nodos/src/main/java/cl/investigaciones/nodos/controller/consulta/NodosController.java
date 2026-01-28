@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/nodos/consulta")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class NodosController {
 
     private final FichaPersonaRepository fichaPersonaRepository;

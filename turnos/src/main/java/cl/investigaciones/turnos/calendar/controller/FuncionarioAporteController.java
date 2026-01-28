@@ -20,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @CrossOrigin("*")
 @Slf4j
+@PreAuthorize("isAuthenticated()")
 public class FuncionarioAporteController {
 
     private final FuncionarioAporteService service;

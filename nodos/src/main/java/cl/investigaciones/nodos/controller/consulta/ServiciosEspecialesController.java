@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/nodos/servicios-especiales")
+@PreAuthorize("isAuthenticated()")
 public class ServiciosEspecialesController {
 
     private final ServiciosEspecialesService serviciosEspecialesService;

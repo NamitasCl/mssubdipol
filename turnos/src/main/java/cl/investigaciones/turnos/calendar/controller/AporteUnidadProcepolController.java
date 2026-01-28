@@ -11,9 +11,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/turnos/procepol")
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class AporteUnidadProcepolController {
 
     private final AporteUnidadProcepolService service;

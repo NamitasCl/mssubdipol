@@ -15,9 +15,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/common/funcionarios")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class FuncionarioController {
 
     @Autowired

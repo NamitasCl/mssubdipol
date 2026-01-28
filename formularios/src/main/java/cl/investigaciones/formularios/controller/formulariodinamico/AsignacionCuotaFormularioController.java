@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/formularios/dinamico/cuotas")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class AsignacionCuotaFormularioController {
     @Autowired
     private AsignacionCuotaFormularioService service;

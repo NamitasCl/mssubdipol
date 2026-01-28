@@ -9,11 +9,28 @@ import {
 /* Base URL del microservicio de formularios */
 const FORMULARIOS_BASE = import.meta.env.VITE_FORMS_API_URL || 'http://localhost:8012/api/formularios';
 
-/* Subrutas */
-const DINAMICO_BASE = `${FORMULARIOS_BASE}/dinamico`;
-const DEFINICION_BASE = `${DINAMICO_BASE}/definicion`;
-const REGISTROS_BASE = `${FORMULARIOS_BASE}/dinamicos/registros`;
-const CUOTAS_BASE = `${DINAMICO_BASE}/cuotas`;
+const formsApi = axios.create({
+    baseURL: FORMULARIOS_BASE,
+});
+
+// Request interceptor to attach JWT token
+formsApi.interceptors.request.use(
+    (config) => {
+        const token = sessionStorage.getItem("token");
+        if (token) {
+            const cleanToken = token.startsWith("Bearer ") ? token.slice(7) : token;
+            config.headers.Authorization = `Bearer ${cleanToken}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+/* Subrutas relativas a baseURL */
+const DINAMICO_PATH = "/dinamico";
+const DEFINICION_PATH = `${DINAMICO_PATH}/definicion`;
+const REGISTROS_PATH = "/dinamicos/registros";
+const CUOTAS_PATH = `${DINAMICO_PATH}/cuotas`;
 
 /* -------- Definiciones de Formularios -------- */
 
@@ -21,7 +38,7 @@ const CUOTAS_BASE = `${DINAMICO_BASE}/cuotas`;
  * Listar todos los formularios activos con conteo de respuestas
  */
 export async function listarFormularios() {
-    const { data } = await axios.get(DEFINICION_BASE);
+    const { data } = await formsApi.get(DEFINICION_PATH);
     const formularios = adaptarFormulariosDesdeBackend(data);
 
     // Enriquecer con conteo de respuestas
@@ -44,7 +61,7 @@ export async function listarFormularios() {
  * Obtener un formulario por ID
  */
 export async function obtenerFormularioPorId(id) {
-    const { data } = await axios.get(`${DEFINICION_BASE}/${id}`);
+    const { data } = await formsApi.get(`${DEFINICION_PATH}/${id}`);
     return adaptarFormularioDesdeBackend(data);
 }
 
@@ -52,7 +69,7 @@ export async function obtenerFormularioPorId(id) {
  * Obtener formularios creados por un funcionario
  */
 export async function obtenerFormulariosPorCreador(idCreador) {
-    const { data } = await axios.get(`${DEFINICION_BASE}/creador/${idCreador}`);
+    const { data } = await formsApi.get(`${DEFINICION_PATH}/creador/${idCreador}`);
     return adaptarFormulariosDesdeBackend(data);
 }
 
@@ -62,7 +79,7 @@ export async function obtenerFormulariosPorCreador(idCreador) {
  */
 export async function crearFormulario(formulario) {
     const formularioBackend = adaptarFormularioHaciaBackend(formulario);
-    const { data } = await axios.post(DEFINICION_BASE, formularioBackend);
+    const { data } = await formsApi.post(DEFINICION_PATH, formularioBackend);
     return adaptarFormularioDesdeBackend(data);
 }
 
@@ -71,7 +88,7 @@ export async function crearFormulario(formulario) {
  */
 export async function actualizarFormulario(id, formulario) {
     const formularioBackend = adaptarFormularioHaciaBackend(formulario);
-    const { data } = await axios.put(`${DEFINICION_BASE}/${id}`, formularioBackend);
+    const { data } = await formsApi.put(`${DEFINICION_PATH}/${id}`, formularioBackend);
     return adaptarFormularioDesdeBackend(data);
 }
 
@@ -79,7 +96,7 @@ export async function actualizarFormulario(id, formulario) {
  * Cambiar estado de un formulario (activo/inactivo)
  */
 export async function cambiarEstadoFormulario(id, activo) {
-    const { data } = await axios.put(`${DEFINICION_BASE}/${id}/estado`, { activo });
+    const { data } = await formsApi.put(`${DEFINICION_PATH}/${id}/estado`, { activo });
     return adaptarFormularioDesdeBackend(data);
 }
 
@@ -87,7 +104,7 @@ export async function cambiarEstadoFormulario(id, activo) {
  * Eliminar formulario (y todas sus respuestas)
  */
 export async function eliminarFormulario(id) {
-    const { data } = await axios.delete(`${DEFINICION_BASE}/${id}`);
+    const { data } = await formsApi.delete(`${DEFINICION_PATH}/${id}`);
     return data;
 }
 
@@ -98,7 +115,7 @@ export async function eliminarFormulario(id) {
  * @param {Object} registro - { formularioId, datos: { campo1: valor1, ... } }
  */
 export async function enviarRespuesta(registro) {
-    const { data } = await axios.post(REGISTROS_BASE, registro);
+    const { data } = await formsApi.post(REGISTROS_PATH, registro);
     return data;
 }
 
@@ -106,7 +123,7 @@ export async function enviarRespuesta(registro) {
  * Listar todas las respuestas de un formulario
  */
 export async function listarRespuestas(formularioId) {
-    const { data } = await axios.get(`${REGISTROS_BASE}/${formularioId}`);
+    const { data } = await formsApi.get(`${REGISTROS_PATH}/${formularioId}`);
     return data;
 }
 
@@ -114,7 +131,7 @@ export async function listarRespuestas(formularioId) {
  * Listar mis respuestas de un formulario
  */
 export async function listarMisRespuestas(formularioId) {
-    const { data } = await axios.get(`${REGISTROS_BASE}/${formularioId}/listar`);
+    const { data } = await formsApi.get(`${REGISTROS_PATH}/${formularioId}/listar`);
     return data;
 }
 
@@ -122,7 +139,7 @@ export async function listarMisRespuestas(formularioId) {
  * Obtener una respuesta específica por ID
  */
 export async function obtenerRespuestaPorId(registroId) {
-    const { data } = await axios.get(`${REGISTROS_BASE}/registro/${registroId}`);
+    const { data } = await formsApi.get(`${REGISTROS_PATH}/registro/${registroId}`);
     return data;
 }
 
@@ -131,7 +148,7 @@ export async function obtenerRespuestaPorId(registroId) {
  * Retorna: total, mias, miUnidad, porCuota
  */
 export async function obtenerAvanceFormulario(formularioId) {
-    const { data } = await axios.get(`${REGISTROS_BASE}/avance/${formularioId}`);
+    const { data } = await formsApi.get(`${REGISTROS_PATH}/avance/${formularioId}`);
     return data;
 }
 
@@ -139,7 +156,7 @@ export async function obtenerAvanceFormulario(formularioId) {
  * Editar mi propia respuesta
  */
 export async function editarRespuesta(registroId, datos) {
-    const { data } = await axios.put(`${REGISTROS_BASE}/${registroId}`, { datos });
+    const { data } = await formsApi.put(`${REGISTROS_PATH}/${registroId}`, { datos });
     return data;
 }
 
@@ -147,7 +164,7 @@ export async function editarRespuesta(registroId, datos) {
  * Eliminar mi propia respuesta
  */
 export async function eliminarRespuesta(registroId) {
-    const { data } = await axios.delete(`${REGISTROS_BASE}/${registroId}`);
+    const { data } = await formsApi.delete(`${REGISTROS_PATH}/${registroId}`);
     return data;
 }
 
@@ -157,7 +174,7 @@ export async function eliminarRespuesta(registroId) {
  * Crear asignación de cuota
  */
 export async function crearCuota(cuota) {
-    const { data } = await axios.post(CUOTAS_BASE, cuota);
+    const { data } = await formsApi.post(CUOTAS_PATH, cuota);
     return data;
 }
 
@@ -165,7 +182,7 @@ export async function crearCuota(cuota) {
  * Delegar cuota a sub-unidad o usuario
  */
 export async function delegarCuota(delegacion) {
-    const { data } = await axios.post(`${CUOTAS_BASE}/delegar`, delegacion);
+    const { data } = await formsApi.post(`${CUOTAS_PATH}/delegar`, delegacion);
     return data;
 }
 
@@ -173,7 +190,7 @@ export async function delegarCuota(delegacion) {
  * Obtener cuotas de un formulario
  */
 export async function obtenerCuotasFormulario(formularioId) {
-    const { data } = await axios.get(`${CUOTAS_BASE}/formulario/${formularioId}`);
+    const { data } = await formsApi.get(`${CUOTAS_PATH}/formulario/${formularioId}`);
     return data;
 }
 
@@ -181,7 +198,7 @@ export async function obtenerCuotasFormulario(formularioId) {
  * Obtener cuotas de una unidad
  */
 export async function obtenerCuotasUnidad(idUnidad) {
-    const { data } = await axios.get(`${CUOTAS_BASE}/unidad/${idUnidad}`);
+    const { data } = await formsApi.get(`${CUOTAS_PATH}/unidad/${idUnidad}`);
     return data;
 }
 
@@ -189,7 +206,7 @@ export async function obtenerCuotasUnidad(idUnidad) {
  * Obtener mis cuotas asignadas
  */
 export async function obtenerMisCuotas() {
-    const { data } = await axios.get(`${CUOTAS_BASE}/mis`);
+    const { data } = await formsApi.get(`${CUOTAS_PATH}/mis`);
     return data;
 }
 
@@ -197,7 +214,7 @@ export async function obtenerMisCuotas() {
  * Obtener avance de cuota de una unidad en un formulario
  */
 export async function obtenerAvanceCuotaUnidad(formularioId, idUnidad) {
-    const { data } = await axios.get(`${CUOTAS_BASE}/formulario/${formularioId}/unidad/${idUnidad}/avance`);
+    const { data } = await formsApi.get(`${CUOTAS_PATH}/formulario/${formularioId}/unidad/${idUnidad}/avance`);
     return data;
 }
 
@@ -205,7 +222,7 @@ export async function obtenerAvanceCuotaUnidad(formularioId, idUnidad) {
  * Obtener delegaciones hijas de una cuota
  */
 export async function obtenerDelegacionesCuota(cuotaPadreId) {
-    const { data } = await axios.get(`${CUOTAS_BASE}/padre/${cuotaPadreId}`);
+    const { data } = await formsApi.get(`${CUOTAS_PATH}/padre/${cuotaPadreId}`);
     return data;
 }
 

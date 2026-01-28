@@ -5,9 +5,12 @@ import cl.investigaciones.formularios.service.FormularioPermisosService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/formularios")
 @CrossOrigin("*")
+@PreAuthorize("isAuthenticated()")
 public class PermisosFormularioController {
 
     private final FormularioPermisosService permisosService;

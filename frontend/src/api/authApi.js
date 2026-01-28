@@ -4,6 +4,21 @@ import axios from "axios";
 const ROLES_API_URL = import.meta.env.VITE_ROLES_API_URL;
 const COMMON_API_URL = import.meta.env.VITE_COMMON_SERVICES_API_URL;
 
+const authApi = axios.create();
+
+// Request interceptor to attach JWT token
+authApi.interceptors.request.use(
+    (config) => {
+        const token = sessionStorage.getItem("token");
+        if (token) {
+            const cleanToken = token.startsWith("Bearer ") ? token.slice(7) : token;
+            config.headers.Authorization = `Bearer ${cleanToken}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 // --- Funciones relacionadas con funcionarios ---
 
 /**
@@ -12,7 +27,7 @@ const COMMON_API_URL = import.meta.env.VITE_COMMON_SERVICES_API_URL;
  */
 export async function buscarFuncionarios(term) {
     if (!term || term.length < 2) return [];
-    const { data } = await axios.get(`${COMMON_API_URL}/funcionarios/search`, {
+    const { data } = await authApi.get(`${COMMON_API_URL}/funcionarios/search`, {
         params: { term },
     });
     return data.map((f) => ({
@@ -26,18 +41,18 @@ export async function buscarFuncionarios(term) {
 
 /** Obtiene funcionarios que tienen roles asignados (vista de administración). */
 export async function obtenerFuncionariosConRoles() {
-    const { data } = await axios.get(`${ROLES_API_URL}/asignados`);
+    const { data } = await authApi.get(`${ROLES_API_URL}/asignados`);
     return data;
 }
 
 /** Asigna roles a un funcionario (sobrescribe roles actuales). */
 export async function asignarRoles(idFun, roles) {
-    return axios.post(`${ROLES_API_URL}/modificar`, { idFun, roles });
+    return authApi.post(`${ROLES_API_URL}/modificar`, { idFun, roles });
 }
 
 /** Quita roles y deja al funcionario con el rol básico. */
 export async function quitarRoles(idFun) {
-    return axios.post(`${ROLES_API_URL}/modificar`, {
+    return authApi.post(`${ROLES_API_URL}/modificar`, {
         idFun,
         roles: ["ROLE_FUNCIONARIO"],
     });
@@ -49,7 +64,7 @@ export async function quitarRoles(idFun) {
  */
 export async function quitarRolesMultiple(ids) {
     const tasks = ids.map((idFun) =>
-        axios.post(`${ROLES_API_URL}/modificar`, {
+        authApi.post(`${ROLES_API_URL}/modificar`, {
             idFun,
             roles: ["ROLE_FUNCIONARIO"],
         })

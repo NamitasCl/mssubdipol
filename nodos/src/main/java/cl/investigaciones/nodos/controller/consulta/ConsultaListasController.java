@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize; // Add import
+
 @RestController
 @RequestMapping("/api/nodos/listas")
+@PreAuthorize("isAuthenticated()")
 public class ConsultaListasController {
 
     private final ListaDelitoRepository listaDelitoRepository;

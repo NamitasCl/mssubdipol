@@ -13,7 +13,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtils {
     // Clave secreta (reemplazar por una más segura y configurada en properties)
-    @Value("${jwt.secret}")
+    @Value("${jwt.token}")
     private String secret;
 
     // Genera el token a partir del username
