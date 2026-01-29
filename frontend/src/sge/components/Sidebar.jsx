@@ -83,8 +83,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                         </NavLink>
                     ))}
 
-                    <a
-                        href="http://localhost:5173/turnos"
+                    <NavLink
+                        to="/"
                         className="flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200 font-medium text-sm group text-gray-600 hover:bg-white hover:text-pdi-base hover:shadow-sm"
                     >
                         <div className="flex items-center gap-3">
@@ -93,7 +93,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                             </div>
                             <span>Volver al Dashboard principal</span>
                         </div>
-                    </a>
+                    </NavLink>
                 </nav>
 
                 {/* Footer */}

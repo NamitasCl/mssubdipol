@@ -23,7 +23,7 @@ import DelegarCuotaFormulario from "./DelegarCuotaFormulario";
 import clsx from "clsx";
 
 // Fallback URL for forms API
-const FORMS_API_URL = import.meta.env.VITE_FORMS_API_URL || 'http://localhost:8012/api/formularios';
+const FORMS_API_URL = import.meta.env.VITE_FORMS_API_URL || '/api/formularios';
 
 export default function ListaFormulariosDisponibles() {
     const { user } = useAuth();

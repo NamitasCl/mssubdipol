@@ -104,8 +104,6 @@ const RegistroFamiliares = () => {
                     eventoId: selectedEvento,
                     funcionarioId: selectedFuncionario.value,
                     funcionarioNombre: selectedFuncionario.label,
-                    funcionarioId: selectedFuncionario.value,
-                    funcionarioNombre: selectedFuncionario.label,
                     funcionarioRut: extractRut(selectedFuncionario.f),
 
                     nombreCompleto: p.nombreCompleto,
