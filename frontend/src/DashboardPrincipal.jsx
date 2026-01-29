@@ -149,11 +149,11 @@ export default function DashboardPrincipal() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {loading ? (
                             <div className="col-span-3 text-center py-10 text-gray-400">Cargando módulos...</div>
-                        ) : modules.map((mod, idx) => {
+                        ) : (Array.isArray(modules) ? modules : []).map((mod, idx) => {
                             // Check if module is enabled and user has role
                             if (!mod.enabled) return null;
                             if (mod.authorizedRoles && mod.authorizedRoles.length > 0) {
-                                const hasRole = mod.authorizedRoles.some(rol => user.roles.includes(rol));
+                                const hasRole = user?.roles?.some(rol => mod.authorizedRoles.includes(rol));
                                 if (!hasRole) return null;
                             }
 
