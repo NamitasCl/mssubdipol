@@ -4,6 +4,20 @@ import sgeApi from '../../api/sgeApi';
 import AsyncFuncionarioSelect from '../../components/ComponentesAsyncSelect/AsyncFuncionarioSelect';
 import { Users, AlertTriangle, Save, Trash2, Home, Car, HelpCircle, MapPin, Search } from 'lucide-react';
 
+const extractRut = (obj) => {
+    if (!obj) return null;
+    if (obj.rut) return obj.rut;
+    if (obj.run) return obj.run;
+    // Deep search or regex search in values
+    const rutRegex = /^[0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}-[0-9kK]$/;
+    for (const key in obj) {
+        if (typeof obj[key] === 'string' && rutRegex.test(obj[key])) {
+            return obj[key];
+        }
+    }
+    return null;
+};
+
 const RegistroFamiliares = () => {
     const { user } = useAuth();
     const [eventos, setEventos] = useState([]);
@@ -90,7 +104,9 @@ const RegistroFamiliares = () => {
                     eventoId: selectedEvento,
                     funcionarioId: selectedFuncionario.value,
                     funcionarioNombre: selectedFuncionario.label,
-                    funcionarioRut: selectedFuncionario.f?.rut,
+                    funcionarioId: selectedFuncionario.value,
+                    funcionarioNombre: selectedFuncionario.label,
+                    funcionarioRut: extractRut(selectedFuncionario.f),
 
                     nombreCompleto: p.nombreCompleto,
                     rut: p.rut,
@@ -127,7 +143,7 @@ const RegistroFamiliares = () => {
 
     // Filter DB records for selected official
     const existingRecords = selectedFuncionario
-        ? familiares.filter(f => f.funcionarioId === selectedFuncionario.value)
+        ? familiares.filter(f => f.funcionarioId == selectedFuncionario.value) // Use loose equality for String/Number match
         : [];
 
     return (
@@ -178,9 +194,11 @@ const RegistroFamiliares = () => {
                                     />
                                 </div>
                                 {selectedFuncionario && (
-                                    <div className="mt-2 px-2 text-xs text-blue-700 font-medium">
-                                        <p>{selectedFuncionario.f?.rut}</p>
-                                        <p>{selectedFuncionario.f?.unidad}</p>
+                                    <div className="mt-2 px-2 text-xs font-medium">
+                                        <p className={extractRut(selectedFuncionario.f) ? "text-green-600" : "text-red-500 font-bold"}>
+                                            RUT Funcionario: {extractRut(selectedFuncionario.f) || "NO DETECTADO - POR FAVOR INFORMAR"}
+                                        </p>
+                                        <p className="text-blue-700">{selectedFuncionario.f?.unidad}</p>
                                         <p className="mt-1 text-gray-500 italic">
                                             ({existingRecords.length} familiares registrados previamente)
                                         </p>
@@ -244,12 +262,22 @@ const RegistroFamiliares = () => {
                                 >
                                     <option value="OTRO">Otro</option>
                                     <option value="CONYUGE">Cónyuge / Pareja</option>
-                                    <option value="PADRE">Padre / Madre</option>
-                                    <option value="HIJO">Hijo / Hija</option>
-                                    <option value="ABUELO">Abuelo / Abuela</option>
-                                    <option value="TIO">Tío / Tía</option>
-                                    <option value="HERMANO">Hermano / Hermana</option>
-                                    <option value="SUEGRO">Suegro / Suegra</option>
+                                    <option value="MADRE">Madre</option>
+                                    <option value="PADRE">Padre</option>
+                                    <option value="HIJA">Hija</option>
+                                    <option value="HIJO">Hijo</option>
+                                    <option value="HERMANA">Hermana</option>
+                                    <option value="HERMANO">Hermano</option>
+                                    <option value="ABUELA">Abuela</option>
+                                    <option value="ABUELO">Abuelo</option>
+                                    <option value="TIA">Tía</option>
+                                    <option value="TIO">Tío</option>
+                                    <option value="SUEGRA">Suegra</option>
+                                    <option value="SUEGRO">Suegro</option>
+                                    <option value="NUERA">Nuera</option>
+                                    <option value="YERNO">Yerno</option>
+                                    <option value="CUÑADA">Cuñada</option>
+                                    <option value="CUÑADO">Cuñado</option>
                                 </select>
                             </div>
 

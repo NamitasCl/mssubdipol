@@ -17,6 +17,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: "/sge/vehiculos", icon: <Truck size={20} />, text: "Vehículos", restricted: true },
         { to: "/sge/inventario", icon: <FileSpreadsheet size={20} />, text: "Inventario", restricted: true },
         { to: "/sge/familiares", icon: <Users size={20} />, text: "Registro Afectados", restricted: true },
+        { to: "/sge/familiares/reporte", icon: <FileSpreadsheet size={20} />, text: "Reporte Afectados", restricted: true },
     ].filter(item => item.public || (item.restricted && isAdminOrJefe));
 
     return (

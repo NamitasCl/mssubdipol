@@ -18,6 +18,7 @@ import SolicitudRecursoList from './components/SolicitudRecursoList';
 import DisponibilidadReport from './components/DisponibilidadReport';
 import DisponibilidadList from './components/DisponibilidadList';
 import RegistroFamiliares from './components/RegistroFamiliares';
+import AfectadosList from './components/AfectadosList';
 
 function SGEApp() {
   return (
@@ -52,6 +53,7 @@ function SGEApp() {
 
         {/* Familiares Afectados Route */}
         <Route path="familiares" element={<RegistroFamiliares />} />
+        <Route path="familiares/reporte" element={<AfectadosList />} />
       </Routes>
     </Layout>
   );

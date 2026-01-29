@@ -17,11 +17,16 @@ public class ExcelService {
 
     private final DespliegueRepository despliegueRepository;
     private final cl.sge.repository.AsignacionRecursoRepository asignacionRepository;
+    private final cl.sge.repository.FamiliaAfectadaRepository familiaAfectadaRepository;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
-    public ExcelService(DespliegueRepository despliegueRepository, cl.sge.repository.AsignacionRecursoRepository asignacionRepository, com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
+    public ExcelService(DespliegueRepository despliegueRepository, 
+                        cl.sge.repository.AsignacionRecursoRepository asignacionRepository,
+                        cl.sge.repository.FamiliaAfectadaRepository familiaAfectadaRepository,
+                        com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
         this.despliegueRepository = despliegueRepository;
         this.asignacionRepository = asignacionRepository;
+        this.familiaAfectadaRepository = familiaAfectadaRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -196,6 +201,68 @@ public class ExcelService {
             // Autosize
             for (int col = 0; col < columns.length; col++) {
                sheet.autoSizeColumn(col);
+            }
+
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        }
+    }
+
+    public ByteArrayInputStream generateAfectadosReport(Long eventoId) throws IOException {
+        String[] columns = {
+            "ID", "Evento", "Funcionario RUT", "Funcionario Nombre", 
+            "RUT Afectado", "Nombre Afectado", "Parentesco", "Bien Afectado", 
+            "Teléfono", "Dirección", "Detalle Daño", "Fecha Registro"
+        };
+        
+        List<cl.sge.entity.FamiliaAfectada> afectados;
+        if (eventoId != null) {
+            afectados = familiaAfectadaRepository.findByEventoId(eventoId);
+        } else {
+            afectados = familiaAfectadaRepository.findAll();
+        }
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Afectados");
+
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            CellStyle headerCellStyle = workbook.createCellStyle();
+            headerCellStyle.setFont(headerFont);
+            headerCellStyle.setFillForegroundColor(IndexedColors.ORANGE.getIndex());
+            headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            Row headerRow = sheet.createRow(0);
+            for (int col = 0; col < columns.length; col++) {
+                Cell cell = headerRow.createCell(col);
+                cell.setCellValue(columns[col]);
+                cell.setCellStyle(headerCellStyle);
+            }
+
+            int rowIdx = 1;
+            for (cl.sge.entity.FamiliaAfectada fa : afectados) {
+                Row row = sheet.createRow(rowIdx++);
+                
+                row.createCell(0).setCellValue(fa.getId());
+                row.createCell(1).setCellValue(fa.getEvento() != null ? fa.getEvento().getDescripcion() : "Sin Evento");
+                row.createCell(2).setCellValue(fa.getFuncionarioRut());
+                row.createCell(3).setCellValue(fa.getFuncionarioNombre());
+                
+                row.createCell(4).setCellValue(fa.getRut());
+                row.createCell(5).setCellValue(fa.getNombreCompleto());
+                row.createCell(6).setCellValue(fa.getParentesco());
+                row.createCell(7).setCellValue(fa.getTipoBienAfectado());
+                
+                row.createCell(8).setCellValue(fa.getTelefono());
+                row.createCell(9).setCellValue(fa.getDireccion());
+                row.createCell(10).setCellValue(fa.getDetalle());
+                
+                row.createCell(11).setCellValue(fa.getFechaRegistro() != null ? fa.getFechaRegistro().toString() : "");
+            }
+
+            for (int col = 0; col < columns.length; col++) {
+                sheet.autoSizeColumn(col);
             }
 
             workbook.write(out);

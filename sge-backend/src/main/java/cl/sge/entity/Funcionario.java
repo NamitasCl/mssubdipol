@@ -22,4 +22,6 @@ public class Funcionario {
     @CollectionTable(name = "funcionario_especialidades", joinColumns = @JoinColumn(name = "funcionario_rut"))
     @Column(name = "especialidad")
     private List<String> especialidades;
+
+    private String estado = "DISPONIBLE"; // DISPONIBLE, ASIGNADO, DE_FRANCO, LICENCIA
 }

@@ -61,4 +61,8 @@ public class DespliegueController {
         despliegueService.deleteDespliegue(id);
         return ResponseEntity.noContent().build();
     }
+    @PostMapping("/despliegues/{id}/recambio")
+    public ResponseEntity<Despliegue> realizarRecambio(@PathVariable Long id) {
+        return ResponseEntity.ok(despliegueService.realizarRecambio(id));
+    }
 }

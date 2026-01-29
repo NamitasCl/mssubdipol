@@ -8,5 +8,5 @@ import java.util.List;
 @Repository
 public interface FamiliaAfectadaRepository extends JpaRepository<FamiliaAfectada, Long> {
     List<FamiliaAfectada> findByEventoId(Long eventoId);
-    List<FamiliaAfectada> findByFuncionarioId(Long funcionarioId);
+    List<FamiliaAfectada> findByFuncionarioId(String funcionarioId);
 }

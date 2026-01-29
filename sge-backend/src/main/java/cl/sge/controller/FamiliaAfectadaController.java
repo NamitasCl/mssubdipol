@@ -13,9 +13,11 @@ import java.util.Map;
 public class FamiliaAfectadaController {
 
     private final FamiliaAfectadaService service;
+    private final cl.sge.service.ExcelService excelService;
 
-    public FamiliaAfectadaController(FamiliaAfectadaService service) {
+    public FamiliaAfectadaController(FamiliaAfectadaService service, cl.sge.service.ExcelService excelService) {
         this.service = service;
+        this.excelService = excelService;
     }
 
     @GetMapping
@@ -26,13 +28,25 @@ public class FamiliaAfectadaController {
         return ResponseEntity.ok(service.findAll());
     }
 
+    @GetMapping("/export")
+    public ResponseEntity<org.springframework.core.io.Resource> exportToExcel(@RequestParam(required = false) Long eventoId) throws java.io.IOException {
+        java.io.ByteArrayInputStream in = excelService.generateAfectadosReport(eventoId);
+        
+        org.springframework.core.io.InputStreamResource resource = new org.springframework.core.io.InputStreamResource(in);
+        
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=afectados.xlsx")
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(resource);
+    }
+
     @PostMapping
     public ResponseEntity<FamiliaAfectada> create(@RequestBody Map<String, Object> payload) {
         // Extract fields manually to handle Evento linking cleanly
         Long eventoId = Long.valueOf(payload.get("eventoId").toString());
         
         FamiliaAfectada fa = new FamiliaAfectada();
-        fa.setFuncionarioId(Long.valueOf(payload.get("funcionarioId").toString()));
+        fa.setFuncionarioId(payload.get("funcionarioId").toString());
         fa.setFuncionarioNombre((String) payload.get("funcionarioNombre"));
         fa.setFuncionarioRut((String) payload.get("funcionarioRut"));
         

@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 public interface FuncionarioRepository extends JpaRepository<Funcionario, String> {
     long countByUnidad(String unidad);
     long countByRegionPolicial(String regionPolicial);
+    java.util.List<Funcionario> findByNombreContainingIgnoreCaseOrRutContainingIgnoreCase(String nombre, String rut);
 }

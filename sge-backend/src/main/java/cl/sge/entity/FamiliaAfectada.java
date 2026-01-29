@@ -21,7 +21,7 @@ public class FamiliaAfectada {
     private Evento evento;
 
     // External reference to commonservices Funcionario
-    private Long funcionarioId;
+    private String funcionarioId;
     private String funcionarioNombre; // Snapshot for display
     private String funcionarioRut;    // Snapshot for search
 

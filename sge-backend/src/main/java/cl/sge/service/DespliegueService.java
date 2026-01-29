@@ -21,6 +21,9 @@ public class DespliegueService {
     @Autowired
     private EventoRepository eventoRepository;
 
+    @Autowired
+    private cl.sge.repository.FuncionarioRepository funcionarioRepository;
+
     public List<Despliegue> findAllByEventoId(Long eventoId) {
         return despliegueRepository.findByEventoId(eventoId);
     }
@@ -87,5 +90,45 @@ public class DespliegueService {
             throw new RuntimeException("Despliegue no encontrado");
         }
         despliegueRepository.deleteById(id);
+    }
+
+    @Transactional
+    public Despliegue realizarRecambio(Long id) {
+        Despliegue oldDespliegue = despliegueRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Despliegue no encontrado"));
+
+        // 1. Close old deployment
+        oldDespliegue.setFechaTermino(LocalDateTime.now());
+        
+        // 2. Release resources
+        if (oldDespliegue.getAsignaciones() != null) {
+            for (var asignacion : oldDespliegue.getAsignaciones()) {
+                if (asignacion.getFuncionarios() != null) {
+                    for (var func : asignacion.getFuncionarios()) {
+                        func.setEstado("DISPONIBLE");
+                        funcionarioRepository.save(func);
+                    }
+                }
+            }
+        }
+        despliegueRepository.save(oldDespliegue);
+
+        // 3. Create new deployment based on old one
+        Despliegue newDespliegue = new Despliegue();
+        newDespliegue.setEvento(oldDespliegue.getEvento());
+        newDespliegue.setDescripcion("RECAMBIO: " + oldDespliegue.getDescripcion());
+        newDespliegue.setEncargado(oldDespliegue.getEncargado());
+        newDespliegue.setInstrucciones(oldDespliegue.getInstrucciones());
+        newDespliegue.setLatitud(oldDespliegue.getLatitud());
+        newDespliegue.setLongitud(oldDespliegue.getLongitud());
+        newDespliegue.setCantidadFuncionariosRequeridos(oldDespliegue.getCantidadFuncionariosRequeridos());
+        newDespliegue.setCantidadVehiculosRequeridos(oldDespliegue.getCantidadVehiculosRequeridos());
+        
+        newDespliegue.setFechaSolicitud(LocalDateTime.now());
+        newDespliegue.setFechaInicio(LocalDateTime.now());
+        newDespliegue.setFechaTermino(null); // Indefinite
+        newDespliegue.setNumeroProrrogas(0);
+
+        return despliegueRepository.save(newDespliegue);
     }
 }

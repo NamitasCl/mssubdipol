@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import sgeApi from '../../api/sgeApi';
 import {
     MapPin, Calendar, Users, Truck, FileText,
-    ArrowLeft, CheckCircle, AlertCircle, Edit, Save, X, Printer
+    ArrowLeft, CheckCircle, AlertCircle, Edit, Save, X, Printer, RefreshCw
 } from 'lucide-react';
 
 const DespliegueDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [despliegue, setDespliegue] = useState(null);
     const [asignaciones, setAsignaciones] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -87,6 +88,18 @@ const DespliegueDetail = () => {
         } catch (error) {
             console.error(error);
             alert("Error al prorrogar: " + (error.response?.data?.message || "Error desconocido"));
+        }
+    };
+
+    const handleRecambio = async () => {
+        if (!window.confirm("¿Está seguro que desea realizar un RECAMBIO? Esto finalizará el despliegue actual, liberará los recursos y creará uno nuevo.")) return;
+        try {
+            const res = await sgeApi.post(`/despliegues/${despliegue.id}/recambio`);
+            alert("Recambio procesado. Redirigiendo al nuevo despliegue.");
+            navigate(`/sge/despliegues/${res.data.id}`);
+        } catch (error) {
+            console.error("Error processing recambio", error);
+            alert("Error al procesar recambio");
         }
     };
 
@@ -279,6 +292,14 @@ const DespliegueDetail = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* Recambio Action */}
+                    <button
+                        onClick={handleRecambio}
+                        className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg shadow hover:from-indigo-700 hover:to-purple-700 transition flex justify-center items-center gap-2 font-bold"
+                    >
+                        <RefreshCw size={18} /> Gestionar Recambio
+                    </button>
 
                     {/* Requirement Cards */}
                     <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-indigo-500">

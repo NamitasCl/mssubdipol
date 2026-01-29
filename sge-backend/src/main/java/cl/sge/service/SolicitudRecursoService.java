@@ -61,6 +61,8 @@ public class SolicitudRecursoService {
                 if (asignacionRepository.isFuncionarioDesplegado(func.getRut(), now)) {
                     throw new RuntimeException("Funcionario " + func.getRut() + " ya está desplegado en otra emergencia");
                 }
+                // Mark as ASSIGNED
+                func.setEstado("ASIGNADO");
             }
         }
         

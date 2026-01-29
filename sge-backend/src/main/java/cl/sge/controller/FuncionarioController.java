@@ -43,4 +43,9 @@ public class FuncionarioController {
         }
         return ResponseEntity.ok(repository.count());
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Funcionario>> search(@RequestParam String term) {
+        return ResponseEntity.ok(repository.findByNombreContainingIgnoreCaseOrRutContainingIgnoreCase(term, term));
+    }
 }
