@@ -120,4 +120,25 @@ public class SlotService {
         return slotRepository.findAllBySiglasUnidadFuncionarioAndTipoServicio(siglasUnidad, tipoServicio);
     }
 
+    /**
+     * Obtiene todos los turnos asignados a un funcionario.
+     */
+    public List<SlotsResponseDTO> getMisTurnos(Integer idFuncionario) {
+        return slotRepository.findAllByIdFuncionarioOrderByFechaAsc(idFuncionario)
+                .stream()
+                .map(SlotMapper::toDTO)
+                .toList();
+    }
+
+    /**
+     * Obtiene turnos de un funcionario filtrados por mes y año.
+     */
+    public List<SlotsResponseDTO> getMisTurnosByMesAnio(Integer idFuncionario, int mes, int anio) {
+        return slotRepository.findByFuncionarioAndMesAnio(idFuncionario, mes, anio)
+                .stream()
+                .map(SlotMapper::toDTO)
+                .toList();
+    }
+
 }
+

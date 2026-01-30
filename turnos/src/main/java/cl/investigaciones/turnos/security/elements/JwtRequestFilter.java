@@ -30,20 +30,27 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         String token = authorizationHeader.substring(7);
 
-        if (jwtUtils.isTokenExpired(token)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        try {
+            if (jwtUtils.isTokenExpired(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-        if(jwtUtils.isAuthenticated(token)) {
             String username = jwtUtils.extractUsername(token);
-            java.util.List<String> roles = jwtUtils.extractRoles(token);
-            java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = roles.stream()
-                    .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
-                    .collect(java.util.stream.Collectors.toList());
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                java.util.List<String> roles = jwtUtils.extractRoles(token);
+                java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = roles.stream()
+                        .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                        .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                        .collect(java.util.stream.Collectors.toList());
+
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+        } catch (Exception e) {
+            // Log the error but continue the filter chain - let Spring Security handle it
+            System.err.println("JWT parsing error: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Spinner, Alert, ListGroup } from "../../components/BootstrapAdapter.jsx";
 import axios from "axios";
+import { listarPlantillas } from "../../api/plantillaApi.js";
 
 export default function AgregarPlantillasMes({
                                                  show, onHide, mes, anio, seleccionadas = [], onPlantillasGuardadas
@@ -15,9 +16,9 @@ export default function AgregarPlantillasMes({
     useEffect(() => {
         if (show) {
             setLoading(true);
-            axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/plantillas`)
-                .then(resp => {
-                    setPlantillas(resp.data || []);
+            listarPlantillas()
+                .then(data => {
+                    setPlantillas(data || []);
                     setSeleccion(seleccionadas || []);
                 })
                 .catch(() => setError("Error al cargar plantillas"))
