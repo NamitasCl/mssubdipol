@@ -27,6 +27,9 @@ public class Funcionario {
     private String nombreUnidad;
     private String siglasUnidad;
     private String username;
+    private Integer rut;
+    private String dv;
+    private String email;
     private int antiguedad;
 
 

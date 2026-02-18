@@ -32,6 +32,7 @@ public class AsignacionFuncionariosService {
     private final CalendarioRepository calendarioRepository;
     private final SlotService slotService;
     private final FuncionarioDiaNoDisponibleService diaNoDisponibleGlobalService;
+    private final HistorialTurnosService historialTurnosService;
 
     private final List<RolServicio> ROLES = List.of(
             RolServicio.JEFE_DE_RONDA,
@@ -48,13 +49,15 @@ public class AsignacionFuncionariosService {
             SlotService slotService,
             FuncionarioAportadoDiasNoDisponibleRepository noDisponibleRepository,
             CalendarioRepository calendarioRepository,
-            FuncionarioDiaNoDisponibleService funcionarioDiaNoDisponibleService
+            FuncionarioDiaNoDisponibleService funcionarioDiaNoDisponibleService,
+            HistorialTurnosService historialTurnosService
     ) {
         this.funcionarioAporteRepository = funcionarioAporteService;
         this.slotService = slotService;
         this.noDisponibleRepository = noDisponibleRepository;
         this.calendarioRepository = calendarioRepository;
         this.diaNoDisponibleGlobalService = funcionarioDiaNoDisponibleService;
+        this.historialTurnosService = historialTurnosService;
     }
 
     @Transactional
@@ -200,6 +203,8 @@ public class AsignacionFuncionariosService {
 
         // Comienzo la asignación de funcionarios a los slots
         for(int i = 1; i <=2; i++) { // Intentamos 2 pasadas
+            boolean esSegundaPasada = (i == 2);
+            
             for (Slot slot : slots ) {
 
                 if(slot.isCubierto()) {
@@ -213,6 +218,31 @@ public class AsignacionFuncionariosService {
                 List<FuncionarioAporte> funcionariosFiltrados = mapaCandidatosPorRol.getOrDefault(rol, Collections.emptyList());
 
                 for (FuncionarioAporte f : funcionariosFiltrados) {
+                    
+                    // === NUEVAS RESTRICCIONES BASADAS EN HISTORIAL ===
+                    
+                    // 1. Descanso post-turno nocturno (RESTRICCIÓN DURA)
+                    if (historialTurnosService.estaEnDescansoPostNoche(f.getIdFuncionario(), slot.getFecha())) {
+                        log.debug("Funcionario {} omitido: en descanso post-noche", f.getIdFuncionario());
+                        continue;
+                    }
+                    
+                    // 2. No repetir mismo día de meses anteriores (RESTRICCIÓN DURA en primera pasada)
+                    if (!esSegundaPasada && historialTurnosService.trabajoMismoDiaMesAnterior(f.getIdFuncionario(), slot.getFecha())) {
+                        log.debug("Funcionario {} omitido: trabajó mismo día en mes anterior", f.getIdFuncionario());
+                        continue;
+                    }
+                    
+                    // 3. Fines de semana alternados (RESTRICCIÓN BLANDA - solo primera pasada)
+                    if (!esSegundaPasada && historialTurnosService.esFinDeSemana(slot.getFecha())) {
+                        if (historialTurnosService.trabajoFinDeSemanaReciente(f.getIdFuncionario(), slot.getFecha())) {
+                            log.debug("Funcionario {} omitido: trabajó fin de semana reciente", f.getIdFuncionario());
+                            continue;
+                        }
+                    }
+                    
+                    // === FIN NUEVAS RESTRICCIONES ===
+                    
                     boolean puede = restricciones.stream()
                             .allMatch(r -> r.puedeAsignar(
                                     f,

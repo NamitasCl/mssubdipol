@@ -6,15 +6,18 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 
 @Component
 public class JwtUtils {
-    // Clave secreta (reemplazar por una más segura y configurada en properties)
-    @Value("${jwt.token}")
-    private String secret;
+    private final SecretKey secretKey;
+
+    public JwtUtils(@Value("${jwt.token}") String secret) {
+        this.secretKey = io.jsonwebtoken.security.Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     // Genera el token a partir del username
     public String generateToken(String username) {
@@ -22,7 +25,7 @@ public class JwtUtils {
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
-                .signWith(SignatureAlgorithm.HS512, secret.getBytes(StandardCharsets.UTF_8))
+                .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -46,7 +49,11 @@ public class JwtUtils {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(secret.getBytes(StandardCharsets.UTF_8)).parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     // Verifica si el token ha expirado

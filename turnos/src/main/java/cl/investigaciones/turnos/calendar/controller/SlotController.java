@@ -94,5 +94,27 @@ public class SlotController {
         }
     }
 
+    /**
+     * Obtiene los turnos asignados a un funcionario (Mis Turnos).
+     * Puede filtrar por mes y año opcionalmente.
+     */
+    @GetMapping("/mis-turnos/{idFuncionario}")
+    public ResponseEntity<?> getMisTurnos(
+            @PathVariable Integer idFuncionario,
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer anio
+    ) {
+        try {
+            log.info("GET /mis-turnos/{} mes={} anio={}", idFuncionario, mes, anio);
+            if (mes != null && anio != null) {
+                return new ResponseEntity<>(slotService.getMisTurnosByMesAnio(idFuncionario, mes, anio), HttpStatus.OK);
+            }
+            return new ResponseEntity<>(slotService.getMisTurnos(idFuncionario), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error obteniendo mis turnos: " + e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 
 }
+

@@ -136,13 +136,32 @@ export const normalizeMemo = (m) => {
         responsabilidad: f.responsabilidadMemo,
     }));
 
-    const vehiculos = (m.fichaVehiculos || []).map((v, idx) => ({
-        id: v.id ?? `${m.id}-veh-${idx}`,
-        patente: v.patente || v.ppu || "",
-        marca: [v.marca, v.modelo].filter(Boolean).join(" "),
-        calidad: v.calidad || "",
-        obs: v.obs || "",
-    }));
+const cleanJavaToString = (str) => {
+    if (!str) return "";
+    // Intenta extraer el valor de 'marca=' o 'modelo='
+    const match = str.match(/(?:marca|modelo)=([^,)]+)/i);
+    if (match && match[1]) {
+        return match[1].trim();
+    }
+    // Si no coincide con el patrón de Java toString pero es un string, devuélvelo tal cual
+    if (!str.includes("=")) return str;
+    return str; // Fallback
+};
+
+    const vehiculos = (m.fichaVehiculos || []).map((v, idx) => {
+        // Limpieza específica para cuando el backend envía toString() de Java
+        const marcaClean = cleanJavaToString(v.marca);
+        const modeloClean = cleanJavaToString(v.modelo);
+        
+        return {
+            id: v.id ?? `${m.id}-veh-${idx}`,
+            patente: v.patente || v.ppu || "S/P",
+            marca: [marcaClean, modeloClean].filter(Boolean).join(" "),
+            calidad: v.calidad || "",
+            obs: v.obs || "",
+            nue: v.nue || "", // Agregado NUE que se ve en la imagen
+        };
+    });
 
     const armas = (m.fichaArmas || []).map((a, idx) => ({
         id: a.id ?? `${m.id}-arma-${idx}`,

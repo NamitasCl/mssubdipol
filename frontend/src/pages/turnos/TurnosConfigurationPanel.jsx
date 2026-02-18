@@ -16,7 +16,7 @@ import clsx from 'clsx';
  * Panel Principal de Configuración de Turnos (PMSUBDIPOL)
  */
 // ... (imports remain)
-import { crearCalendario } from "../../api/calendarApi.js"; 
+import { crearCalendario, listarCalendarios } from "../../api/calendarApi.js";
 
 export default function TurnosConfigurationPanel() {
     const { user } = useAuth();
@@ -39,11 +39,8 @@ export default function TurnosConfigurationPanel() {
     // Cargar calendarios
     useEffect(() => {
         setLoadingCalendars(true);
-        axios.get(`${import.meta.env.VITE_TURNOS_API_URL}/calendario`, {
-             headers: { usuario: userId }
-        })
-            .then(res => {
-                const loadedCalendars = res.data || [];
+        listarCalendarios()
+            .then(loadedCalendars => {
                 setCalendars(loadedCalendars);
                 
                 // Check for auto-select from navigation state

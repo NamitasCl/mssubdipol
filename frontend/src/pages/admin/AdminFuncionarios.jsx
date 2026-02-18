@@ -16,11 +16,26 @@ import clsx from "clsx";
 export default function AdminFuncionarios() {
     const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState("");
-    const [funcionarios, setFuncionarios] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [availableRoles, setAvailableRoles] = useState([]);
+    const [editingUser, setEditingUser] = useState(null);
+    const [selectedRoles, setSelectedRoles] = useState(new Set());
+    const [savingRoles, setSavingRoles] = useState(false);
+    const [roleMessage, setRoleMessage] = useState(null);
     const [syncing, setSyncing] = useState(false);
-    const [error, setError] = useState(null);
     const [syncResult, setSyncResult] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [funcionarios, setFuncionarios] = useState([]);
+
+    // Fetch roles on mount
+    React.useEffect(() => {
+        fetch(`${import.meta.env.VITE_ROLES_API_URL}/listar`, {
+            headers: { Authorization: `Bearer ${user.token}` }
+        })
+            .then(res => res.json())
+            .then(data => setAvailableRoles(Array.isArray(data) ? data : []))
+            .catch(err => console.error("Error fetching roles:", err));
+    }, [user.token]);
 
     const handleSearch = async () => {
         if (!searchTerm.trim()) return;
@@ -55,6 +70,83 @@ export default function AdminFuncionarios() {
             setSyncResult("error");
         } finally {
             setSyncing(false);
+        }
+    };
+
+    const handleEditRole = (func) => {
+        setEditingUser(func);
+        setRoleMessage(null);
+        // Should ideally fetch current roles for this user, but for now we start empty or assume default?
+        // Actually, we should PROBABLY fetch the specific user roles if possible, or maybe the search result includes them?
+        // The search result does NOT include roles currently.
+        // We can fetch them or just let the user set new ones overwriting old ones?
+        // Better to fetch current roles.
+        // Let's quickly search if we can get them.
+        // For now, let's start with empty set or maybe we can fetch them on open.
+        
+        // Fetch user roles
+        fetch(`${import.meta.env.VITE_ROLES_API_URL}/asignados`, {
+             headers: { Authorization: `Bearer ${user.token}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+            // This endpoint returns ALL users with roles, which is inefficient but existing.
+            // Let's filter client side for now as per available endpoints.
+            // API returns: { nombreCompleto, idFuncionario, roles: ["ROLE_..."] }
+            const userWithRoles = data.find(u => u.idFuncionario === func.idFun);
+            
+            if(userWithRoles && userWithRoles.roles) {
+                 // roles is already an array of strings ["ROLE_A", "ROLE_B"]
+                 setSelectedRoles(new Set(userWithRoles.roles)); 
+            } else {
+                 setSelectedRoles(new Set());
+            }
+        })
+        .catch((e) => {
+            console.error("Error fetching user roles:", e);
+            setSelectedRoles(new Set());
+        });
+    };
+
+    const toggleRole = (roleName) => {
+        const newRoles = new Set(selectedRoles);
+        if (newRoles.has(roleName)) {
+            newRoles.delete(roleName);
+        } else {
+            newRoles.add(roleName);
+        }
+        setSelectedRoles(newRoles);
+    };
+
+    const saveRoles = async () => {
+        if (!editingUser) return;
+        setSavingRoles(true);
+        setRoleMessage(null);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_ROLES_API_URL}/modificar`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${user.token}`
+                },
+                body: JSON.stringify({
+                    idFun: editingUser.idFun,
+                    roles: Array.from(selectedRoles)
+                })
+            });
+            if (res.ok) {
+                setRoleMessage({ type: 'success', text: 'Roles actualizados correctamente' });
+                setTimeout(() => {
+                    setEditingUser(null);
+                    handleSearch(); // Refresh list potentially
+                }, 1500);
+            } else {
+                throw new Error("Error al guardar roles");
+            }
+        } catch (e) {
+            setRoleMessage({ type: 'error', text: 'Error al guardar los roles' });
+        } finally {
+            setSavingRoles(false);
         }
     };
 
@@ -143,6 +235,7 @@ export default function AdminFuncionarios() {
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Unidad</th>
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">Región</th>
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">ID</th>
+                                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -179,6 +272,15 @@ export default function AdminFuncionarios() {
                                             {func.idFun}
                                         </span>
                                     </td>
+                                    <td className="px-4 py-4 text-right">
+                                        <button 
+                                            onClick={() => handleEditRole(func)}
+                                            className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition-colors"
+                                            title="Cambiar Roles"
+                                        >
+                                            <BadgeCheck size={18} />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -206,6 +308,85 @@ export default function AdminFuncionarios() {
             {funcionarios.length > 0 && (
                 <div className="mt-4 text-sm text-gray-500">
                     {funcionarios.length} resultados encontrados
+                </div>
+            )}
+
+            {/* Role Modal */}
+            {editingUser && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">Asignar Roles</h3>
+                                <p className="text-sm text-gray-500 mt-1">{editingUser.nombreCompleto}</p>
+                            </div>
+                            <button 
+                                onClick={() => setEditingUser(null)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <span className="text-2xl">×</span>
+                            </button>
+                        </div>
+
+                        <div className="space-y-3 mb-6">
+                            {availableRoles.map(roleName => {
+                                const formatRoleName = (role) => {
+                                    const mapping = {
+                                        "ROLE_JEFE": "Jefe de Unidad",
+                                        "ROLE_SUBJEFE": "Subjefe de Unidad",
+                                        "ROLE_FUNCIONARIO": "Funcionario",
+                                        "ROLE_ADMINISTRADOR": "Administrador del Sistema",
+                                        "ROLE_TURNOS": "Encargado de Turnos",
+                                        "ROLE_TURNOS_RONDA": "Supervisor de Ronda",
+                                        "ROLE_REVISOR": "Revisor",
+                                        "ROLE_JENADEP": "JENADEP",
+                                        "ROLE_DIRECTOR": "Director",
+                                        "ROLE_PM_SUB": "PM Subrogante",
+                                        "ROLE_PM_REG": "PM Regional"
+                                    };
+                                    return mapping[role] || role.replace("ROLE_", "").replace(/_/g, " ");
+                                };
+
+                                return (
+                                <label key={roleName} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
+                                    <input 
+                                        type="checkbox"
+                                        checked={selectedRoles.has(roleName)}
+                                        onChange={() => toggleRole(roleName)}
+                                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <span className="font-medium text-gray-700">{formatRoleName(roleName)}</span>
+                                </label>
+                                );
+                            })}
+                        </div>
+
+                        {roleMessage && (
+                            <div className={clsx(
+                                "mb-4 p-3 rounded-lg text-sm font-medium",
+                                roleMessage.type === 'success' ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+                            )}>
+                                {roleMessage.text}
+                            </div>
+                        )}
+
+                        <div className="flex gap-3 justify-end">
+                            <button 
+                                onClick={() => setEditingUser(null)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={saveRoles}
+                                disabled={savingRoles}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {savingRoles && <Loader2 size={16} className="animate-spin" />}
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
