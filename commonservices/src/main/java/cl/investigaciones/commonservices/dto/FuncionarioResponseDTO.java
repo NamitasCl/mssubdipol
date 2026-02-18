@@ -21,6 +21,9 @@ public class FuncionarioResponseDTO {
     private String nombreUnidad;
     private String siglasUnidad;
     private String usuarioAD;
+    private int runFun;
+    private String dvFun;
+    private String emailFun;
     private int antiguedad;
 
 

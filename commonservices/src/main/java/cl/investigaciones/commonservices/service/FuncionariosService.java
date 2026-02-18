@@ -107,7 +107,14 @@ public class FuncionariosService {
 
                 System.out.println("Response: " + response.getBody());
 
-                if (response.getBody().getDescription().contains("No existe información asociada.")) {
+                FuncionarioResponseWrapper body = response.getBody();
+
+                if (body == null) {
+                    System.err.println("Response body is null");
+                    return false;
+                }
+
+                if (body.getDescription() != null && body.getDescription().contains("No existe información asociada.")) {
                     break;
                 }
 
@@ -116,6 +123,10 @@ public class FuncionariosService {
                 }
 
                 List<FuncionarioResponseDTO> funcionarios = response.getBody().getResult();
+
+                if (funcionarios.isEmpty()) {
+                    break;
+                }
 
                 funcionarios.forEach(funcionario -> {
 
@@ -132,6 +143,9 @@ public class FuncionariosService {
                         funcionarioExistente.setSiglasUnidad(funcionario.getSiglasUnidad());
                         funcionarioExistente.setAntiguedad(funcionario.getAntiguedad());
                         funcionarioExistente.setUsername(funcionario.getUsuarioAD());
+                        funcionarioExistente.setRut(funcionario.getRunFun());
+                        funcionarioExistente.setDv(funcionario.getDvFun());
+                        funcionarioExistente.setEmail(funcionario.getEmailFun());
                         funcionarioRepository.save(funcionarioExistente);
                         return;
                     } else {
@@ -146,6 +160,9 @@ public class FuncionariosService {
                         funcionarioDto.setAntiguedad(funcionario.getAntiguedad());
                         funcionarioDto.setIdFun(funcionario.getIdFun());
                         funcionarioDto.setUsername(funcionario.getUsuarioAD());
+                        funcionarioDto.setRut(funcionario.getRunFun());
+                        funcionarioDto.setDv(funcionario.getDvFun());
+                        funcionarioDto.setEmail(funcionario.getEmailFun());
                         funcionarioRepository.save(funcionarioDto);
                     }
                 });
@@ -157,7 +174,8 @@ public class FuncionariosService {
             return true;
 
         } catch (Exception e) {
-            // log.error("Error en cronSaveUnidad", e);
+            System.err.println("Error en cronSaveFuncionarios: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

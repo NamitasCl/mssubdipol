@@ -22,6 +22,13 @@ export default function MemoDetalleModal({
     const [latestObservation, setLatestObservation] = useState(null);
     const [activeTab, setActiveTab] = useState("personas");
 
+    // Helper para limpiar strings crudos si normalize no lo hizo
+    const cleanRawString = (str) => {
+        if (!str) return "";
+        const match = str.match(/(?:marca|modelo)=([^,)]+)/i);
+        return match ? match[1].trim() : str;
+    };
+
     // Cargar historial
     useEffect(() => {
         if (selected && selected.id) {
@@ -196,6 +203,18 @@ export default function MemoDetalleModal({
                             >
                                 🕒 Hist
                             </button>
+                            <button
+                                onClick={() => setActiveTab("vehiculos")}
+                                className={`flex-1 py-3 text-center border-b-2 font-medium text-xs uppercase tracking-wide transition-colors ${activeTab === "vehiculos" ? "border-indigo-500 text-indigo-600 bg-indigo-50" : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}
+                            >
+                                🚗 Veh ({selected.vehiculos?.length || 0})
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("dineros")}
+                                className={`flex-1 py-3 text-center border-b-2 font-medium text-xs uppercase tracking-wide transition-colors ${activeTab === "dineros" ? "border-indigo-500 text-indigo-600 bg-indigo-50" : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}
+                            >
+                                💰 Din ({selected.dineros?.length || 0})
+                            </button>
                         </nav>
                     </div>
 
@@ -295,6 +314,44 @@ export default function MemoDetalleModal({
                         {activeTab === "historial" && (
                             <div className="bg-white p-2 rounded-md shadow-sm h-full">
                                 <HistorialRevisiones memoId={selected.id} simpleView={true} />
+                            </div>
+                        )}
+
+
+
+                        {activeTab === "vehiculos" && (
+                            <div className="space-y-3">
+                                {selected.vehiculos?.length === 0 ? <EmptyState message="No hay vehículos" /> : (
+                                    selected.vehiculos?.map((v, idx) => (
+                                        <div key={idx} className="bg-white p-3 rounded-md shadow-sm border border-gray-100">
+                                            <div className="font-bold text-gray-800 text-sm">
+                                                {cleanRawString(v.marca) || "Vehículo sin marca"}
+                                            </div>
+                                            <div className="mt-1 text-xs text-gray-600 flex flex-col gap-1">
+                                                <span><span className="font-semibold">Patente:</span> {v.patente || "—"}</span>
+                                                <span><span className="font-semibold">Calidad:</span> {v.calidad || "—"}</span>
+                                                {v.nue && <span className="text-gray-500 italic">NUE: {v.nue}</span>}
+                                                {v.obs && <span className="italic text-gray-400">{v.obs}</span>}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === "dineros" && (
+                            <div className="space-y-3">
+                                {selected.dineros?.length === 0 ? <EmptyState message="No hay dineros" /> : (
+                                    selected.dineros?.map((d, idx) => (
+                                        <div key={idx} className="bg-white p-3 rounded-md shadow-sm border border-gray-100">
+                                            <div className="font-bold text-gray-800 text-sm">{d.monto ? `$${d.monto}` : "Monto no especificado"}</div>
+                                            <div className="mt-1 text-xs text-gray-600 flex flex-col gap-1">
+                                                <span><span className="font-semibold">Calidad:</span> {d.calidad || "—"}</span>
+                                                {d.obs && <span className="italic text-gray-400">{d.obs}</span>}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         )}
                     </div>

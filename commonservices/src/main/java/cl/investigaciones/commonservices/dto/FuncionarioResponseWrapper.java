@@ -2,6 +2,9 @@ package cl.investigaciones.commonservices.dto;
 
 import java.util.List;
 
+import lombok.ToString;
+
+@ToString
 public class FuncionarioResponseWrapper {
     private int code;
     private boolean success;
