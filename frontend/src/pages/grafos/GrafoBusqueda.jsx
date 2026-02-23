@@ -22,7 +22,7 @@ export default function GrafoBusqueda({ onBuscar }) {
     };
 
     return (
-        <div style={{ margin: 12 }}>
+        <div style={{ padding: "8px 4px" }}>
             {!tipo && <SelectorBusqueda onSeleccionar={setTipo} />}
 
             {tipo === "IDENTIDAD" && (
@@ -42,10 +42,31 @@ export default function GrafoBusqueda({ onBuscar }) {
             )}
 
             {(tipo || subTipoIdentidad || subTipoVehiculo) && (
-                <div style={{ marginTop: 12 }}>
-                    <Button variant={"primary"} onClick={reset}>
+                <div style={{ marginTop: 24, padding: "0 10px" }}>
+                    <button 
+                        onClick={reset}
+                        style={{
+                            width: "100%",
+                            padding: "10px",
+                            borderRadius: 8,
+                            background: "transparent",
+                            color: "#1a365d",
+                            border: "1.5px solid #1a365d",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease"
+                        }}
+                        onMouseOver={e => {
+                            e.currentTarget.style.background = "#1a365d";
+                            e.currentTarget.style.color = "#fff";
+                        }}
+                        onMouseOut={e => {
+                            e.currentTarget.style.background = "transparent";
+                            e.currentTarget.style.color = "#1a365d";
+                        }}
+                    >
                         Cambiar tipo de búsqueda
-                    </Button>
+                    </button>
                 </div>
             )}
         </div>

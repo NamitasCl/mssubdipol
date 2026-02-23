@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import GrafoBusqueda from "./GrafoBusqueda";
 import GrafoD3 from "./GrafoD3";
+import ResultadosBusquedaModal from "./ResultadosBusquedaModal";
 import {Card, Spinner} from "react-bootstrap";
 import {
     consultaPorCaracteristicasVehiculo,
@@ -9,18 +10,20 @@ import {
     consultaPorRutFormateado
 } from "../../api/nodosApi.js";
 
-const azulBase = "#0b0b0b";
-const azulClaro = "#e2e3ec";
-const azulSidebar = "#0f1f2b";
-const grisClaro = "#f8fbfd";
-const textoPrincipal = "#bfc9d8";
-const doradoSuave = "#ffe8a3";
+const azulBase = "#1e293b";
+const azulClaro = "#f1f5f9";
+const azulSidebar = "#0f172a";
+const grisClaro = "#f8fafc";
+const textoPrincipal = "#334155";
+const doradoPdi = "#eab308";
 
 export default function GrafoIndex() {
     const [nodos, setNodos] = useState([]);
     const [links, setLinks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [busqueda, setBusqueda] = useState(null);
+    const [resultadosVehiculos, setResultadosVehiculos] = useState([]);
+    const [showModalResultados, setShowModalResultados] = useState(false);
 
     const handleBuscar = async (criterio) => {
         setLoading(true);
@@ -37,7 +40,17 @@ export default function GrafoIndex() {
             } else if (criterio.tipo === "PATENTE") {
                 data = await consultaPorPatente(criterio.valor);
             } else if (criterio.tipo === "CARACTERISTICAS") {
-                data = await consultaPorCaracteristicasVehiculo(criterio.valores);
+                const results = await consultaPorCaracteristicasVehiculo(criterio.valores);
+                if (results && results.length > 0) {
+                    setResultadosVehiculos(results);
+                    setShowModalResultados(true);
+                    setLoading(false);
+                    return; // Terminamos aquí por ahora, esperando selección del usuario
+                } else {
+                    alert("No se encontraron vehículos con esas características.");
+                    setLoading(false);
+                    return;
+                }
             }
 
             setNodos(data.nodes);
@@ -64,40 +77,42 @@ export default function GrafoIndex() {
         }}>
             {/* Header */}
             <header style={{
-                padding: "32px 0 18px 0",
-                background: azulSidebar,
-                marginBottom: 28,
-                boxShadow: "0 1px 8px #0001",
-                paddingLeft: 20,
+                padding: "40px 0 30px 0",
+                background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+                marginBottom: 32,
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                paddingLeft: 40,
+                borderBottom: "4px solid " + doradoPdi
             }}>
                 <div style={{
-                    maxWidth: 900,
+                    maxWidth: 1000,
                     display: "flex",
                     flexDirection: "column",
                 }}>
                     <h1 style={{
                         fontWeight: 800,
-                        fontSize: 36,
-                        color: azulClaro,
-                        letterSpacing: "-0.5px",
-                        marginBottom: 2,
+                        fontSize: 42,
+                        color: "#fff",
+                        letterSpacing: "-1px",
+                        marginBottom: 4,
                         textAlign: "left"
                     }}>
-                        RACView <span style={{
-                        fontWeight: 400,
-                        fontSize: 22,
-                        color: azulClaro,
-                        marginLeft: 16
-                    }}>— Consulta de Nodos</span>
+                        RAC<span style={{color: doradoPdi}}>View</span>
+                        <span style={{
+                            fontWeight: 300,
+                            fontSize: 24,
+                            color: "rgba(255,255,255,0.7)",
+                            marginLeft: 20
+                        }}>| Consulta de Nodos</span>
                     </h1>
                     <span style={{
-                        fontSize: 17,
-                        color: textoPrincipal,
+                        fontSize: 18,
+                        color: "rgba(255,255,255,0.8)",
                         fontWeight: 400,
-                        marginTop: 2,
-                        opacity: 0.88
+                        marginTop: 4,
+                        maxWidth: 700
                     }}>
-                        Busca personas o vehículos y explora relaciones en un solo lugar.
+                        Visualiza inteligencia de datos y explora relaciones complejas entre entidades en una interfaz unificada.
                     </span>
                 </div>
             </header>
@@ -192,7 +207,11 @@ export default function GrafoIndex() {
                                 padding: 12,
                                 background: "#fafcff"
                             }}>
-                                <GrafoD3 nodes={nodos} links={links}/>
+                                <GrafoD3 
+                                    nodes={nodos} 
+                                    links={links} 
+                                    onRelatedSearch={(type, valor) => handleBuscar({ tipo: type.toUpperCase(), valor })}
+                                />
                             </div>
                         </Card.Body>
                     </Card>
@@ -213,6 +232,13 @@ export default function GrafoIndex() {
                         No se encontraron nodos relacionados a la consulta.
                     </div>
                 )}
+
+                <ResultadosBusquedaModal 
+                    show={showModalResultados}
+                    onHide={() => setShowModalResultados(false)}
+                    resultados={resultadosVehiculos}
+                    onCargarGrafo={(patente) => handleBuscar({ tipo: "PATENTE", valor: patente })}
+                />
             </div>
         </div>
     );

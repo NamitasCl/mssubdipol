@@ -1,227 +1,84 @@
 import React, {useEffect, useState} from 'react';
 import {Alert, Badge, Card, Offcanvas, Spinner} from 'react-bootstrap';
-import {FaCar, FaDollarSign, FaFileAlt, FaPills, FaUser} from 'react-icons/fa';
+import {FaBoxOpen, FaCar, FaDollarSign, FaFileAlt, FaPills, FaTimes, FaUser, FaUserTie} from 'react-icons/fa';
 import {FaGun} from "react-icons/fa6";
 import * as PropTypes from "prop-types";
 
-function FaBullet(props) {
-    return null;
-}
-
-FaBullet.propTypes = {className: PropTypes.string};
-
 const NodeInfoDrawer = ({show, handleClose, nodeData, onRelatedSearch}) => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
     const [detailedInfo, setDetailedInfo] = useState(null);
-
-    console.log("NodeData: ", nodeData);
 
     useEffect(() => {
         if (nodeData && show) {
-            fetchDetailedInfo(nodeData);
+            console.log("NodeInfoDrawer — nodeData:", nodeData);
+            console.log("NodeInfoDrawer — nodeData.data:", JSON.stringify(nodeData.data, null, 2));
+            setDetailedInfo({
+                type: nodeData.type || 'default',
+                data: nodeData.data || {}
+            });
+        } else if (!show) {
+            setDetailedInfo(null);
         }
     }, [nodeData, show]);
 
-    const fetchDetailedInfo = async (node) => {
-        setLoading(true);
-        setError(null);
-        try {
-            // Normalizamos: si no viene node.data, usamos el propio node
-            const safe = {type: node?.type, data: node?.data ?? node ?? {}};
-            setDetailedInfo(safe);
-        } catch (err) {
-            setError('Error al cargar información detallada');
-        } finally {
-            setLoading(false);
-        }
+    const typeColors = {
+        persona: '#3b82f6', memo: '#f59e0b', funcionario: '#10b981',
+        vehiculo: '#eab308', droga: '#a855f7', dinero: '#06b6d4',
+        arma: '#ef4444', municion: '#64748b', especie: '#f43f5e',
     };
 
     const getNodeIcon = (type) => {
-        const icons = {
-            persona: <FaUser className="me-2"/>,
-            vehiculo: <FaCar className="me-2"/>,
-            arma: <FaGun className="me-2"/>,
-            droga: <FaPills className="me-2"/>,
-            dinero: <FaDollarSign className="me-2"/>,
-            municion: <FaBullet className="me-2"/>,
-            memo: <FaFileAlt className="me-2"/>
+        const map = {
+            persona: <FaUser/>, vehiculo: <FaCar/>, arma: <FaGun/>,
+            droga: <FaPills/>, dinero: <FaDollarSign/>, municion: <span>•</span>,
+            memo: <FaFileAlt/>, funcionario: <FaUserTie/>, especie: <FaBoxOpen/>
         };
-        return icons[type] || <FaFileAlt className="me-2"/>;
+        return map[type] || <FaFileAlt/>;
     };
 
-    // ---------- Renderers con optional chaining y defaults ----------
-    const renderPersonaCard = (persona = {}) => (
-        <Card className="mb-3 shadow-sm">
-            <Card.Header className="bg-primary text-white">
-                <h5 className="mb-0">{getNodeIcon('persona')} Ficha de Persona</h5>
-            </Card.Header>
-            <Card.Body>
-                <div className="row">
-                    <div className="col-md-6">
-                        <h6 className="text-primary">Identificación</h6>
-                        <p><strong>RUT:</strong> {persona.rut ?? '—'}</p>
-                        <p>
-                            <strong>Nombre:</strong> {[persona.nombre, persona.apellidoPat, persona.apellidoMat].filter(Boolean).join(' ') || '—'}
-                        </p>
-                        <p><strong>Sexo:</strong> {persona.sexo ?? '—'}</p>
-                        <p><strong>Fecha Nacimiento:</strong> {persona.fechaNacimiento ?? '—'}</p>
-                    </div>
-                    <div className="col-md-6">
-                        <h6 className="text-primary">Información Adicional</h6>
-                        <p><strong>Estado Civil:</strong> {persona.estadoCivil ?? '—'}</p>
-                        <p><strong>Nacionalidad:</strong> {persona.nacionalidad ?? '—'}</p>
-                        <p><strong>Profesión:</strong> {persona.profesion ?? '—'}</p>
-                        {persona.observaciones && (<p><strong>Observaciones:</strong> {persona.observaciones}</p>)}
-                    </div>
-                </div>
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    const Row = ({label, value}) =>
+        value ? <p className="mb-1 text-dark"><strong>{label}:</strong> {value}</p> : null;
 
-                {Array.isArray(persona.delitos) && persona.delitos.length > 0 && (
-                    <div className="mt-3">
-                        <h6 className="text-danger">Delitos Asociados</h6>
-                        {persona.delitos.map((delito, idx) => (
-                            <Badge key={idx} bg="danger" className="me-2 mb-1">
-                                {delito?.tipoDelito ?? 'Delito'}
-                            </Badge>
-                        ))}
-                    </div>
-                )}
-            </Card.Body>
-        </Card>
+    const Header = ({type, title}) => (
+        <Card.Header className="text-white py-3" style={{backgroundColor: typeColors[type] || '#64748b', color: '#fff'}}>
+            <h5 className="mb-0 d-flex align-items-center gap-2">
+                {getNodeIcon(type)} {title}
+            </h5>
+        </Card.Header>
     );
 
-    const renderVehiculoCard = (vehiculo = {}) => (
-        <Card className="mb-3 shadow-sm">
-            <Card.Header className="bg-info text-white">
-                <h5 className="mb-0">{getNodeIcon('vehiculo')} Ficha de Vehículo</h5>
-            </Card.Header>
-            <Card.Body>
-                <div className="row">
-                    <div className="col-md-6">
-                        <h6 className="text-info">Identificación del Vehículo</h6>
-                        <p><strong>Patente:</strong> <Badge bg="dark">{vehiculo.patente ?? '—'}</Badge></p>
-                        <p><strong>Marca:</strong> {vehiculo.marca?.descripcion ?? '—'}</p>
-                        <p><strong>Modelo:</strong> {vehiculo.modelo?.descripcion ?? '—'}</p>
-                        <p><strong>Color:</strong> {vehiculo.color ?? '—'}</p>
-                        <p><strong>Año:</strong> {vehiculo.año ?? '—'}</p>
-                    </div>
-                    <div className="col-md-6">
-                        <h6 className="text-info">Información Legal</h6>
-                        <p><strong>Calidad:</strong> {vehiculo.calidad ?? '—'}</p>
-                        <p><strong>Condición:</strong> {vehiculo.condicion ?? '—'}</p>
-                        {vehiculo.avaluo && (<p><strong>Avalúo:</strong> ${vehiculo.avaluo}</p>)}
-                        {vehiculo.obs && (<p><strong>Observaciones:</strong> {vehiculo.obs}</p>)}
-                    </div>
-                </div>
+    // ── Renderers ──────────────────────────────────────────────────────────────
+    const renderPersona = (p = {}) => (
+        <Card className="mb-3 border-0 shadow-sm overflow-hidden">
+            <Header type="persona" title="Ficha de Persona"/>
+            <Card.Body className="bg-white border">
+                <Row label="RUT" value={p.rut}/>
+                <Row label="Nombre" value={[p.nombre, p.apellidoPat, p.apellidoMat].filter(Boolean).join(' ') || null}/>
+                <Row label="Sexo" value={p.sexo}/>
+                <Row label="Edad" value={p.edad}/>
+                <Row label="Nacionalidad" value={p.nacionalidad}/>
+                <Row label="Apodo" value={p.apodo}/>
+                <Row label="Dirección" value={[p.direccion, p.direccionNumero].filter(Boolean).join(' ') || null}/>
+                <Row label="Teléfono" value={p.fono}/>
+                <Row label="Correo" value={p.correoElectronico}/>
+                <Row label="Observaciones" value={p.observaciones}/>
 
-                {vehiculo.sitioSuceso && (
-                    <div className="mt-3">
-                        <h6 className="text-secondary">Ubicación del Suceso</h6>
-                        <p><strong>Sitio:</strong> {vehiculo.sitioSuceso}</p>
-                        <p><strong>Comuna:</strong> {vehiculo.comunaSV}</p>
-                        <p><strong>Vía:</strong> {vehiculo.nombreViaSV} {vehiculo.numSV}</p>
-                        {(vehiculo.latitudV && vehiculo.longitudV) && (
-                            <p><strong>Coordenadas:</strong> {vehiculo.latitudV}, {vehiculo.longitudV}</p>
-                        )}
+                {p.delitos && p.delitos.length > 0 && (
+                    <div className="mt-3 pt-2 border-top">
+                        <small className="text-muted fw-bold text-uppercase">Delitos</small>
+                        <div className="d-flex flex-wrap gap-1 mt-1">
+                            {[...p.delitos].map((d, i) => (
+                                <Badge key={i} bg="danger" className="opacity-85">{d}</Badge>
+                            ))}
+                        </div>
                     </div>
                 )}
-            </Card.Body>
-        </Card>
-    );
-
-    const renderArmaCard = (arma = {}) => (
-        <Card className="mb-3 shadow-sm">
-            <Card.Header className="bg-danger text-white">
-                <h5 className="mb-0">{getNodeIcon('arma')} Ficha de Arma</h5>
-            </Card.Header>
-            <Card.Body>
-                <div className="row">
-                    <div className="col-md-6">
-                        <h6 className="text-danger">Características del Arma</h6>
-                        <p><strong>Tipo:</strong> {arma.tipoArma ?? '—'}</p>
-                        <p><strong>Marca:</strong> {arma.marcaArma ?? '—'}</p>
-                        <p><strong>Modelo:</strong> {arma.modeloArma ?? '—'}</p>
-                        <p><strong>Calibre:</strong> {arma.calibre ?? '—'}</p>
-                    </div>
-                    <div className="col-md-6">
-                        <h6 className="text-danger">Información de Serie</h6>
-                        <p><strong>N° Serie:</strong> <Badge bg="dark">{arma.serieArma ?? '—'}</Badge></p>
-                        <p><strong>Calidad:</strong> {arma.calidad ?? '—'}</p>
-                        <p><strong>Estado:</strong> {arma.estado ?? '—'}</p>
-                    </div>
-                </div>
-                {arma.obs && (
-                    <div className="mt-3">
-                        <Alert variant="warning">
-                            <strong>Observaciones:</strong> {arma.obs}
-                        </Alert>
-                    </div>
-                )}
-            </Card.Body>
-        </Card>
-    );
-
-    const renderDrogaCard = (droga = {}) => (
-        <Card className="mb-3 shadow-sm">
-            <Card.Header className="bg-warning text-dark">
-                <h5 className="mb-0">{getNodeIcon('droga')} Ficha de Droga</h5>
-            </Card.Header>
-            <Card.Body>
-                <div className="row">
-                    <div className="col-md-6">
-                        <h6 className="text-warning">Tipo de Sustancia</h6>
-                        <p><strong>Tipo:</strong> {droga.tipoDroga ?? '—'}</p>
-                        <p><strong>Cantidad:</strong> {droga.cantidadDroga ?? '—'}</p>
-                        <p><strong>Unidad:</strong> {droga.unidadMedida ?? '—'}</p>
-                    </div>
-                    <div className="col-md-6">
-                        <h6 className="text-warning">Información Legal</h6>
-                        <p><strong>Calidad:</strong> {droga.calidad ?? '—'}</p>
-                        <p><strong>Estado:</strong> {droga.estado ?? '—'}</p>
-                    </div>
-                </div>
-                {droga.obs && (
-                    <Alert variant="info" className="mt-3">
-                        <strong>Observaciones:</strong> {droga.obs}
-                    </Alert>
-                )}
-            </Card.Body>
-        </Card>
-    );
-
-    const renderMemoCard = (memo = {}) => (
-        <Card className="mb-3 shadow-sm">
-            <Card.Header className="bg-secondary text-white">
-                <h5 className="mb-0">{getNodeIcon('memo')} Ficha de Memo</h5>
-            </Card.Header>
-            <Card.Body>
-                <div className="row">
-                    <div className="col-md-6">
-                        <h6 className="text-secondary">Información del Memo</h6>
-                        <p><strong>Formulario:</strong> {memo.formulario ?? '—'}</p>
-                        <p><strong>Fecha:</strong> {memo.fecha ?? '—'}</p>
-                        <p><strong>Unidad:</strong> {memo.unidad ?? '—'}</p>
-                    </div>
-                    <div className="col-md-6">
-                        <h6 className="text-secondary">Detalles del Procedimiento</h6>
-                        <p><strong>Procedimiento:</strong> {memo.procedimiento ?? '—'}</p>
-                        {memo.numeroSumario && (<p><strong>N° Sumario:</strong> {memo.numeroSumario}</p>)}
-                    </div>
-                </div>
-
-                {Array.isArray(memo.fichaPersonas) && memo.fichaPersonas.length > 0 && (
-                    <div className="mt-3">
-                        <h6 className="text-secondary">Personas Involucradas</h6>
-                        <div className="d-flex flex-wrap gap-2">
-                            {memo.fichaPersonas.map((persona, idx) => (
-                                <Badge
-                                    key={idx}
-                                    bg="primary"
-                                    className="cursor-pointer"
-                                    onClick={() => onRelatedSearch && onRelatedSearch('persona', persona?.rut)}
-                                >
-                                    {[persona?.nombre, persona?.apellidoPat].filter(Boolean).join(' ') || 'Persona'}
-                                </Badge>
+                {p.estados && p.estados.length > 0 && (
+                    <div className="mt-2">
+                        <small className="text-muted fw-bold text-uppercase">Calidades</small>
+                        <div className="d-flex flex-wrap gap-1 mt-1">
+                            {[...p.estados].map((e, i) => (
+                                <Badge key={i} bg="secondary">{e}</Badge>
                             ))}
                         </div>
                     </div>
@@ -230,24 +87,112 @@ const NodeInfoDrawer = ({show, handleClose, nodeData, onRelatedSearch}) => {
         </Card>
     );
 
-    const renderNodeInfo = () => {
-        if (!detailedInfo) return null;
-        const type = detailedInfo?.type;
-        const data = detailedInfo?.data ?? {};
+    const renderVehiculo = (v = {}) => (
+        <Card className="mb-3 border-0 shadow-sm overflow-hidden">
+            <Header type="vehiculo" title="Ficha de Vehículo"/>
+            <Card.Body className="bg-white border">
+                {(v.patente) && (
+                    <p className="mb-2"><Badge bg="dark" className="fs-6 px-3">{v.patente}</Badge></p>
+                )}
+                <Row label="Marca" value={v.marca}/>
+                <Row label="Modelo" value={v.modelo}/>
+                <Row label="Color" value={v.color}/>
+                <Row label="Tipo" value={v.tipo}/>
+                <Row label="Calidad" value={v.calidad}/>
+                <Row label="Observaciones" value={v.obs}/>
+            </Card.Body>
+        </Card>
+    );
 
+    const renderMemo = (m = {}) => (
+        <Card className="mb-3 border-0 shadow-sm overflow-hidden">
+            <Header type="memo" title="Ficha de Memo"/>
+            <Card.Body className="bg-white border">
+                <Row label="Formulario" value={m.formulario}/>
+                <Row label="Folio Brain" value={m.folioBrain}/>
+                <Row label="RUC" value={m.ruc}/>
+                <Row label="Fecha" value={m.fecha ? new Date(m.fecha).toLocaleDateString('es-CL') : null}/>
+                <Row label="Procedimiento" value={m.modusDescripcion}/>
+                <Row label="Unidad" value={m.unidad?.nombreUnidad || m.unidad}/>
+                <Row label="Tipo" value={m.tipo}/>
+            </Card.Body>
+        </Card>
+    );
+
+    const renderFuncionario = (f = {}) => (
+        <Card className="mb-3 border-0 shadow-sm overflow-hidden">
+            <Header type="funcionario" title="Ficha de Funcionario"/>
+            <Card.Body className="bg-white border">
+                <Row label="Nombre" value={f.funcionario}/>
+                <Row label="Responsabilidad" value={f.responsabilidadMemo}/>
+            </Card.Body>
+        </Card>
+    );
+
+    const renderArma = (a = {}) => (
+        <Card className="mb-3 border-0 shadow-sm overflow-hidden">
+            <Header type="arma" title="Ficha de Arma"/>
+            <Card.Body className="bg-white border">
+                <Row label="Tipo" value={a.tipoArma}/>
+                <Row label="Marca" value={a.marcaArma}/>
+                <Row label="Calibre" value={a.calibreArma}/>
+                <Row label="N° Serie" value={a.serieArma}/>
+                <Row label="Calidad" value={a.calidad}/>
+                <Row label="Condición" value={a.condicion}/>
+                <Row label="Observaciones" value={a.obs}/>
+            </Card.Body>
+        </Card>
+    );
+
+    const renderDinero = (d = {}) => (
+        <Card className="mb-3 border-0 shadow-sm overflow-hidden">
+            <Header type="dinero" title="Ficha de Dinero"/>
+            <Card.Body className="bg-white border">
+                <Row label="Monto" value={d.monto != null ? `$${d.monto}` : null}/>
+                <Row label="Calidad" value={d.calidad}/>
+                <Row label="Observaciones" value={d.obs}/>
+            </Card.Body>
+        </Card>
+    );
+
+    const renderEspecie = (e = {}) => (
+        <Card className="mb-3 border-0 shadow-sm overflow-hidden">
+            <Header type="especie" title="Ficha de Especie"/>
+            <Card.Body className="bg-white border">
+                <Row label="Descripción" value={e.descripcion}/>
+                <Row label="Calidad" value={e.calidad}/>
+                <Row label="Cantidad" value={e.cantidad}/>
+                <Row label="NUE" value={e.nue}/>
+                <Row label="Avalúo" value={e.avaluo}/>
+            </Card.Body>
+        </Card>
+    );
+
+    const renderGeneric = (type, data = {}) => (
+        <Alert variant="secondary" className="border">
+            <div className="fw-bold mb-2">{getNodeIcon(type)} <span className="ms-1 text-capitalize">{type}</span></div>
+            <Row label="Etiqueta" value={data.label || nodeData?.label}/>
+            {/* Muestra todas las propiedades disponibles */}
+            {Object.entries(data).map(([k, v]) =>
+                typeof v === 'string' || typeof v === 'number'
+                    ? <Row key={k} label={k} value={String(v)}/>
+                    : null
+            )}
+        </Alert>
+    );
+
+    const renderContent = () => {
+        if (!detailedInfo) return null;
+        const {type, data} = detailedInfo;
         switch (type) {
-            case 'persona':
-                return renderPersonaCard(data);
-            case 'vehiculo':
-                return renderVehiculoCard(data);
-            case 'arma':
-                return renderArmaCard(data);
-            case 'droga':
-                return renderDrogaCard(data);
-            case 'memo':
-                return renderMemoCard(data);
-            default:
-                return <Alert variant="info">Información detallada no disponible para este tipo de nodo.</Alert>;
+            case 'persona':     return renderPersona(data);
+            case 'vehiculo':    return renderVehiculo(data);
+            case 'memo':        return renderMemo(data);
+            case 'funcionario': return renderFuncionario(data);
+            case 'arma':        return renderArma(data);
+            case 'dinero':      return renderDinero(data);
+            case 'especie':     return renderEspecie(data);
+            default:            return renderGeneric(type, data);
         }
     };
 
@@ -256,46 +201,72 @@ const NodeInfoDrawer = ({show, handleClose, nodeData, onRelatedSearch}) => {
             show={show}
             onHide={handleClose}
             placement="end"
-            style={{width: '500px', zIndex: 2000}}
+            style={{width: '460px', zIndex: 3000, borderLeft: '1px solid #cbd5e1'}}
+            className="shadow-lg"
         >
-            <Offcanvas.Header closeButton className="bg-dark text-white">
-                <Offcanvas.Title>
-                    {nodeData && (
-                        <>
-                            {getNodeIcon(nodeData?.type)}
-                            Ficha Policial
-                            - {nodeData?.type ? nodeData.type.charAt(0).toUpperCase() + nodeData.type.slice(1) : '—'}
-                        </>
-                    )}
+            {/* Header */}
+            <Offcanvas.Header
+                className="text-white py-3"
+                style={{backgroundColor: typeColors[nodeData?.type] || '#1a365d', borderBottom: '1px solid rgba(255,255,255,.15)'}}
+            >
+                <Offcanvas.Title className="d-flex gap-2 align-items-center">
+                    <span className="p-2 rounded" style={{background: 'rgba(255,255,255,0.2)'}}>
+                        {getNodeIcon(nodeData?.type)}
+                    </span>
+                    <div>
+                        <div style={{fontSize: 11, fontWeight: 700, letterSpacing: 2, opacity: .8, textTransform: 'uppercase'}}>
+                            Grafo · {nodeData?.type || ''}
+                        </div>
+                        <div style={{fontSize: 18, fontWeight: 700, lineHeight: 1.2}}>
+                            {nodeData?.label || 'Ficha Policial'}
+                        </div>
+                    </div>
                 </Offcanvas.Title>
+                <button
+                    onClick={handleClose}
+                    style={{
+                        background: 'rgba(255,255,255,0.15)',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        borderRadius: 8,
+                        color: '#fff',
+                        width: 36, height: 36,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer',
+                        flexShrink: 0
+                    }}
+                >
+                    <FaTimes size={16}/>
+                </button>
             </Offcanvas.Header>
 
-            <Offcanvas.Body className="p-0">
-                {loading && (
-                    <div className="d-flex justify-content-center align-items-center" style={{height: '200px'}}>
-                        <Spinner animation="border" variant="primary"/>
-                    </div>
-                )}
-
-                {error && (<Alert variant="danger" className="m-3">{error}</Alert>)}
-
-                <div className="p-3">
-                    {renderNodeInfo()}
+            {/* Body */}
+            <Offcanvas.Body style={{background: '#f8fafc', padding: 0}}>
+                <div style={{padding: '20px 16px 100px'}}>
+                    {renderContent()}
                 </div>
 
+                {/* Acciones fijas al fondo */}
                 {nodeData && (
-                    <div className="p-3 border-top bg-light">
-                        <h6 className="text-muted">Acciones</h6>
-                        <div className="d-grid gap-2">
-                            <button
-                                className="btn btn-outline-primary"
-                                onClick={() => onRelatedSearch && onRelatedSearch(nodeData?.type, nodeData?.id)}
-                            >
-                                Buscar Relacionados
-                            </button>
-                            <button className="btn btn-outline-secondary" onClick={() => {
-                            }}>
-                                Exportar Ficha
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        background: '#fff', borderTop: '1px solid #e2e8f0',
+                        padding: '14px 16px'
+                    }}>
+                        <div className="d-flex flex-column gap-2">
+                            {onRelatedSearch && (
+                                <button
+                                    className="btn btn-primary fw-bold py-2"
+                                    onClick={() => {
+                                        const rawId = String(nodeData.id || '');
+                                        const identifier = rawId.includes(':') ? rawId.split(':').slice(1).join(':') : rawId;
+                                        onRelatedSearch(nodeData.type, identifier);
+                                    }}
+                                >
+                                    Explorar Relaciones
+                                </button>
+                            )}
+                            <button className="btn btn-outline-secondary py-2">
+                                Generar PDF de Ficha
                             </button>
                         </div>
                     </div>
@@ -303,6 +274,13 @@ const NodeInfoDrawer = ({show, handleClose, nodeData, onRelatedSearch}) => {
             </Offcanvas.Body>
         </Offcanvas>
     );
+};
+
+NodeInfoDrawer.propTypes = {
+    show: PropTypes.bool.isRequired,
+    handleClose: PropTypes.func.isRequired,
+    nodeData: PropTypes.object,
+    onRelatedSearch: PropTypes.func
 };
 
 export default NodeInfoDrawer;

@@ -1,6 +1,7 @@
-// RutInput.jsx
 import React, { useState } from "react";
+import { FaSearch } from "react-icons/fa";
 
+const azulBase = "#1a365d";
 const azulClaro = "#b1cfff";
 const textoPrin = "#22334a";
 const blanco = "#fff";
@@ -59,7 +60,6 @@ export default function RutInput({ onBuscar }) {
         e.preventDefault();
         const limpio = cleanRut(rutInput);
         if (validarRut(limpio)) {
-            // Antes: onBuscar(formatRut(limpio));
             onBuscar && onBuscar({ tipo: "RUT", valor: formatRut(limpio) });
         } else {
             setRutValido(false);
@@ -84,38 +84,44 @@ export default function RutInput({ onBuscar }) {
                     placeholder="RUT Ej: 12.345.678-9"
                     style={{
                         flex: 1,
-                        padding: "8px 12px",
-                        borderRadius: 7,
+                        padding: "10px 14px",
+                        borderRadius: 8,
                         border: `1.5px solid ${rutValido ? azulClaro : rojoError}`,
-                        fontSize: 18,
+                        fontSize: "18px",
                         color: textoPrin,
                         background: blanco,
                         outline: "none",
                         boxShadow: rutValido
-                            ? "0 1px 3px #b1cfff10"
-                            : "0 1px 3px #ff5a5a30",
+                            ? "0 2px 4px rgba(177, 207, 255, 0.1)"
+                            : "0 2px 4px rgba(255, 90, 90, 0.1)",
                     }}
                 />
                 <button
                     type="submit"
                     disabled={!rutValido || rutInput.length < 2}
                     style={{
-                        padding: "8px 20px",
-                        borderRadius: 7,
+                        padding: "10px 24px",
+                        borderRadius: 8,
                         border: "none",
-                        background: rutValido ? "#2a4d7c" : "#a0a0a0",
+                        background: rutValido ? azulBase : "#b5c9ea",
                         color: blanco,
-                        fontWeight: 700,
-                        fontSize: 17,
+                        fontWeight: "600",
+                        fontSize: "17px",
                         cursor: rutValido ? "pointer" : "not-allowed",
-                        transition: "background 0.18s",
+                        transition: "all 0.2s ease",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
                     }}
+                    onMouseOver={e => rutValido && (e.currentTarget.style.filter = "brightness(1.2)")}
+                    onMouseOut={e => rutValido && (e.currentTarget.style.filter = "brightness(1)")}
                 >
+                    <FaSearch size={14} />
                     Buscar
                 </button>
             </div>
             {!rutValido && (
-                <span style={{ color: rojoError, fontSize: 14 }}>RUT inválido</span>
+                <span style={{ color: rojoError, fontSize: 14, fontWeight: 500 }}>RUT inválido</span>
             )}
         </form>
     );

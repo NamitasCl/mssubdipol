@@ -3,70 +3,88 @@ import * as d3 from "d3";
 import NodeInfoDrawer from "./NodeInfoDrawer.jsx";
 import {consultaPorPatente, consultaPorRutFormateado} from "../../api/nodosApi";
 
-/* PALETA ----------------------- */
-const azulBase = "#2a4d7c";
-const azulMedio = "#4f7eb9";
-const azulClaro = "#b1cfff";
-const grisClaro = "#f8fbfd";
-const blanco = "#fff";
-const textoPrin = "#22334a";
+/* PALETA PROFESIONAL ----------------------- */
+const azulPdi = "#1a365d"; // Navy PDI
+const doradoPdi = "#c5a059"; // Dorado PDI
+const bgGraph = "#f1f5f9"; // Slate 100
+const blanco = "#ffffff";
+const textoHeader = "#1e293b";
 
-/* COLORES NODOS ---------------- */
+/* COLORES NODOS (Tailwind based) ---------------- */
 const nodeColors = {
-    persona: "#3887ff", memo: "#ff9e2c", funcionario: "#1ac888",
-    vehiculo: "#ffd23c", droga: "#c876ff", dinero: "#3ae3ec",
-    arma: "#f74e4e", municion: "#a7a7a7", default: "#c1c9d6",
+    persona: "#3b82f6",     // Blue 500
+    memo: "#f59e0b",        // Amber 500
+    funcionario: "#10b981", // Emerald 500
+    vehiculo: "#eab308",    // Yellow 500
+    droga: "#a855f7",       // Purple 500
+    dinero: "#06b6d4",      // Cyan 500
+    arma: "#ef4444",        // Red 500
+    municion: "#64748b",    // Slate 500
+    especie: "#f43f5e",     // Rose 500
+    default: "#94a3b8",     // Slate 400
 };
 
-export default function GrafoD3({nodes, links}) {
+export default function GrafoD3({nodes, links, onRelatedSearch}) {
     const svgRef = useRef(null);
     const graphRef = useRef(null);
     const [selected, setSelected] = useState(null);
-    const [tooltip, setTooltip] = useState({show: false, x: 0, y: 0, content: ""});
+    const [tooltip, setTooltip] = useState({show: false, x: 0, y: 0, content: "", type: ""});
     const [selectedNode, setSelectedNode] = useState(null);
     const [showDrawer, setShowDrawer] = useState(false);
 
     const width = Math.floor(window.innerWidth * 0.9);
-    const height = 730;
+    const height = 750;
 
     useEffect(() => {
+        if (!nodes || nodes.length === 0) return;
+
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
 
+        // Fondo con gradiente sutil
+        const defs = svg.append("defs");
+        const radialGradient = defs.append("radialGradient")
+            .attr("id", "bg-gradient")
+            .attr("cx", "50%")
+            .attr("cy", "50%")
+            .attr("r", "50%");
+        radialGradient.append("stop").attr("offset", "0%").attr("stop-color", "#ffffff");
+        radialGradient.append("stop").attr("offset", "100%").attr("stop-color", "#f1f5f9");
+
         svg.append("rect")
-            .attr("width", width).attr("height", height)
-            .attr("fill", grisClaro);
+            .attr("width", "100%").attr("height", height)
+            .attr("fill", "url(#bg-gradient)");
 
         /* contenedor raíz */
         const graph = svg.append("g").attr("class", "graph");
         graphRef.current = graph.node();
 
         /* flecha */
-        svg.append("defs").append("marker")
+        defs.append("marker")
             .attr("id", "arrowhead").attr("viewBox", "-0 -5 10 10")
-            .attr("refX", 14).attr("refY", 0).attr("orient", "auto")
-            .attr("markerWidth", 7).attr("markerHeight", 7)
+            .attr("refX", 26).attr("refY", 0).attr("orient", "auto")
+            .attr("markerWidth", 6).attr("markerHeight", 6)
             .append("path")
             .attr("d", "M 0,-5 L 10,0 L 0,5")
-            .attr("fill", azulBase);
+            .attr("fill", "#94a3b8");
 
         /* simulación */
         const sim = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id).distance(110))
-            .force("charge", d3.forceManyBody().strength(-270))
-            .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collision", d3.forceCollide().radius(28));
+            .force("link", d3.forceLink(links).id(d => d.id).distance(130))
+            .force("charge", d3.forceManyBody().strength(-400))
+            .force("center", d3.forceCenter(svgRef.current.clientWidth / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(35));
 
         /* links */
         const link = graph.append("g")
-            .attr("stroke", azulBase).attr("stroke-opacity", .27)
+            .attr("stroke", "#cbd5e1").attr("stroke-opacity", 0.6)
             .selectAll("line").data(links).enter().append("line")
-            .attr("stroke-width", 2.5).attr("marker-end", "url(#arrowhead)");
+            .attr("stroke-width", 1.5).attr("marker-end", "url(#arrowhead)");
 
         const linkLabel = graph.append("g")
             .selectAll("text").data(links).enter().append("text")
-            .attr("font-size", 13).attr("fill", azulMedio).attr("opacity", .8)
-            .attr("text-anchor", "middle").attr("font-family", "Segoe UI, Arial")
+            .attr("font-size", 11).attr("fill", "#64748b")
+            .attr("text-anchor", "middle").attr("font-family", "Inter, system-ui, sans-serif")
             .attr("font-weight", 500).text(d => d.label);
 
         /* nodos */
@@ -77,7 +95,7 @@ export default function GrafoD3({nodes, links}) {
             .data(nodes).enter().append("g").attr("class", "node")
             .on("mouseenter", (e, d) => setTooltip({
                 show: true, x: e.offsetX || e.layerX, y: e.offsetY || e.layerY,
-                content: `${d.label}\n(${d.type})`
+                content: d.label, type: d.type
             }))
             .on("mouseleave", () => setTooltip({show: false}))
             .on("pointerdown", (e) => {
@@ -92,19 +110,30 @@ export default function GrafoD3({nodes, links}) {
                     setSelected(d);
                     handleNodeClick(e, d);
                 }
-                console.log("Nodes: ", nodes)
             });
 
-        nodeG.append("circle")
-            .attr("r", 22)
-            .attr("fill", d => nodeColors[d.type] || nodeColors.default)
-            .attr("stroke", "#fff").attr("stroke-width", 2)
-            .style("cursor", "pointer");
+        // Sombra de nodo
+        defs.append("filter").attr("id", "node-shadow")
+            .html(`<feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.2"/>`);
 
-        /* sombra defs */
-        svg.append("defs").append("filter").attr("id", "shadow")
-            .html(`<feDropShadow dx="0" dy="1" stdDeviation="2"
-                     flood-color="${azulClaro}" flood-opacity="0.8"/>`);
+        nodeG.append("circle")
+            .attr("r", d => d.type === 'memo' ? 24 : 20)
+            .attr("fill", d => nodeColors[d.type] || nodeColors.default)
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 3)
+            .attr("filter", "url(#node-shadow)")
+            .style("cursor", "pointer")
+            .style("transition", "all 0.2s ease");
+
+        // Icono o texto abreviado dentro del nodo
+        nodeG.append("text")
+            .attr("dy", ".35em")
+            .attr("text-anchor", "middle")
+            .attr("fill", "#fff")
+            .attr("font-size", 10)
+            .attr("font-weight", "bold")
+            .attr("pointer-events", "none")
+            .text(d => d.type.charAt(0).toUpperCase());
 
         /* tick */
         sim.on("tick", () => {
@@ -114,7 +143,7 @@ export default function GrafoD3({nodes, links}) {
             nodeG.attr("transform", d => `translate(${d.x},${d.y})`);
             linkLabel
                 .attr("x", d => (d.source.x + d.target.x) / 2)
-                .attr("y", d => (d.source.y + d.target.y) / 2 - 8);
+                .attr("y", d => (d.source.y + d.target.y) / 2 - 10);
         });
 
         /* drag */
@@ -138,7 +167,7 @@ export default function GrafoD3({nodes, links}) {
 
         /* zoom */
         svg.call(
-            d3.zoom().scaleExtent([0.1, 4])
+            d3.zoom().scaleExtent([0.2, 3])
                 .on("zoom", e => graph.attr("transform", e.transform))
         );
     }, [nodes, links, width, height]);
@@ -147,64 +176,56 @@ export default function GrafoD3({nodes, links}) {
     useEffect(() => {
         const graph = d3.select(graphRef.current);
         graph.selectAll("circle")
-            .attr("stroke", "#fff").attr("stroke-width", 2).attr("filter", null);
+            .attr("stroke", "#fff").attr("stroke-width", 3).attr("r", d => d.type === 'memo' ? 24 : 20);
 
         if (selected) {
             graph.selectAll("g.node")
                 .filter(d => d.id === selected.id)
                 .select("circle")
-                .attr("stroke", "#111").attr("stroke-width", 4)
-                .attr("filter", "url(#shadow)");
+                .attr("stroke", doradoPdi)
+                .attr("stroke-width", 5)
+                .attr("r", d => (d.type === 'memo' ? 24 : 20) + 4);
         }
     }, [selected]);
 
     const handleNodeClick = (event, d) => {
-        setSelectedNode({
+        // Capturamos una copia limpia antes de que D3 mute el objeto
+        const clean = {
             id: d.id,
-            type: d.type,
             label: d.label,
-            data: d.data ?? d,
-            node: d
-        });
+            type: d.type,
+            data: d.data
+        };
+        console.log("Node clicked - full data (JSON):", JSON.stringify(clean, null, 2));
+        setSelectedNode(clean);
         setShowDrawer(true);
     };
 
-    const handleRelatedSearch = async (type, identifier) => {
-        try {
-            let result;
-            switch (type) {
-                case 'persona':
-                    result = await consultaPorRutFormateado(identifier);
-                    break;
-                case 'vehiculo':
-                    result = await consultaPorPatente(identifier);
-                    break;
-                default:
-                    break;
-            }
-            // TODO: actualizar el grafo con "result"
-        } catch (error) {
-            console.error('Error en búsqueda relacionada:', error);
+    const handleRelatedSearch = (type, identifier) => {
+        if (onRelatedSearch) {
+            onRelatedSearch(type, identifier);
         }
     };
 
     return (
-        <div style={{
-            background: grisClaro, borderRadius: 12, padding: 18, boxShadow: "0 4px 32px #0001",
-            width: "100%", margin: "auto", position: "relative", border: "1px solid #ccc",
-        }}>
-            <svg ref={svgRef} width={"100%"} height={height}
-                 style={{display: "block", background: grisClaro, borderRadius: 14}}/>
+        <div className="relative w-full rounded-xl overflow-hidden bg-slate-50 border border-slate-200 shadow-inner">
+            <svg 
+                ref={svgRef} 
+                width={"100%"} 
+                height={height}
+                className="block touch-none"
+            />
 
             {tooltip.show && (
-                <div style={{
-                    position: "absolute", left: tooltip.x + 16, top: tooltip.y - 18,
-                    background: blanco, color: textoPrin, borderRadius: 8,
-                    padding: "9px 13px", border: `1px solid ${azulClaro}`,
-                    fontFamily: "Segoe UI, Arial", fontSize: 15, fontWeight: 500,
-                    boxShadow: "0 2px 8px #0002", pointerEvents: "none"
-                }}>
-                    {tooltip.content.split("\n").map((t, i) => <div key={i}>{t}</div>)}
+                <div 
+                    className="absolute pointer-events-none bg-white/95 backdrop-blur shadow-xl border border-slate-200 rounded-lg py-2 px-3 animate-in fade-in zoom-in duration-200 z-50"
+                    style={{ left: tooltip.x + 15, top: tooltip.y - 40 }}
+                >
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full" style={{ background: nodeColors[tooltip.type] }}></div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{tooltip.type}</span>
+                    </div>
+                    <div className="text-slate-800 font-bold leading-tight">{tooltip.content}</div>
                 </div>
             )}
 
@@ -214,6 +235,18 @@ export default function GrafoD3({nodes, links}) {
                 nodeData={selectedNode}
                 onRelatedSearch={handleRelatedSearch}
             />
+            
+            {/* Leyenda sutil */}
+            <div className="absolute bottom-4 left-4 flex flex-wrap gap-x-4 gap-y-2 bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-slate-200 shadow-sm max-w-sm">
+                {Object.entries(nodeColors).map(([type, color]) => (
+                    type !== 'default' && (
+                        <div key={type} className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }}></div>
+                            <span className="text-[10px] font-bold uppercase text-slate-500">{type}</span>
+                        </div>
+                    )
+                ))}
+            </div>
         </div>
     );
 }

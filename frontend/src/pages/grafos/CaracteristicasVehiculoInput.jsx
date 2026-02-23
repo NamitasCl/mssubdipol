@@ -10,18 +10,17 @@ export default function CaracteristicasVehiculoInput({ onBuscar }) {
     const [marca, setMarca] = useState("");
     const [modelo, setModelo] = useState("");
     const [color, setColor] = useState("");
-    const [anio, setAnio] = useState("");
     const [vin, setVin] = useState("");
     const [error, setError] = useState("");
 
-    const campos = [marca, modelo, color, anio, vin];
+    const campos = [marca, modelo, color];
     const filledFields = campos.filter(Boolean).length;
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (filledFields >= 2) {
             setError("");
-            onBuscar && onBuscar({ tipo: "CARACTERISTICAS", valores: { marca, modelo, color, anio, vin } });
+            onBuscar && onBuscar({ tipo: "CARACTERISTICAS", valores: { marca, modelo, color, vin } });
         } else {
             setError("Debes ingresar al menos dos características.");
         }
@@ -57,6 +56,7 @@ export default function CaracteristicasVehiculoInput({ onBuscar }) {
                             fontSize: 16,
                             color: textoPrincipal,
                             outline: "none",
+                            width: "100%"
                         }}
                         autoComplete="off"
                     />
@@ -74,6 +74,7 @@ export default function CaracteristicasVehiculoInput({ onBuscar }) {
                             fontSize: 16,
                             color: textoPrincipal,
                             outline: "none",
+                            width: "100%"
                         }}
                         autoComplete="off"
                     />
@@ -91,44 +92,31 @@ export default function CaracteristicasVehiculoInput({ onBuscar }) {
                             fontSize: 16,
                             color: textoPrincipal,
                             outline: "none",
+                            width: "100%"
                         }}
                         autoComplete="off"
                     />
                 </div>
-                <div style={{ position: "relative" }}>
-                    <FaCalendarAlt style={{ position: "absolute", left: 12, top: 11, color: azulClaro }} />
-                    <input
-                        value={anio}
-                        onChange={e => setAnio(e.target.value.replace(/\D/g, ""))}
-                        placeholder="Año"
-                        maxLength={4}
-                        style={{
-                            padding: "9px 12px 9px 38px",
-                            border: "1.2px solid #dbeafe",
-                            borderRadius: 8,
-                            fontSize: 16,
-                            color: textoPrincipal,
-                            outline: "none",
-                        }}
-                        autoComplete="off"
-                    />
-                </div>
-                <div style={{ position: "relative" }}>
-                    <FaIdCard style={{ position: "absolute", left: 12, top: 11, color: azulClaro }} />
+                <div 
+                    style={{ position: "relative", cursor: "help" }} 
+                    title="Campo en proceso de desarrollo"
+                >
+                    <FaIdCard style={{ position: "absolute", left: 12, top: 11, color: "#cbd5e1" }} />
                     <input
                         value={vin}
-                        onChange={e => setVin(e.target.value.toUpperCase())}
-                        placeholder="VIN"
-                        maxLength={17}
+                        disabled
+                        placeholder="VIN (Próximamente)"
                         style={{
                             padding: "9px 12px 9px 38px",
-                            border: "1.2px solid #dbeafe",
+                            border: "1.2px solid #e2e8f0",
                             borderRadius: 8,
                             fontSize: 16,
-                            color: textoPrincipal,
+                            color: "#94a3b8",
+                            background: "#f8fafc",
                             outline: "none",
+                            cursor: "help",
+                            width: "100%"
                         }}
-                        autoComplete="off"
                     />
                 </div>
                 <button
